@@ -136,3 +136,101 @@ function dedupCheck(phone, venue, date) {
   cache.put(key, '1', 300);
   return false;
 }
+
+// ─── Block 6: getActiveArtists ────────────────────────────────────────────────
+
+function getActiveArtists() {
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get('artists_config');
+  if (cached) return JSON.parse(cached);
+
+  var ss = SpreadsheetApp.openById(
+    PropertiesService.getScriptProperties().getProperty('BOOKINGS_SHEET_ID')
+  );
+  var sheet = ss.getSheetByName('artists');
+  var data = sheet.getDataRange().getValues();
+  // headers row 0: [slug, display_name, calendar_id, photo_url, active]
+  var result = data.slice(1)
+    .filter(function(row) {
+      return row[4] === true || String(row[4]).toUpperCase() === 'TRUE';
+    })
+    .map(function(row) {
+      return { slug: String(row[0]), display_name: String(row[1]),
+               calendar_id: String(row[2]), photo_url: String(row[3]) };
+    })
+    .sort(function(a, b) { return a.display_name.localeCompare(b.display_name); });
+
+  cache.put('artists_config', JSON.stringify(result), 300);
+  return result;
+}
+
+// ─── Block 7: getRoster ───────────────────────────────────────────────────────
+
+function getRoster() {
+  var cache = CacheService.getScriptCache();
+  var cached = cache.get('roster');
+  if (cached) return jsonOut({ ok: true, artists: JSON.parse(cached) });
+
+  var artists = getActiveArtists();
+  var result = artists.map(function(a) {
+    return { slug: a.slug, display_name: a.display_name, photo_url: a.photo_url };
+  });
+  cache.put('roster', JSON.stringify(result), 300);
+  return jsonOut({ ok: true, artists: result });
+}
+
+// ─── Block 8: getUpcoming ─────────────────────────────────────────────────────
+
+function getUpcoming(n) {
+  var cache = CacheService.getScriptCache();
+  var cacheKey = 'upcoming:' + n;
+  var cached = cache.get(cacheKey);
+  if (cached) return jsonOut({ ok: true, events: JSON.parse(cached) });
+
+  var artists = getActiveArtists();
+  var now = new Date();
+  var twoYears = new Date(now.getTime() + 2 * 365 * 24 * 60 * 60 * 1000);
+  var allEvents = [];
+
+  artists.forEach(function(artist) {
+    try {
+      var cal = CalendarApp.getCalendarById(artist.calendar_id);
+      if (!cal) { Logger.log('Calendar not found: ' + artist.calendar_id); return; }
+      cal.getEvents(now, twoYears, { max: n }).forEach(function(ev) {
+        allEvents.push({
+          date:           Utilities.formatDate(ev.getStartTime(), 'Asia/Colombo', 'yyyy-MM-dd'),
+          time:           Utilities.formatDate(ev.getStartTime(), 'Asia/Colombo', 'HH:mm'),
+          venue:          ev.getTitle(),
+          city:           ev.getLocation() || '',
+          artist_display: artist.display_name,
+          artist_slug:    artist.slug,
+          _key: normaliseVenue(ev.getTitle()) + ':'
+                + Utilities.formatDate(ev.getStartTime(), 'Asia/Colombo', 'yyyy-MM-dd')
+        });
+      });
+    } catch (err) {
+      Logger.log('Calendar read error for ' + artist.slug + ': ' + err);
+    }
+  });
+
+  // Merge events that share the same venue+date key (B2B across calendars)
+  var merged = {};
+  allEvents.forEach(function(ev) {
+    if (merged[ev._key]) {
+      merged[ev._key].artist_display += ' + ' + ev.artist_display;
+    } else {
+      merged[ev._key] = ev;
+    }
+  });
+
+  var result = Object.keys(merged).map(function(k) {
+    var ev = merged[k];
+    return { date: ev.date, time: ev.time, venue: ev.venue,
+             city: ev.city, artist_display: ev.artist_display, artist_slug: ev.artist_slug };
+  })
+  .sort(function(a, b) { return (a.date + a.time).localeCompare(b.date + b.time); })
+  .slice(0, n);
+
+  cache.put(cacheKey, JSON.stringify(result), 300);
+  return jsonOut({ ok: true, events: result });
+}
