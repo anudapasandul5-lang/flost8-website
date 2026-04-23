@@ -397,3 +397,30 @@ function handleInquiry(body) {
 
   return jsonOut({ ok: true, lead_id: leadId });
 }
+
+// ─── Block 15: drainEmailRetry ───────────────────────────────────────────────
+
+function drainEmailRetry() {
+  var ss = SpreadsheetApp.openById(
+    PropertiesService.getScriptProperties().getProperty('BOOKINGS_SHEET_ID')
+  );
+  var sheet = ss.getSheetByName('email_retry');
+  if (!sheet) return;
+  var data = sheet.getDataRange().getValues();
+  // columns: timestamp | lead_id | email_type | to_address | body_json | error | attempts | last_attempt | status
+  for (var i = 1; i < data.length; i++) {
+    if (String(data[i][8]) === 'done') continue;
+    try {
+      var body = JSON.parse(String(data[i][4]));
+      var leadId = String(data[i][1]);
+      sendBookerEmail(body, leadId);
+      sendOwnerEmail(body, leadId);
+      sheet.getRange(i + 1, 7).setValue(parseInt(data[i][6]) + 1);
+      sheet.getRange(i + 1, 8).setValue(new Date().toISOString());
+      sheet.getRange(i + 1, 9).setValue('done');
+    } catch (err) {
+      sheet.getRange(i + 1, 7).setValue(parseInt(data[i][6]) + 1);
+      sheet.getRange(i + 1, 8).setValue(new Date().toISOString());
+    }
+  }
+}
