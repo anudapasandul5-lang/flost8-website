@@ -234,3 +234,166 @@ function getUpcoming(n) {
   cache.put(cacheKey, JSON.stringify(result), 300);
   return jsonOut({ ok: true, events: result });
 }
+
+// ─── Block 9: verifyTurnstile ─────────────────────────────────────────────────
+
+function verifyTurnstile(token) {
+  if (!token) return false;
+  var secret = PropertiesService.getScriptProperties().getProperty('TURNSTILE_SECRET');
+  var resp = UrlFetchApp.fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+    method: 'post',
+    payload: { secret: secret, response: String(token) },
+    muteHttpExceptions: true
+  });
+  var result = JSON.parse(resp.getContentText());
+  return result.success === true;
+}
+
+// ─── Block 10: generateLeadId ─────────────────────────────────────────────────
+
+function generateLeadId() {
+  var ss = SpreadsheetApp.openById(
+    PropertiesService.getScriptProperties().getProperty('BOOKINGS_SHEET_ID')
+  );
+  var lastRow = ss.getSheetByName('Bookings').getLastRow();
+  var seq = String(Math.max(lastRow, 1)).padStart(3, '0');
+  var today = Utilities.formatDate(new Date(), 'Asia/Colombo', 'yyyy-MM-dd');
+  return 'L-' + today + '-' + seq;
+}
+
+// ─── Block 11: writeBookingRow ────────────────────────────────────────────────
+
+function writeBookingRow(body, leadId) {
+  var ss = SpreadsheetApp.openById(
+    PropertiesService.getScriptProperties().getProperty('BOOKINGS_SHEET_ID')
+  );
+  var ts = Utilities.formatDate(new Date(), 'Asia/Colombo', 'yyyy-MM-dd HH:mm:ss');
+  ss.getSheetByName('Bookings').appendRow([
+    leadId, ts, 'site', '2-Qualified', 'skip',
+    String(body.artist || 'any'),
+    String(body.event_date || ''),
+    String(body.venue || ''),
+    String(body.city || ''),
+    String(body.event_type || ''),
+    parseFloat(body.set_duration_h) || 0,
+    String(body.organizer_name || ''),
+    String(body.direct_number || ''),
+    String(body.organizer_email || ''),
+    String(body.other_artists || 'TBD'),
+    String(body.console_setup || ''),
+    '', ''  // owner notes, quote status
+  ]);
+}
+
+// ─── Block 12: sendBookerEmail and sendOwnerEmail ─────────────────────────────
+
+function sendBookerEmail(body, leadId) {
+  var props  = PropertiesService.getScriptProperties();
+  var alias  = props.getProperty('FROM_EMAIL_ALIAS') || '';
+  var wa     = props.getProperty('WHATSAPP_FALLBACK_NUMBER') || '';
+
+  var artists = getActiveArtists();
+  var matchArr = artists.filter(function(a) { return a.slug === body.artist; });
+  var artistDisplay = (matchArr.length > 0 && body.artist !== 'any')
+    ? matchArr[0].display_name : 'our team';
+
+  var opts = {
+    to: String(body.organizer_email),
+    subject: 'We got your FLOST8 inquiry — ' + artistDisplay + ', ' + body.event_date,
+    body: [
+      'Hi ' + body.organizer_name + ',',
+      '',
+      'Got your inquiry for ' + body.venue + ' · ' + body.city + ' · ' + body.event_date + '.',
+      'We read every one by hand. Expect a reply within 24 hrs.',
+      '',
+      'If the date is inside 72 hours, WhatsApp us: ' + wa + '.',
+      '',
+      '— FLOST8',
+      'flost8.lk'
+    ].join('\n'),
+    name: 'FLOST8'
+  };
+  if (alias) opts.replyTo = alias;
+  MailApp.sendEmail(opts);
+}
+
+function sendOwnerEmail(body, leadId) {
+  var props    = PropertiesService.getScriptProperties();
+  var ownerEmail = props.getProperty('OWNER_EMAIL');
+  var ssId     = props.getProperty('BOOKINGS_SHEET_ID');
+
+  var artists = getActiveArtists();
+  var matchArr = artists.filter(function(a) { return a.slug === body.artist; });
+  var artistDisplay = (matchArr.length > 0 && body.artist !== 'any')
+    ? matchArr[0].display_name : 'Any';
+
+  MailApp.sendEmail({
+    to: ownerEmail,
+    subject: '[LEAD] ' + artistDisplay + ' · ' + body.event_date + ' · ' + body.venue,
+    body: [
+      'New site inquiry — Stage 2 (Qualified).',
+      '',
+      '  Artist:    ' + artistDisplay,
+      '  Date:      ' + body.event_date,
+      '  Venue:     ' + body.venue + ', ' + body.city,
+      '  Type:      ' + body.event_type + ', ' + body.set_duration_h + 'h',
+      '  Organizer: ' + body.organizer_name + ', ' + body.direct_number + ', ' + body.organizer_email,
+      '  Lineup:    ' + (body.other_artists || 'TBD'),
+      '  Setup:     ' + body.console_setup,
+      '',
+      'Sheet: https://docs.google.com/spreadsheets/d/' + ssId + '/edit'
+    ].join('\n')
+  });
+}
+
+// ─── Block 13: logEmailRetry ──────────────────────────────────────────────────
+
+function logEmailRetry(body, leadId, err) {
+  var ss = SpreadsheetApp.openById(
+    PropertiesService.getScriptProperties().getProperty('BOOKINGS_SHEET_ID')
+  );
+  var sheet = ss.getSheetByName('email_retry');
+  if (!sheet) sheet = ss.insertSheet('email_retry');
+  sheet.appendRow([
+    new Date().toISOString(), leadId, 'owner+booker',
+    String(body.organizer_email), JSON.stringify(body),
+    String(err), 0, '', 'pending'
+  ]);
+}
+
+// ─── Block 14: handleInquiry ──────────────────────────────────────────────────
+
+function handleInquiry(body) {
+  // Apps Script always returns HTTP 200; errors signalled in {ok:false} body
+
+  if (!verifyTurnstile(body.token)) {
+    return jsonOut({ ok: false, reason: 'bot_check_failed' });
+  }
+
+  var errors = validateInquiry(body);
+  if (errors.length > 0) {
+    return jsonOut({ ok: false, errors: errors });
+  }
+
+  if (!rateLimitCheck(body.direct_number)) {
+    return jsonOut({ ok: false, reason: 'rate_limit' });
+  }
+
+  if (dedupCheck(body.direct_number, body.venue, body.event_date)) {
+    return jsonOut({ ok: true, deduped: true });
+  }
+
+  // Write Sheet row FIRST so lead is never lost even if emails fail
+  var leadId = generateLeadId();
+  writeBookingRow(body, leadId);
+
+  try {
+    sendBookerEmail(body, leadId);
+    sendOwnerEmail(body, leadId);
+  } catch (err) {
+    Logger.log('Email failed for ' + leadId + ': ' + err);
+    logEmailRetry(body, leadId, err);
+  }
+
+  return jsonOut({ ok: true, lead_id: leadId });
+}
