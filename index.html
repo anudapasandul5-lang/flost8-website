@@ -204,6 +204,8 @@ section { padding:120px 56px; }
 .a-card:hover .a-over { opacity:1; }
 .a-name { font-family:var(--ff-display); font-size:22px; letter-spacing:.08em; }
 .a-role { font-size:11px; color:var(--cyan); letter-spacing:.12em; text-transform:uppercase; }
+.a-book { font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--purple);text-decoration:none;margin-top:8px;display:inline-block; }
+.a-book:hover { color:var(--cyan); }
 .a-ph { aspect-ratio:3/4; background:var(--surface); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px; border:1px solid var(--border); transition:background .3s,border-color .3s; position:relative; overflow:hidden; cursor:pointer; }
 .a-ph::before { content:''; position:absolute; inset:0; background:radial-gradient(circle at 50% 50%,rgba(179,67,248,.08) 0%,transparent 70%); }
 .a-ph:hover { background:#1a1a1a; border-color:rgba(179,67,248,.3); }
@@ -336,6 +338,7 @@ footer { background:var(--surface); padding:64px 56px 40px; border-top:1px solid
     <li><a href="#styles">Visual Styles</a></li>
     <li><a href="#roster">Roster</a></li>
     <li><a href="#services">Services</a></li>
+    <li><a href="bookings.html" style="color:var(--purple)">Bookings</a></li>
     <li><a href="#join" class="nav-cta">Join</a></li>
   </ul>
 </nav>
@@ -514,30 +517,30 @@ footer { background:var(--surface); padding:64px 56px 40px; border-top:1px solid
     <p class="s-label">// 04 — Current Roster</p>
     <h2 class="s-title">The<br>Artists.</h2>
   </div>
-  <div class="roster-grid rv d1">
-    <div class="a-card">
-      <img src="Artist%20Pictures/17th%20Dr.Green0187%20copy.jpg" alt="Dr. Green" />
-      <div class="a-over"><div class="a-name">DR. GREEN</div><div class="a-role">DJ / Producer</div></div>
+  <div class="roster-grid rv d1" id="roster-grid">
+    <div class="a-card" data-fb>
+      <img src="Artist%20Pictures/17th%20Dr.Green0187%20copy.jpg" alt="Dr. Green">
+      <div class="a-over">
+        <div class="a-name">DR. GREEN</div>
+        <div class="a-role">DJ / Producer</div>
+        <a href="bookings.html?artist=dr-green" class="a-book">Book &#8594;</a>
+      </div>
     </div>
-    <div class="a-card">
-      <img src="Artist%20Pictures/17th%20Dr.Green0240%20copy.jpg" alt="Dr. Green" />
-      <div class="a-over"><div class="a-name">DR. GREEN</div><div class="a-role">DJ / Producer</div></div>
+    <div class="a-card" data-fb>
+      <img src="Artist%20Pictures/AVU01677.jpg" alt="Kiran">
+      <div class="a-over">
+        <div class="a-name">KIRAN</div>
+        <div class="a-role">DJ / Producer</div>
+        <a href="bookings.html?artist=kiran" class="a-book">Book &#8594;</a>
+      </div>
     </div>
-    <div class="a-card">
-      <img src="Artist%20Pictures/AVU01677.jpg" alt="KIRAN" />
-      <div class="a-over"><div class="a-name">KIRAN</div><div class="a-role">DJ / Producer</div></div>
-    </div>
-    <div class="a-card">
-      <img src="Artist%20Pictures/Photo%202025-12-29%2C%2014%2034%2038%20(1).jpg" alt="SONAL" />
-      <div class="a-over"><div class="a-name">SONAL</div><div class="a-role">DJ / Producer</div></div>
-    </div>
-    <div class="a-ph">
-      <div class="a-ph-name">RAKHEEL</div>
-      <div class="a-ph-role">DJ / Producer</div>
-    </div>
-    <div class="a-ph">
-      <div class="a-ph-name">DEV &amp; ANAS</div>
-      <div class="a-ph-role">DJ / Producers</div>
+    <div class="a-card" data-fb>
+      <img src="Artist%20Pictures/Photo%202025-12-29%2C%2014%2034%2038%20(1).jpg" alt="Sonal">
+      <div class="a-over">
+        <div class="a-name">SONAL</div>
+        <div class="a-role">DJ / Producer</div>
+        <a href="bookings.html?artist=sonal" class="a-book">Book &#8594;</a>
+      </div>
     </div>
   </div>
 </section>
@@ -715,7 +718,47 @@ footer { background:var(--surface); padding:64px 56px 40px; border-top:1px solid
   </div>
 </footer>
 
+<script src="config.js"></script>
 <script>
+(function syncRoster() {
+  if (!window.FLOST8_CONFIG || !window.FLOST8_CONFIG.API_URL) return;
+  fetch(window.FLOST8_CONFIG.API_URL + '?action=roster')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.ok || !data.artists || data.artists.length === 0) return;
+      var grid = document.getElementById('roster-grid');
+      if (!grid) return;
+      grid.querySelectorAll('[data-fb]').forEach(function(el) { el.parentNode.removeChild(el); });
+      data.artists.forEach(function(a) {
+        var card = document.createElement('div');
+        card.className = 'a-card';
+        var img = document.createElement('img');
+        img.setAttribute('src', a.photo_url);
+        img.setAttribute('alt', a.display_name);
+        var over = document.createElement('div');
+        over.className = 'a-over';
+        var nameDiv = document.createElement('div');
+        nameDiv.className = 'a-name';
+        nameDiv.textContent = a.display_name;
+        var roleDiv = document.createElement('div');
+        roleDiv.className = 'a-role';
+        roleDiv.textContent = 'DJ / Producer';
+        var bookLink = document.createElement('a');
+        bookLink.className = 'a-book';
+        bookLink.setAttribute('href', 'bookings.html?artist=' + encodeURIComponent(a.slug));
+        bookLink.textContent = 'Book →';
+        bookLink.addEventListener('click', function(e) { e.stopPropagation(); });
+        over.appendChild(nameDiv);
+        over.appendChild(roleDiv);
+        over.appendChild(bookLink);
+        card.appendChild(img);
+        card.appendChild(over);
+        grid.appendChild(card);
+      });
+    })
+    .catch(function() {});
+})();
+
 (function() {
   // Custom cursor
   var cur  = document.getElementById('cur');
