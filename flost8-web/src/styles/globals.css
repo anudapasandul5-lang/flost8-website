@@ -41,6 +41,11 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+#root {
+  width: 100%;
+  min-height: 100dvh;
+}
+
 /* ── Tailwind Custom Utilities ── */
 @layer utilities {
   .font-display  { font-family: var(--font-display); }
