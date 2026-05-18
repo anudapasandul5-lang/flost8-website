@@ -34,19 +34,8 @@ const FOOTER_COLS = [
 
 function VinylLogoLarge() {
   return (
-    <Link to="/" className="flex items-center gap-0 leading-none">
-      <span className="font-display text-4xl text-purple tracking-wider">fl</span>
-      <svg
-        viewBox="0 0 24 24"
-        className="inline-block w-10 h-10 align-middle mx-1"
-        aria-hidden="true"
-      >
-        <circle cx="12" cy="12" r="11" fill="#7B3FF5" stroke="#78F4F5" strokeWidth="1" />
-        <circle cx="12" cy="12" r="7" fill="none" stroke="#78F4F5" strokeWidth="0.5" />
-        <circle cx="12" cy="12" r="3" fill="none" stroke="#78F4F5" strokeWidth="0.5" />
-        <circle cx="12" cy="12" r="1.5" fill="#78F4F5" />
-      </svg>
-      <span className="font-display text-4xl text-cyan tracking-wider">st8</span>
+    <Link to="/">
+      <img src="/logo.png" alt="FLOST8" className="h-16 w-auto" />
     </Link>
   )
 }

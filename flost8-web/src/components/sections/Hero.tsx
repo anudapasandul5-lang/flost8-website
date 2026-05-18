@@ -2,28 +2,6 @@ import { motion } from 'framer-motion'
 import { Headphones, Eye } from '@phosphor-icons/react'
 import { useTextScramble } from '../../hooks/useTextScramble'
 
-// ── Vinyl "O" SVG ────────────────────────────────────────────────────────────
-function VinylO({ className }: { className?: string }) {
-  return (
-    <svg
-      viewBox="0 0 64 64"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-hidden="true"
-      className={className}
-    >
-      {/* Outer ring */}
-      <circle cx="32" cy="32" r="30" fill="#1A1535" stroke="#7B3FF5" strokeWidth="2" />
-      {/* Grooves */}
-      <circle cx="32" cy="32" r="26" fill="none" stroke="#7B3FF5" strokeWidth="0.5" opacity="0.4" />
-      <circle cx="32" cy="32" r="22" fill="none" stroke="#7B3FF5" strokeWidth="0.5" opacity="0.4" />
-      <circle cx="32" cy="32" r="18" fill="none" stroke="#7B3FF5" strokeWidth="0.5" opacity="0.4" />
-      {/* Label centre */}
-      <circle cx="32" cy="32" r="10" fill="#7B3FF5" />
-      {/* Spindle */}
-      <circle cx="32" cy="32" r="3" fill="#1A1535" />
-    </svg>
-  )
-}
 
 // ── Entrance spring variants ─────────────────────────────────────────────────
 const leftVariant = {
@@ -84,27 +62,13 @@ export default function Hero() {
           initial="hidden"
           animate="visible"
         >
-          {/* Logo mark — 2-row stacked layout */}
-          <div className="select-none leading-none" aria-label="FLOST8 brand logo">
-            {/* Row 1: fl + O (vinyl) */}
-            <div className="flex items-center">
-              <span
-                className="font-display text-7xl md:text-8xl text-purple leading-none"
-                style={{ letterSpacing: '-0.02em' }}
-              >
-                fl
-              </span>
-              <VinylO className="w-[4rem] h-[4rem] md:w-[5rem] md:h-[5rem] -mx-1" />
-            </div>
-            {/* Row 2: st8 */}
-            <div>
-              <span
-                className="font-display text-7xl md:text-8xl text-cyan leading-none"
-                style={{ letterSpacing: '-0.02em' }}
-              >
-                st8
-              </span>
-            </div>
+          {/* Logo image */}
+          <div aria-label="FLOST8 brand logo">
+            <img
+              src="/logo.png"
+              alt="FLOST8"
+              className="w-48 md:w-64 h-auto"
+            />
           </div>
 
           {/* Thin divider (decorative) */}

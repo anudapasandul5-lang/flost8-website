@@ -25,19 +25,8 @@ function useMobileMenu() {
 
 function VinylLogo() {
   return (
-    <Link to="/" className="flex items-center gap-0 leading-none">
-      <span className="font-display text-2xl text-purple tracking-wider">fl</span>
-      <svg
-        viewBox="0 0 24 24"
-        className="inline-block w-6 h-6 align-middle mx-0.5"
-        aria-hidden="true"
-      >
-        <circle cx="12" cy="12" r="11" fill="#7B3FF5" stroke="#78F4F5" strokeWidth="1" />
-        <circle cx="12" cy="12" r="7" fill="none" stroke="#78F4F5" strokeWidth="0.5" />
-        <circle cx="12" cy="12" r="3" fill="none" stroke="#78F4F5" strokeWidth="0.5" />
-        <circle cx="12" cy="12" r="1.5" fill="#78F4F5" />
-      </svg>
-      <span className="font-display text-2xl text-cyan tracking-wider">st8</span>
+    <Link to="/" className="flex items-center">
+      <img src="/logo.png" alt="FLOST8" className="h-10 w-auto" />
     </Link>
   )
 }
