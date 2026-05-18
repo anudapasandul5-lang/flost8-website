@@ -8,7 +8,7 @@ const fadeUp = {
 }
 
 const bodyText =
-  'FLO ST8 is a platform that connects artists, brands, events, venues, and content.'
+  'We turn performances into visibility, visibility into bookings, and bookings into long-term growth.'
 
 export default function BrandStatement() {
   return (
