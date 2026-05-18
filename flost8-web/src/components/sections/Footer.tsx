@@ -35,7 +35,7 @@ const FOOTER_COLS = [
 function VinylLogoLarge() {
   return (
     <Link to="/">
-      <img src="/logo.png" alt="FLOST8" className="h-16 w-auto" />
+      <img src="/logo.png" alt="FLOST8" className="h-16 w-auto" style={{ mixBlendMode: 'multiply' }} />
     </Link>
   )
 }

@@ -26,7 +26,7 @@ function useMobileMenu() {
 function VinylLogo() {
   return (
     <Link to="/" className="flex items-center">
-      <img src="/logo.png" alt="FLOST8" className="h-10 w-auto" />
+      <img src="/logo.png" alt="FLOST8" className="h-10 w-auto" style={{ mixBlendMode: 'screen' }} />
     </Link>
   )
 }

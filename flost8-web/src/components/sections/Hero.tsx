@@ -68,6 +68,7 @@ export default function Hero() {
               src="/logo.png"
               alt="FLOST8"
               className="w-48 md:w-64 h-auto"
+              style={{ mixBlendMode: 'screen' }}
             />
           </div>
 
