@@ -1,113 +1,53 @@
 import { Link } from 'react-router-dom'
 
-// ── Data ──────────────────────────────────────────────────────────────────────
-
-const FOOTER_COLS = [
-  {
-    heading: 'PLATFORM',
-    links: ['The Roster', 'Upcoming Shows', 'Book an Artist', 'Brand Deals'],
-    hrefs: ['#roster', '#shows', '/bookings', 'mailto:bookings@flost8.lk'],
-  },
-  {
-    heading: 'FOR ARTISTS',
-    links: ['Join the Roster', 'Content Engine', 'Brand Partnerships', 'Booking Support'],
-    hrefs: [
-      'mailto:bookings@flost8.lk',
-      'mailto:bookings@flost8.lk',
-      'mailto:bookings@flost8.lk',
-      '/bookings',
-    ],
-  },
-  {
-    heading: 'FOR VENUES & EVENTS',
-    links: ['Curated Lineups', 'B2B / B3B Sets', 'Content Coverage', 'Promotion Support'],
-    hrefs: [
-      '/bookings',
-      '/bookings',
-      'mailto:bookings@flost8.lk',
-      'mailto:bookings@flost8.lk',
-    ],
-  },
-  {
-    heading: 'FOR BRANDS',
-    links: ['Direct Access to DJs', 'Product Placement', 'Lifestyle Integration', 'Content With Reach'],
-    hrefs: [
-      'mailto:bookings@flost8.lk',
-      'mailto:bookings@flost8.lk',
-      'mailto:bookings@flost8.lk',
-      'mailto:bookings@flost8.lk',
-    ],
-  },
+const footerCols = [
+  { heading: 'PLATFORM', links: ['The Roster', 'Content Feed', 'Events', 'Brand Deals'], hrefs: ['#roster', '#shows', '/bookings', 'mailto:bookings@flost8.lk'] },
+  { heading: 'STUDIO', links: ['About', 'Press', 'Careers', 'Press kit'], hrefs: ['#about', 'mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk'] },
+  { heading: 'FOR YOU', links: ['Artists', 'Venues', 'Brands', 'Organizers'], hrefs: ['/bookings', '/bookings', 'mailto:bookings@flost8.lk', '/bookings'] },
+  { heading: 'FOR YOU', links: ['Artists', 'Venues', 'Brands', 'Organizers'], hrefs: ['/bookings', '/bookings', 'mailto:bookings@flost8.lk', '/bookings'] },
 ] as const
-
-// ── VinylLogoLarge ─────────────────────────────────────────────────────────────
-
-function VinylLogoLarge() {
-  return (
-    <Link to="/">
-      <img src="/logo.png" alt="FLOST8" className="h-16 w-auto" style={{ mixBlendMode: 'multiply' }} />
-    </Link>
-  )
-}
-
-// ── Footer ────────────────────────────────────────────────────────────────────
 
 export default function Footer() {
   return (
     <footer>
-      {/* Top — navy zone */}
-      <div className="bg-navy pt-16 pb-0 px-8">
-        <VinylLogoLarge />
+      <div className="bg-navy px-6 pb-0 pt-8 sm:px-12 md:px-[96px]">
+        <img src="/logo-transparent.png" alt="FLOST8" className="h-[150px] w-auto" />
       </div>
 
-      {/* Wave separator */}
-      <div className="relative h-32 overflow-hidden bg-navy">
-        <svg
-          viewBox="0 0 1440 128"
-          className="absolute bottom-0 w-full"
-          preserveAspectRatio="none"
-        >
-          {/* Cyan fill wave */}
+      <div className="relative h-[100px] overflow-hidden bg-navy sm:h-[140px] md:h-[190px]">
+        <svg viewBox="0 0 1440 190" className="absolute bottom-0 h-full w-full" preserveAspectRatio="none" aria-hidden="true">
           <path
-            d="M0,64 C240,110 480,20 720,64 C960,110 1200,20 1440,64 L1440,128 L0,128 Z"
-            fill="#78F4F5"
+            d="M0,82 C240,120 430,70 560,108 C700,148 730,175 820,112 C990,-8 1180,210 1440,48 L1440,190 L0,190 Z"
+            fill="#70F0F2"
           />
-          {/* Coral accent line */}
           <path
-            d="M0,64 C240,110 480,20 720,64 C960,110 1200,20 1440,64"
+            d="M0,82 C240,120 430,70 560,108 C700,148 730,175 820,112 C990,-8 1180,210 1440,48"
             fill="none"
-            stroke="#E63946"
-            strokeWidth="4"
+            stroke="#F20D0D"
+            strokeWidth="14"
+            strokeLinecap="round"
+            opacity="0.9"
           />
         </svg>
       </div>
 
-      {/* Bottom — cyan zone */}
-      <div className="bg-[#78F4F5] px-8 md:px-16 pt-8 pb-12">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-6xl mx-auto">
-          {FOOTER_COLS.map(col => (
-            <div key={col.heading}>
-              <h3 className="font-display text-sm text-purple uppercase tracking-widest mb-4">
-                {col.heading}
-              </h3>
+      <div className="bg-cyan px-8 pb-16 pt-10 md:px-16">
+        <div className="mx-auto grid max-w-[1160px] grid-cols-2 gap-10 md:grid-cols-4">
+          {footerCols.map(col => (
+            <div key={`${col.heading}-${col.links[0]}`}>
+              <h3 className="mb-5 font-display text-[22px] uppercase leading-none text-purple sm:text-[28px] md:text-[32px]">{col.heading}</h3>
               <ul>
-                {col.links.map((label, i) => {
-                  const href = col.hrefs[i]
-                  const isRoute = href.startsWith('/')
+                {col.links.map((label, index) => {
+                  const href = col.hrefs[index]
+                  const className = 'mb-3 block font-body text-[17px] italic text-purple transition-colors hover:text-navy'
                   return (
                     <li key={label}>
-                      {isRoute ? (
-                        <Link
-                          to={href}
-                          className="font-body text-sm text-purple/70 italic hover:text-purple transition-colors block mb-2"
-                        >
+                      {href.startsWith('/') ? (
+                        <Link to={href} className={className}>
                           {label}
                         </Link>
                       ) : (
-                        <a
-                          href={href}
-                          className="font-body text-sm text-purple/70 italic hover:text-purple transition-colors block mb-2"
-                        >
+                        <a href={href} className={className}>
                           {label}
                         </a>
                       )}
@@ -118,10 +58,6 @@ export default function Footer() {
             </div>
           ))}
         </div>
-
-        <p className="font-body text-xs text-purple/50 text-center mt-8">
-          © 2026 FLOST8. All rights reserved. · flost8.lk
-        </p>
       </div>
     </footer>
   )

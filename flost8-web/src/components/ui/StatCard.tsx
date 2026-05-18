@@ -1,5 +1,5 @@
 import { useRef, useEffect, useState } from 'react'
-import { motion, useInView } from 'framer-motion'
+import { useInView } from 'framer-motion'
 
 interface StatCardProps {
   value: string
@@ -7,57 +7,51 @@ interface StatCardProps {
   index: number
 }
 
-function useCountUp(target: number, isInView: boolean, duration = 1500): number {
-  const [count, setCount] = useState(0)
+function useCountUp(target: string, duration: number, inView: boolean): string {
+  const [display, setDisplay] = useState('0')
 
   useEffect(() => {
-    if (!isInView) return
-    const startTime = performance.now()
-
-    const tick = (now: number) => {
-      const elapsed = now - startTime
-      const progress = Math.min(elapsed / duration, 1)
-      // ease-out cubic
-      const eased = 1 - Math.pow(1 - progress, 3)
-      setCount(Math.round(eased * target))
-      if (progress < 1) requestAnimationFrame(tick)
+    if (!inView) return
+    const match = target.match(/^(\D*)(\d+)(.*?)$/)
+    if (!match) {
+      setDisplay(target)
+      return
     }
+    const prefix = match[1]
+    const num = parseInt(match[2], 10)
+    const suffix = match[3]
+    const steps = 45
+    const stepTime = duration / steps
+    let current = 0
 
-    requestAnimationFrame(tick)
-  }, [isInView, target, duration])
+    const timer = setInterval(() => {
+      current += Math.ceil(num / steps)
+      if (current >= num) {
+        setDisplay(`${prefix}${num}${suffix}`)
+        clearInterval(timer)
+      } else {
+        setDisplay(`${prefix}${current}${suffix}`)
+      }
+    }, stepTime)
 
-  return count
+    return () => clearInterval(timer)
+  }, [inView, target, duration])
+
+  return display
 }
 
 export function StatCard({ value, label, index }: StatCardProps) {
   const ref = useRef<HTMLDivElement>(null)
-  const isInView = useInView(ref, { once: true, margin: '-50px' })
-
-  const isPlaceholder = value === '00'
-  const numericTarget = isPlaceholder ? 0 : parseInt(value, 10)
-  const count = useCountUp(numericTarget, isInView && !isPlaceholder)
-
-  const displayValue = isPlaceholder ? '00' : String(count).padStart(value.length, '0')
+  const inView = useInView(ref, { once: true, margin: '-30px' })
+  const count = useCountUp(value, 1400 + index * 200, inView)
 
   return (
-    <motion.div
+    <div
       ref={ref}
-      className="bg-orange rounded-2xl p-8 md:p-10 border border-white/20 flex flex-col justify-between"
-      initial={{ opacity: 0, scale: 0.9 }}
-      animate={isInView ? { opacity: 1, scale: 1 } : {}}
-      transition={{
-        type: 'spring',
-        stiffness: 100,
-        damping: 20,
-        delay: index * 0.1,
-      }}
+      className="flex min-h-[140px] flex-col items-center justify-center rounded-[16px] border-[3px] border-white bg-[#EA4323] px-3 py-6 text-center shadow-[0_6px_0_rgba(0,0,0,0.45)] sm:min-h-[200px] sm:rounded-[20px] sm:border-[4px] sm:px-6 sm:py-8 lg:min-h-[232px]"
     >
-      <span className="font-display text-6xl md:text-7xl text-white leading-none">
-        {displayValue}
-      </span>
-      <span className="font-display text-base md:text-lg text-white/90 uppercase tracking-widest mt-2">
-        {label}
-      </span>
-    </motion.div>
+      <span className="font-display text-[56px] leading-none text-white sm:text-[80px] lg:text-[96px]">{count}</span>
+      <span className="mt-2 whitespace-pre-line font-display text-[20px] leading-[1.1] text-white sm:mt-4 sm:text-[28px] lg:text-[36px]">{label}</span>
+    </div>
   )
 }

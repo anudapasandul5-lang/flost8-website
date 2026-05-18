@@ -1,32 +1,27 @@
 import { motion } from 'framer-motion'
 import AudienceCard from '../ui/AudienceCard'
 
-const AUDIENCE_CARDS = [
-  { title: 'ARTIST',     subtitle: 'We turn DJs into brands.',              href: '#bookings',                 ctaLabel: 'Join Roster' },
-  { title: 'VENUES',     subtitle: 'We bring audience + content.',          href: '#bookings',                 ctaLabel: 'Work With Us' },
-  { title: 'BRANDS',     subtitle: 'Direct access to DJs. Natural placement.', href: 'mailto:bookings@flost8.lk', ctaLabel: 'Partner Up' },
-  { title: 'ORGANIZERS', subtitle: 'Ready-made lineups. Events that perform.', href: '#bookings',                 ctaLabel: 'Book Now' },
+const audienceCards = [
+  { title: 'ARTIST',      subtitle: 'We turn DJs into brands.',              ctaLabel: 'Join Roster',  href: 'mailto:bookings@flost8.lk' },
+  { title: 'VENUES',      subtitle: 'We bring audience + content.',          ctaLabel: 'Work With Us', href: 'mailto:bookings@flost8.lk' },
+  { title: 'BRANDS',      subtitle: 'Direct access to DJs. Natural placement.', ctaLabel: 'Partner Up',   href: 'mailto:bookings@flost8.lk' },
+  { title: 'ORGANIZERS',  subtitle: 'Ready-made lineups. Events that perform.', ctaLabel: 'Book Now',     href: '/bookings' },
 ]
 
 function VinylRecord() {
   return (
     <motion.div
       animate={{ rotate: 360 }}
-      transition={{ duration: 8, ease: 'linear', repeat: Infinity }}
-      className="w-64 h-64 md:w-80 md:h-80 mx-auto"
+      transition={{ duration: 9, ease: 'linear', repeat: Infinity }}
+      className="pointer-events-none absolute -top-[120px] right-[70px] hidden h-[340px] w-[340px] rounded-full bg-purple/35 p-5 shadow-[0_16px_26px_rgba(0,0,0,0.25)] lg:block"
     >
-      <svg viewBox="0 0 200 200" className="w-full h-full">
-        {/* Outer record */}
-        <circle cx="100" cy="100" r="98" fill="#111118" />
-        {/* Grooves */}
-        {[85, 70, 55, 40].map(r => (
-          <circle key={r} cx="100" cy="100" r={r} fill="none" stroke="#222" strokeWidth="1" />
+      <svg viewBox="0 0 240 240" className="h-full w-full">
+        <circle cx="120" cy="120" r="112" fill="#050505" />
+        {[100, 88, 76, 64, 52].map(radius => (
+          <circle key={radius} cx="120" cy="120" r={radius} fill="none" stroke="#232323" strokeWidth="1.5" />
         ))}
-        {/* Center label */}
-        <circle cx="100" cy="100" r="25" fill="#E63946" />
-        <circle cx="100" cy="100" r="4" fill="#111118" />
-        {/* Highlight */}
-        <circle cx="100" cy="100" r="98" fill="none" stroke="#333" strokeWidth="2" />
+        <circle cx="120" cy="120" r="42" fill="#C73D3E" stroke="#fff" strokeWidth="3" />
+        <circle cx="120" cy="120" r="5" fill="#050505" />
       </svg>
     </motion.div>
   )
@@ -34,49 +29,47 @@ function VinylRecord() {
 
 export default function Services() {
   return (
-    <section className="bg-purple py-20 md:py-28">
-      <div className="max-w-7xl mx-auto px-4 md:px-8">
-        <div className="flex flex-col md:flex-row md:items-center gap-12 md:gap-16">
-          {/* Left column */}
-          <div className="flex-1 md:basis-3/5">
-            <motion.h2
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5 }}
-              className="font-display text-4xl md:text-6xl text-lime whitespace-pre-line leading-none"
-            >
-              {'ENTER THE FLOW.\nCONTROL THE MOMENT.'}
-            </motion.h2>
+    <section className="relative overflow-visible bg-gradient-to-r from-[#A376F3] to-[#E979C7] px-4 pb-20 pt-16 sm:px-8 lg:px-10 lg:pb-24 lg:pt-20">
+      <VinylRecord />
+      <div className="mx-auto max-w-[1280px]">
+        <motion.h2
+          className="font-display text-[34px] uppercase leading-[1] text-lime sm:text-[44px] md:text-[62px]"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ type: 'spring', stiffness: 80, damping: 20 }}
+        >
+          ENTER THE FLOW.
+          <br />
+          CONTROL THE MOMENT.
+        </motion.h2>
 
-            <motion.p
-              initial={{ opacity: 0, y: 16 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.1 }}
-              className="font-body text-white/60 text-base mt-4"
-            >
-              FLO ST8 is not just a platform. It's a community where artists collaborate, brands integrate, venues participate, and audiences engage.
-            </motion.p>
+        <motion.p
+          className="mt-6 max-w-[620px] font-body text-[18px] leading-[1.6] text-white/80"
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ type: 'spring', stiffness: 80, damping: 20, delay: 0.15 }}
+        >
+          FLO ST8 is not just a platform. It's a community where artists collaborate, brands integrate, venues participate, and audiences engage.
+        </motion.p>
 
+        <motion.div
+          className="mt-12 grid grid-cols-1 gap-10 lg:grid-cols-2"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: '-50px' }}
+          variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } } }}
+        >
+          {audienceCards.map(card => (
             <motion.div
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ duration: 0.5, delay: 0.15 }}
-              className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-8"
+              key={card.title}
+              variants={{ hidden: { opacity: 0, x: 30 }, visible: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 80, damping: 20 } } }}
             >
-              {AUDIENCE_CARDS.map(card => (
-                <AudienceCard key={card.title} {...card} />
-              ))}
+              <AudienceCard {...card} />
             </motion.div>
-          </div>
-
-          {/* Right column — vinyl */}
-          <div className="order-first md:order-none flex-1 md:basis-2/5 flex items-center justify-center">
-            <VinylRecord />
-          </div>
-        </div>
+          ))}
+        </motion.div>
       </div>
     </section>
   )

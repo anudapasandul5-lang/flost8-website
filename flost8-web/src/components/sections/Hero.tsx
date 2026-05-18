@@ -1,126 +1,84 @@
 import { motion } from 'framer-motion'
-import { Headphones, Eye } from '@phosphor-icons/react'
+import { Eye, Headphones } from '@phosphor-icons/react'
 import { useTextScramble } from '../../hooks/useTextScramble'
 
-
-// ── Entrance spring variants ─────────────────────────────────────────────────
-const leftVariant = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: 'spring' as const, stiffness: 80, damping: 20, delay: 0.2, duration: 0.8 },
-  },
+const logoVariant = {
+  hidden: { opacity: 0, x: -50 },
+  visible: { opacity: 1, x: 0, transition: { type: 'spring' as const, stiffness: 70, damping: 18, delay: 0.1 } },
 }
 
-const rightVariant = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: 'spring' as const, stiffness: 80, damping: 20, delay: 0.4, duration: 0.8 },
-  },
+const textVariant = {
+  hidden: { opacity: 0, x: 50 },
+  visible: { opacity: 1, x: 0, transition: { type: 'spring' as const, stiffness: 70, damping: 18, delay: 0.25 } },
 }
 
-// ── Hero ─────────────────────────────────────────────────────────────────────
+const ctaVariant = {
+  hidden: { opacity: 0, y: 20 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 80, damping: 20, delay: 0.6 } },
+}
+
 export default function Hero() {
   const line1 = useTextScramble('WHERE ARTIST', 1400)
-  const line2 = useTextScramble('BECOME CULTURE', 1800)
+  const line2 = useTextScramble('BECOME CULTURE', 1900)
 
   return (
-    <section
-      className="relative min-h-[100dvh] w-full overflow-hidden flex items-center"
-      aria-label="Hero"
-    >
-      {/* Background: dark gradient placeholder (no DJ photo asset yet) */}
-      <div
-        role="img"
-        aria-label="DJ performing at a live event"
-        className="absolute inset-0 bg-gradient-to-br from-navy via-[#2a1a5e] to-navy"
-      >
-        {/* Subtle grid texture overlay */}
-        <div
-          className="absolute inset-0 opacity-[0.06]"
-          style={{
-            backgroundImage:
-              'repeating-linear-gradient(0deg, transparent, transparent 39px, #78F4F5 39px, #78F4F5 40px), repeating-linear-gradient(90deg, transparent, transparent 39px, #78F4F5 39px, #78F4F5 40px)',
-          }}
+    <section className="relative h-auto min-h-[500px] overflow-hidden bg-navy md:h-[640px]" aria-label="Hero">
+      <img
+        src="/ui2/hero-bg.jpeg"
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full object-cover"
+      />
+      <div className="absolute inset-0 bg-[#302A66]/70" />
+      <div className="absolute inset-0 bg-gradient-to-r from-[#302A66]/35 via-[#AE43F7]/10 to-[#302A66]/45" />
+
+      <div className="relative z-10 mx-auto flex h-full max-w-[1040px] items-center justify-center gap-16 px-6 py-20 md:py-0">
+        <motion.img
+          src="/logo-transparent.png"
+          alt="FLOST8"
+          className="hidden w-[335px] shrink-0 md:block"
+          variants={logoVariant}
+          initial="hidden"
+          animate="visible"
         />
-        {/* Radial purple glow */}
-        <div className="absolute inset-0 bg-radial-gradient" style={{
-          background: 'radial-gradient(ellipse 60% 50% at 70% 50%, rgba(123,63,245,0.18) 0%, transparent 70%)',
-        }} />
-      </div>
 
-      {/* Content grid */}
-      <div className="relative z-10 w-full max-w-7xl mx-auto px-6 md:px-12 py-16 flex flex-col md:flex-row items-center md:items-stretch gap-12 md:gap-0">
-
-        {/* ── LEFT: Logo / Brand ── */}
         <motion.div
-          className="flex-shrink-0 md:w-[40%] flex flex-col items-center md:items-start justify-center"
-          variants={leftVariant}
+          className="max-w-[650px] text-center md:text-left"
+          variants={textVariant}
           initial="hidden"
           animate="visible"
         >
-          {/* Logo image */}
-          <div aria-label="FLOST8 brand logo">
-            <img
-              src="/logo.png"
-              alt="FLOST8"
-              className="w-48 md:w-64 h-auto"
-              style={{ mixBlendMode: 'screen' }}
-            />
-          </div>
-
-          {/* Thin divider (decorative) */}
-          <div className="mt-6 w-16 h-[2px] bg-purple opacity-60 md:self-start" />
-        </motion.div>
-
-        {/* ── RIGHT: Headline + Tagline + CTAs ── */}
-        <motion.div
-          className="md:w-[60%] flex flex-col items-center md:items-start justify-center md:pl-12 gap-6 text-center md:text-left"
-          variants={rightVariant}
-          initial="hidden"
-          animate="visible"
-        >
-          {/* Headline */}
-          <h1
-            className="font-display text-5xl md:text-8xl lg:text-9xl text-white leading-none tracking-tight"
-            aria-label="WHERE ARTIST BECOME CULTURE"
-          >
-            <span className="block">{line1}</span>
-            <span className="block">{line2}</span>
+          <h1 className="font-display text-[64px] leading-[0.92] text-white md:text-[82px] lg:text-[92px]">
+            {line1}
+            <br />
+            {line2}
           </h1>
-
-          {/* Tagline */}
-          <p className="font-body text-white/70 text-base md:text-lg max-w-md">
+          <p className="mt-5 font-body text-lg italic text-white/80">
             not an agency. a movement.
           </p>
 
-          {/* CTAs */}
-          <div className="flex flex-col sm:flex-row items-center md:items-start gap-3 w-full sm:w-auto">
+          <motion.div
+            className="mt-6 flex flex-col items-center gap-4 sm:flex-row md:items-start"
+            variants={ctaVariant}
+            initial="hidden"
+            animate="visible"
+          >
             <a
               href="mailto:bookings@flost8.lk"
-              className="inline-flex items-center gap-2 bg-purple rounded-full px-6 py-3 text-white font-body font-medium hover:opacity-90 transition-opacity w-full sm:w-auto justify-center"
+              className="inline-flex min-w-[190px] items-center justify-center gap-2 rounded-full border border-cyan/70 bg-purple/80 px-5 py-3 font-body italic text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
             >
               <Headphones size={18} weight="bold" />
               Become an Artist
             </a>
             <a
-              href="#roster"
-              className="inline-flex items-center gap-2 border border-white/40 rounded-full px-6 py-3 text-white font-body font-medium hover:border-white transition-colors w-full sm:w-auto justify-center"
+              href="/#roster"
+              className="inline-flex min-w-[190px] items-center justify-center gap-2 rounded-full border border-cyan bg-navy/35 px-5 py-3 font-body italic text-cyan transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
             >
               <Eye size={18} weight="bold" />
               See the Roster
             </a>
-          </div>
+          </motion.div>
         </motion.div>
-      </div>
-
-      {/* Scroll hint */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex flex-col items-center gap-1 opacity-40">
-        <span className="font-body text-white text-xs tracking-widest uppercase">Scroll</span>
-        <div className="w-px h-8 bg-white/40" />
       </div>
     </section>
   )

@@ -1,97 +1,99 @@
 import { motion } from 'framer-motion'
+import { FunnelSimple, Headphones } from '@phosphor-icons/react'
+import { Link } from 'react-router-dom'
 import { ARTISTS } from '../../lib/config'
 import ArtistCard from '../ui/ArtistCard'
 
-const containerVariants = {
-  hidden: {},
-  visible: {
-    transition: { staggerChildren: 0.08 },
-  },
-}
-
-const cardVariants = {
-  hidden: { opacity: 0, y: 30 },
-  visible: {
-    opacity: 1,
-    y: 0,
-    transition: { type: 'spring' as const, stiffness: 80, damping: 20 },
-  },
-}
-
-// Row 1: first 4 artists; Row 2: last 2 + "MORE" tile
 const row1 = ARTISTS.slice(0, 4)
 const row2 = ARTISTS.slice(4, 6)
 
+const container = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
+}
+
+const card = {
+  hidden: { opacity: 0, y: 50 },
+  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 80, damping: 20 } },
+}
+
 export default function Roster() {
   return (
-    <section id="roster" className="bg-cream py-20 md:py-28">
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
+    <section id="roster" className="scroll-mt-20 bg-[#F1EFEC] pt-16 pb-24">
+      <div className="mx-auto max-w-[1280px] px-4 sm:px-8 lg:px-12">
+        <motion.h2
+          className="text-center font-script text-[40px] uppercase leading-none text-red sm:text-[52px] lg:text-[58px]"
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ type: 'spring', stiffness: 80, damping: 20 }}
+        >
+          Meet The Roster
+        </motion.h2>
 
-        {/* Header */}
-        <div className="flex flex-col items-center mb-10 gap-6">
-          <h2 className="font-script text-5xl md:text-6xl text-red italic text-center">
-            Meet the Roster
-          </h2>
-
-          {/* Filter bar — decorative */}
-          <div className="flex items-center gap-3">
-            <button
-              type="button"
-              className="bg-red text-white rounded-full px-6 py-2 font-body text-sm"
-            >
-              All Roster
-            </button>
-            <button
-              type="button"
-              className="border border-off-black rounded-full px-6 py-2 font-body text-sm"
-            >
-              Filter
-            </button>
-          </div>
-        </div>
+        <motion.div
+          className="mt-10 flex flex-wrap justify-end gap-3 md:mt-16"
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2, duration: 0.4 }}
+        >
+          <button
+            type="button"
+            className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-black bg-red px-6 py-3 font-body italic text-white shadow-[0_3px_8px_rgba(0,0,0,0.25)] transition-transform active:scale-[0.98] hover:-translate-y-0.5"
+          >
+            <Headphones size={18} weight="bold" />
+            All Roster
+          </button>
+          <button
+            type="button"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-black bg-[#F1EFEC] px-5 py-3 font-body italic text-black transition-transform active:scale-[0.98] hover:-translate-y-0.5"
+          >
+            <FunnelSimple size={18} weight="bold" />
+            Filter
+          </button>
+        </motion.div>
 
         {/* Row 1 — 4 artists */}
         <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 gap-4"
-          variants={containerVariants}
+          className="mt-12 grid grid-cols-2 gap-6 lg:grid-cols-4"
+          variants={container}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
         >
-          {row1.map((artist, i) => (
-            <motion.div key={artist.slug} variants={cardVariants}>
-              <ArtistCard artist={artist} index={i} />
+          {row1.map((artist, index) => (
+            <motion.div key={artist.slug} variants={card}>
+              <ArtistCard artist={artist} index={index} />
             </motion.div>
           ))}
         </motion.div>
 
-        {/* Row 2 — 2 artists + "MORE" tile */}
+        {/* Row 2 — 2 artists + "See the entire roster" tile */}
         <motion.div
-          className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4"
-          variants={containerVariants}
+          className="mt-6 grid grid-cols-2 gap-6 lg:grid-cols-4"
+          variants={container}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
         >
-          {row2.map((artist, i) => (
-            <motion.div key={artist.slug} variants={cardVariants}>
-              <ArtistCard artist={artist} index={i + 4} />
+          {row2.map((artist, index) => (
+            <motion.div key={artist.slug} variants={card}>
+              <ArtistCard artist={artist} index={index + 4} />
             </motion.div>
           ))}
 
-          {/* "MORE ARTISTS JOINING SOON" tile — spans 2 cols on desktop */}
-          <motion.div
-            variants={cardVariants}
-            className="col-span-1 md:col-span-2 bg-navy flex items-center justify-center aspect-[4/5] md:aspect-auto"
-          >
-            <div className="text-center px-8">
-              <p className="font-display text-4xl md:text-5xl text-white leading-tight">
-                MORE<br />ARTISTS<br />JOINING<br />SOON
+          <motion.div variants={card} className="col-span-2">
+            <Link
+              to="/bookings"
+              className="flex h-full min-h-[200px] items-center justify-center bg-navy transition-opacity hover:opacity-90"
+            >
+              <p className="text-center font-display text-[38px] leading-tight text-white lg:text-[48px]">
+                SEE THE<br />ENTIRE ROSTER
               </p>
-            </div>
+            </Link>
           </motion.div>
         </motion.div>
-
       </div>
     </section>
   )

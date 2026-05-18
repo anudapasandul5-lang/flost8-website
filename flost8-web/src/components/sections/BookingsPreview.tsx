@@ -1,146 +1,62 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { CalendarBlank } from '@phosphor-icons/react'
-import { APPS_SCRIPT_URL } from '../../lib/config'
+import { Link } from 'react-router-dom'
+import { ArrowCircleRight } from '@phosphor-icons/react'
+import { useUpcomingShows } from '../../hooks/useUpcomingShows'
+import type { UpcomingShow } from '../../lib/bookingContract'
 
-interface Show {
-  title: string
-  artist: string
-  date: string
-  venue: string
-  city: string
-}
-
-const PLACEHOLDER_SHOWS: Show[] = [
-  { title: 'Neon Nights',      artist: 'DR. GREEN', date: 'Jun 14 2026', venue: 'The Factory',       city: 'Colombo'    },
-  { title: 'Sunday Sessions',  artist: 'SONAL',     date: 'Jun 21 2026', venue: 'Arugam Bay Hotel',  city: 'Arugam Bay' },
-  { title: 'City Lights',      artist: 'MAALIN',    date: 'Jul 5 2026',  venue: 'Hilton Rooftop',    city: 'Colombo'    },
+const fallbackShows: UpcomingShow[] = [
+  { date: 'JUN 14 2026', artist: 'DR. GREEN', venue: 'The Factory', city: 'Colombo' },
+  { date: 'JUL 05 2026', artist: 'SONAL', venue: 'Ballroom 47', city: 'Colombo' },
+  { date: 'AUG 22 2026', artist: 'MAALIN', venue: 'Rooftop Stage', city: 'Galle' },
 ]
 
-function SkeletonRows() {
+function ShowRow({ show, index }: { show: UpcomingShow; index: number }) {
   return (
-    <>
-      {[0, 1, 2].map(i => (
-        <div key={i} className="animate-pulse bg-white/5 h-16 rounded my-2" />
-      ))}
-    </>
-  )
-}
-
-function ShowRow({ show }: { show: Show }) {
-  return (
-    <div className="border-b border-white/10 py-6">
-      {/* Desktop grid */}
-      <div className="hidden md:grid grid-cols-[120px_1fr_1fr_auto] gap-4 items-center">
-        <span className="font-display text-2xl text-cyan">{show.date}</span>
-        <span className="font-body text-lg font-medium text-white">{show.artist}</span>
-        <span className="font-body text-sm text-white/50">{show.venue}, {show.city}</span>
-        <Link
-          to="/bookings"
-          className="border border-red text-red rounded-full px-4 py-1.5 text-sm font-body hover:bg-red hover:text-white transition-colors whitespace-nowrap"
-        >
-          → Book
-        </Link>
-      </div>
-
-      {/* Mobile stack */}
-      <div className="flex flex-col gap-2 md:hidden">
-        <span className="font-display text-xl text-cyan">{show.date}</span>
-        <span className="font-body text-lg font-medium text-white">{show.artist}</span>
-        <span className="font-body text-sm text-white/50">{show.venue}, {show.city}</span>
-        <Link
-          to="/bookings"
-          className="self-start border border-red text-red rounded-full px-4 py-1.5 text-sm font-body hover:bg-red hover:text-white transition-colors"
-        >
-          → Book
-        </Link>
-      </div>
-    </div>
+    <motion.div
+      initial={{ opacity: 0, x: -30 }}
+      whileInView={{ opacity: 1, x: 0 }}
+      viewport={{ once: true, margin: '-20px' }}
+      transition={{ type: 'spring', stiffness: 80, damping: 20, delay: index * 0.12 }}
+      className="grid grid-cols-1 items-start gap-2 rounded-[24px] border-[3px] border-cyan bg-[#5C98B2] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] sm:rounded-full sm:border-[4px] sm:px-10 sm:py-4 md:min-h-[86px] md:grid-cols-[280px_220px_1fr_auto] md:items-center md:gap-5"
+    >
+      <span className="font-display text-[28px] leading-none text-white sm:text-[38px]">{show.date}</span>
+      <span className="font-body text-[20px] uppercase leading-none text-white sm:text-[28px]">{show.artist}</span>
+      <span className="font-body text-[18px] italic leading-none text-white/80 sm:text-[28px] sm:text-white">
+        {show.venue}, {show.city}
+      </span>
+      <Link
+        to="/bookings"
+        className="inline-flex items-center justify-center gap-4 justify-self-start rounded-full bg-navy py-2 pl-1 pr-6 font-body italic text-white transition-transform hover:-translate-y-0.5 active:scale-[0.98] md:justify-self-end"
+      >
+        <ArrowCircleRight size={42} weight="fill" className="text-cyan" />
+        Book Now
+      </Link>
+    </motion.div>
   )
 }
 
 export default function BookingsPreview() {
-  const [shows, setShows] = useState<Show[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(false)
-
-  useEffect(() => {
-    if (!APPS_SCRIPT_URL) {
-      setShows(PLACEHOLDER_SHOWS)
-      setLoading(false)
-      return
-    }
-    fetch(`${APPS_SCRIPT_URL}?action=upcoming`)
-      .then(r => r.json())
-      .then(data => {
-        setShows((data.shows || data).slice(0, 3))
-        setLoading(false)
-      })
-      .catch(() => {
-        setError(true)
-        setLoading(false)
-      })
-  }, [])
+  const { shows, loading } = useUpcomingShows(3)
+  const displayShows = loading || shows.length === 0 ? fallbackShows : shows.slice(0, 3)
 
   return (
-    <section id="shows" className="bg-navy py-20 md:py-28">
-      <div className="max-w-7xl mx-auto px-6 md:px-12">
-
-        {/* Header */}
-        <motion.div
-          whileInView={{ opacity: 1, y: 0 }}
+    <section id="shows" className="scroll-mt-20 bg-navy px-4 py-16 sm:px-8 lg:px-10 lg:py-24">
+      <div className="mx-auto max-w-[1220px]">
+        <motion.h2
+          className="text-center font-script text-[40px] uppercase leading-none text-cyan sm:text-[54px] lg:text-[62px]"
           initial={{ opacity: 0, y: 30 }}
-          viewport={{ once: true }}
-          className="mb-12"
-        >
-          <h2 className="font-display text-4xl md:text-6xl text-white uppercase tracking-tight">
-            UPCOMING SHOWS
-          </h2>
-          <div className="mt-3 w-16 h-[3px] bg-red" />
-        </motion.div>
-
-        {/* Shows list */}
-        <motion.div
           whileInView={{ opacity: 1, y: 0 }}
-          initial={{ opacity: 0, y: 30 }}
           viewport={{ once: true }}
+          transition={{ type: 'spring', stiffness: 80, damping: 20 }}
         >
-          {loading && <SkeletonRows />}
+          Upcoming Shows
+        </motion.h2>
 
-          {!loading && error && (
-            <div className="text-center py-12">
-              <p className="font-body text-white/50">Could not load shows. Check back later.</p>
-            </div>
-          )}
-
-          {!loading && !error && shows.length === 0 && (
-            <div className="text-center py-12">
-              <p className="font-body text-white/50">No upcoming shows scheduled. Check back soon.</p>
-            </div>
-          )}
-
-          {!loading && !error && shows.map((show, i) => (
-            <ShowRow key={`${show.artist}-${i}`} show={show} />
+        <div className="mt-16 grid gap-10">
+          {displayShows.map((show, index) => (
+            <ShowRow key={`${show.artist}-${show.date}-${index}`} show={show} index={index} />
           ))}
-        </motion.div>
-
-        {/* Bottom CTA */}
-        <motion.div
-          whileInView={{ opacity: 1, y: 0 }}
-          initial={{ opacity: 0, y: 30 }}
-          viewport={{ once: true }}
-          className="text-center mt-12"
-        >
-          <Link
-            to="/bookings"
-            className="inline-flex items-center gap-2 bg-red text-white font-body font-medium px-8 py-3 rounded-full hover:bg-red/90 transition-colors"
-          >
-            <CalendarBlank size={18} weight="bold" />
-            Book an Artist
-          </Link>
-        </motion.div>
-
+        </div>
       </div>
     </section>
   )

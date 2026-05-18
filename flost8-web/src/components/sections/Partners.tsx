@@ -1,70 +1,58 @@
 import { motion } from 'framer-motion'
 
-const CORE_AREAS = [
-  {
-    title: 'ARTIST DEVELOPMENT',
-    desc: 'Branding, identity, positioning',
-    color: 'bg-hot-pink',
-  },
-  {
-    title: 'CONTENT ENGINE',
-    desc: 'Reels, live sets, edits, media',
-    color: 'bg-cyan',
-  },
-  {
-    title: 'BOOKING SYSTEM',
-    desc: 'Events, placements, negotiations',
-    color: 'bg-lime',
-  },
-]
+const partners = ['CocaCola', 'IBM', 'NIKE', 'adidas', 'HARVARD']
 
 export default function Partners() {
   return (
-    <section className="bg-[#4A5580] py-16 md:py-20">
-      <div className="max-w-6xl mx-auto px-4 md:px-8">
+    <section className="relative overflow-hidden bg-[#5E79A6] px-4 pb-20 sm:px-8 lg:px-10 lg:pb-24">
+      <div className="mx-auto max-w-[1280px] text-center">
         <motion.p
-          initial={{ opacity: 0, y: 16 }}
+          className="font-body text-[20px] italic leading-snug text-white sm:text-[26px] lg:text-[30px]"
+          initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="font-body text-xs text-white/50 uppercase tracking-widest text-center mb-3"
+          transition={{ type: 'spring', stiffness: 80, damping: 20 }}
         >
-          We operate across 3 core areas
+          Partnerships with brands, venues, festivals, and lifestyle platforms across 14 cities.
         </motion.p>
-        <motion.h2
-          initial={{ opacity: 0, y: 16 }}
+
+        <motion.div
+          className="relative mt-10 rounded-[24px] border-[5px] border-[#EA4323] bg-[#F4F3F6] px-6 py-10 shadow-[0_12px_18px_rgba(0,0,0,0.35)] sm:rounded-[34px] sm:px-16 sm:py-16"
+          initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.1 }}
-          className="font-display text-4xl md:text-5xl text-white text-center mb-12 uppercase tracking-tight"
+          transition={{ type: 'spring', stiffness: 70, damping: 18, delay: 0.15 }}
         >
-          WHAT WE ACTUALLY DO
-        </motion.h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {CORE_AREAS.map((area, i) => (
-            <motion.div
-              key={area.title}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ delay: i * 0.1 }}
-              className={`${area.color} rounded-2xl p-8`}
-            >
-              <h3 className="font-display text-2xl text-navy uppercase tracking-wide leading-tight mb-3">
-                {area.title}
-              </h3>
-              <p className="font-body text-navy/70 text-sm">{area.desc}</p>
-            </motion.div>
-          ))}
-        </div>
-        <motion.p
-          initial={{ opacity: 0 }}
-          whileInView={{ opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ delay: 0.4 }}
-          className="font-body italic text-white/40 text-center mt-10 text-sm"
-        >
-          Every performance becomes content + exposure + bookings + growth.
-        </motion.p>
+          <div className="grid grid-cols-2 items-center gap-12 md:grid-cols-5">
+            {partners.map((partner, index) => (
+              <span
+                key={partner}
+                className={[
+                  'font-body text-[24px] font-bold leading-none text-black sm:text-[36px]',
+                  index === 0 ? 'font-script text-red' : '',
+                  index === 1 ? 'font-serif text-[#2D7DB9]' : '',
+                  index === 3 ? 'font-display lowercase' : '',
+                  index === 4 ? 'text-[26px]' : '',
+                ].join(' ')}
+              >
+                {partner}
+              </span>
+            ))}
+          </div>
+          <svg
+            viewBox="0 0 1280 180"
+            className="pointer-events-none absolute -bottom-24 left-0 w-full"
+            preserveAspectRatio="none"
+            aria-hidden="true"
+          >
+            <path
+              d="M0 80 C 220 15 350 190 520 95 S 820 75 980 80 S 1190 105 1280 10"
+              fill="none"
+              stroke="#70F0F2"
+              strokeWidth="4"
+            />
+          </svg>
+        </motion.div>
       </div>
     </section>
   )

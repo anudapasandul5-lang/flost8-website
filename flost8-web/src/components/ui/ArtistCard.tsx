@@ -1,5 +1,7 @@
-import { motion, useMotionValue, useTransform } from 'framer-motion'
+import { useRef } from 'react'
+import { Link } from 'react-router-dom'
 import { ArrowUpRight } from '@phosphor-icons/react'
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion'
 
 export interface Artist {
   slug: string
@@ -13,15 +15,18 @@ interface ArtistCardProps {
 }
 
 export default function ArtistCard({ artist }: ArtistCardProps) {
+  const ref = useRef<HTMLDivElement>(null)
   const x = useMotionValue(0)
   const y = useMotionValue(0)
-  const rotateX = useTransform(y, [-100, 100], [8, -8])
-  const rotateY = useTransform(x, [-100, 100], [-8, 8])
+
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [8, -8]), { stiffness: 200, damping: 30 })
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-8, 8]), { stiffness: 200, damping: 30 })
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
-    const rect = e.currentTarget.getBoundingClientRect()
-    x.set(e.clientX - rect.left - rect.width / 2)
-    y.set(e.clientY - rect.top - rect.height / 2)
+    const rect = ref.current?.getBoundingClientRect()
+    if (!rect) return
+    x.set((e.clientX - rect.left) / rect.width - 0.5)
+    y.set((e.clientY - rect.top) / rect.height - 0.5)
   }
 
   function handleMouseLeave() {
@@ -30,39 +35,38 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
   }
 
   return (
-    <a href="#bookings" className="block">
-      <motion.div
-        style={{ rotateX, rotateY, transformStyle: 'preserve-3d' }}
-        onMouseMove={handleMouseMove}
-        onMouseLeave={handleMouseLeave}
-        className="cursor-pointer relative overflow-hidden border-2 border-cyan rounded-none"
-      >
-        {/* Photo */}
-        <div className="aspect-[4/5] relative">
-          <img
-            src={`/photos/${artist.slug}.png`}
-            alt={artist.name}
-            className="object-cover object-top w-full h-full"
-            loading="lazy"
-          />
-          {/* Dark gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-        </div>
+    <motion.div
+      ref={ref}
+      onMouseMove={handleMouseMove}
+      onMouseLeave={handleMouseLeave}
+      style={{ rotateX, rotateY, transformPerspective: 800 }}
+      className="cursor-pointer"
+    >
+      <Link to={`/bookings?artist=${encodeURIComponent(artist.slug)}`} className="block">
+        <article className="overflow-hidden bg-white shadow-[0_4px_14px_rgba(0,0,0,0.45)] border-[3px] border-cyan">
+          <div className="aspect-[1/1.08] bg-black">
+            <img
+              src={`/photos/${artist.slug}.png`}
+              alt={artist.name}
+              className="h-full w-full object-cover object-top grayscale transition-all duration-500 hover:grayscale-0"
+              loading="lazy"
+            />
+          </div>
 
-        {/* Name card strip */}
-        <div className="flex items-center gap-3 bg-white p-3">
-          {/* Red arrow button */}
-          <div className="bg-red w-12 h-12 flex items-center justify-center flex-shrink-0">
-            <ArrowUpRight size={20} color="white" weight="bold" />
+          <div className="grid grid-cols-[56px_1fr] sm:grid-cols-[80px_1fr]">
+            <div className="flex h-[60px] items-center justify-center bg-red text-black sm:h-[76px]">
+              <ArrowUpRight size={24} weight="bold" className="sm:hidden" />
+              <ArrowUpRight size={38} weight="bold" className="hidden sm:block" />
+            </div>
+            <div className="flex h-[60px] flex-col justify-center px-3 sm:h-[76px] sm:px-4">
+              <p className="border-b border-black pb-0.5 font-body text-[13px] uppercase leading-none tracking-wide text-black sm:pb-1 sm:text-[22px]">
+                {artist.name}
+              </p>
+              <p className="pt-1 font-body text-[10px] leading-none text-black sm:pt-2 sm:text-[13px]">{artist.role}</p>
+            </div>
           </div>
-          <div className="min-w-0">
-            <p className="font-display text-xl text-off-black tracking-wide uppercase leading-tight">
-              {artist.name}
-            </p>
-            <p className="font-body text-sm text-off-black/60 truncate">{artist.role}</p>
-          </div>
-        </div>
-      </motion.div>
-    </a>
+        </article>
+      </Link>
+    </motion.div>
   )
 }
