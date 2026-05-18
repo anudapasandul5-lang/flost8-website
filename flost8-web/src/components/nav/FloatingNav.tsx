@@ -101,6 +101,7 @@ export default function FloatingNav() {
           </Link>
 
           <button
+            type="button"
             className="md:hidden text-white p-1"
             onClick={toggle}
             aria-label={open ? 'Close menu' : 'Open menu'}
