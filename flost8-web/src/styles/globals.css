@@ -1,3 +1,70 @@
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Caveat:wght@700&family=Outfit:wght@300;400;500;600;700&display=swap');
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Brand Tokens ── */
+:root {
+  --navy:      #1A1535;
+  --purple:    #7B3FF5;
+  --cyan:      #78F4F5;
+  --red:       #E63946;
+  --lime:      #CCFF00;
+  --hot-pink:  #FF6FAA;
+  --orange:    #E07040;
+  --cream:     #F5F0E8;
+  --off-black: #111118;
+
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-script:  'Caveat', cursive;
+  --font-body:    'Outfit', sans-serif;
+}
+
+/* ── Base Reset ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  font-family: var(--font-body);
+  background-color: var(--navy);
+  color: white;
+}
+
+body {
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Tailwind Custom Utilities ── */
+@layer utilities {
+  .font-display  { font-family: var(--font-display); }
+  .font-script   { font-family: var(--font-script); }
+  .font-body     { font-family: var(--font-body); }
+
+  .text-navy     { color: var(--navy); }
+  .text-purple   { color: var(--purple); }
+  .text-cyan     { color: var(--cyan); }
+  .text-red-brand { color: var(--red); }
+  .text-lime     { color: var(--lime); }
+  .text-hot-pink { color: var(--hot-pink); }
+  .text-orange   { color: var(--orange); }
+  .text-cream    { color: var(--cream); }
+
+  .bg-navy       { background-color: var(--navy); }
+  .bg-purple-brand { background-color: var(--purple); }
+  .bg-cyan-brand { background-color: var(--cyan); }
+  .bg-red-brand  { background-color: var(--red); }
+  .bg-lime       { background-color: var(--lime); }
+  .bg-hot-pink   { background-color: var(--hot-pink); }
+  .bg-orange-brand { background-color: var(--orange); }
+  .bg-cream      { background-color: var(--cream); }
+
+  .border-cyan-brand { border-color: var(--cyan); }
+  .border-red-brand  { border-color: var(--red); }
+}
