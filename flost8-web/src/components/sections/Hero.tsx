@@ -100,7 +100,7 @@ export default function Hero() {
           {/* CTAs */}
           <div className="flex flex-col sm:flex-row items-center md:items-start gap-3 w-full sm:w-auto">
             <a
-              href="#roster"
+              href="mailto:bookings@flost8.lk"
               className="inline-flex items-center gap-2 bg-purple rounded-full px-6 py-3 text-white font-body font-medium hover:opacity-90 transition-opacity w-full sm:w-auto justify-center"
             >
               <Headphones size={18} weight="bold" />
