@@ -5,28 +5,38 @@ import { Link } from 'react-router-dom'
 const FOOTER_COLS = [
   {
     heading: 'PLATFORM',
-    links: ['The Roster', 'Shows', 'Events', 'Brand Deals'],
-    hrefs: ['#roster', '#shows', '#shows', '#bookings'],
+    links: ['The Roster', 'Upcoming Shows', 'Book an Artist', 'Brand Deals'],
+    hrefs: ['#roster', '#shows', '/bookings', 'mailto:bookings@flost8.lk'],
   },
   {
-    heading: 'STUDIO',
-    links: ['About', 'Press', 'Careers', 'Press kit'],
+    heading: 'FOR ARTISTS',
+    links: ['Join the Roster', 'Content Engine', 'Brand Partnerships', 'Booking Support'],
     hrefs: [
-      '#about',
       'mailto:bookings@flost8.lk',
+      'mailto:bookings@flost8.lk',
+      'mailto:bookings@flost8.lk',
+      '/bookings',
+    ],
+  },
+  {
+    heading: 'FOR VENUES & EVENTS',
+    links: ['Curated Lineups', 'B2B / B3B Sets', 'Content Coverage', 'Promotion Support'],
+    hrefs: [
+      '/bookings',
+      '/bookings',
       'mailto:bookings@flost8.lk',
       'mailto:bookings@flost8.lk',
     ],
   },
   {
-    heading: 'FOR ARTISTS',
-    links: ['Join Roster', 'Bookings', 'Content'],
-    hrefs: ['mailto:bookings@flost8.lk', '/bookings', 'mailto:bookings@flost8.lk'],
-  },
-  {
-    heading: 'FOR BUYERS',
-    links: ['Artists', 'Venues', 'Brands', 'Organizers'],
-    hrefs: ['/bookings', '/bookings', 'mailto:bookings@flost8.lk', '/bookings'],
+    heading: 'FOR BRANDS',
+    links: ['Direct Access to DJs', 'Product Placement', 'Lifestyle Integration', 'Content With Reach'],
+    hrefs: [
+      'mailto:bookings@flost8.lk',
+      'mailto:bookings@flost8.lk',
+      'mailto:bookings@flost8.lk',
+      'mailto:bookings@flost8.lk',
+    ],
   },
 ] as const
 
