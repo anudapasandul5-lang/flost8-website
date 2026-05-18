@@ -7,8 +7,8 @@ const fadeUp = {
   viewport: { once: true },
 }
 
-const bodyText =
-  'We turn performances into visibility, visibility into bookings, and bookings into long-term growth.'
+const leftText = 'FLO ST8 is a platform that connects artists, brands, events, venues, and content.'
+const rightText = 'We turn performances into visibility, visibility into bookings, and bookings into long-term growth.'
 
 export default function BrandStatement() {
   return (
@@ -45,7 +45,7 @@ export default function BrandStatement() {
             transition={{ duration: 0.7, delay: 0.2 }}
             className="font-body italic text-off-black/60 text-base md:text-lg max-w-xs text-center md:text-left"
           >
-            {bodyText}
+            {leftText}
           </motion.p>
 
           {/* Center: B&W artist photo — hidden on mobile */}
@@ -55,8 +55,8 @@ export default function BrandStatement() {
             className="hidden md:block w-full aspect-[3/4] overflow-hidden rounded-sm"
           >
             <img
-              src="https://picsum.photos/seed/flost8artist/400/600"
-              alt="Artist"
+              src="/photos/dr-green.png"
+              alt="DR. GREEN"
               className="w-full h-full object-cover grayscale"
             />
           </motion.div>
@@ -67,7 +67,7 @@ export default function BrandStatement() {
             transition={{ duration: 0.7, delay: 0.2 }}
             className="font-body italic text-off-black/60 text-base md:text-lg max-w-xs text-center md:text-right"
           >
-            {bodyText}
+            {rightText}
           </motion.p>
         </div>
       </div>
