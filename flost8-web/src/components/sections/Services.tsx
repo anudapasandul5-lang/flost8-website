@@ -2,10 +2,10 @@ import { motion } from 'framer-motion'
 import AudienceCard from '../ui/AudienceCard'
 
 const AUDIENCE_CARDS = [
-  { title: 'ARTIST',     subtitle: 'Grow your brand',  href: '#bookings',                 ctaLabel: 'Book Now' },
-  { title: 'VENUES',     subtitle: 'Fill your rooms',  href: '#bookings',                 ctaLabel: 'Book Now' },
-  { title: 'BRANDS',     subtitle: 'Reach new crowds', href: 'mailto:bookings@flost8.lk', ctaLabel: 'Partner Up' },
-  { title: 'ORGANIZERS', subtitle: 'Plan your event',  href: '#bookings',                 ctaLabel: 'Book Now' },
+  { title: 'ARTIST',     subtitle: 'We turn DJs into brands.',              href: '#bookings',                 ctaLabel: 'Join Roster' },
+  { title: 'VENUES',     subtitle: 'We bring audience + content.',          href: '#bookings',                 ctaLabel: 'Work With Us' },
+  { title: 'BRANDS',     subtitle: 'Direct access to DJs. Natural placement.', href: 'mailto:bookings@flost8.lk', ctaLabel: 'Partner Up' },
+  { title: 'ORGANIZERS', subtitle: 'Ready-made lineups. Events that perform.', href: '#bookings',                 ctaLabel: 'Book Now' },
 ]
 
 function VinylRecord() {

@@ -94,7 +94,7 @@ export default function Hero() {
 
           {/* Tagline */}
           <p className="font-body text-white/70 text-base md:text-lg max-w-md">
-            We Turn Performances Into Visibility, Visibility Into Bookings
+            Enter the flow. Control the moment.
           </p>
 
           {/* CTAs */}

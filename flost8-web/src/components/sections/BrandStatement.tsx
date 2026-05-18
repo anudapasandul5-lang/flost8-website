@@ -8,7 +8,7 @@ const fadeUp = {
 }
 
 const bodyText =
-  'flost8 is a creative artist platform connecting artists, events, brands, venues, and content.'
+  'FLO ST8 is a platform that connects artists, brands, events, venues, and content.'
 
 export default function BrandStatement() {
   return (
