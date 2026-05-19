@@ -1,143 +1,84 @@
-import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { useState } from 'react'
+import { AnimatePresence, motion } from 'framer-motion'
 import { List, X } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
 import { NAV_LINKS } from '../../lib/config'
-
-// ── Hooks ─────────────────────────────────────────────────────────────────────
-
-function useScrolled(threshold = 80): boolean {
-  const [scrolled, setScrolled] = useState(false)
-  useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > threshold)
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [threshold])
-  return scrolled
-}
 
 function useMobileMenu() {
   const [open, setOpen] = useState(false)
   return { open, toggle: () => setOpen(v => !v), close: () => setOpen(false) }
 }
 
-// ── VinylLogo ─────────────────────────────────────────────────────────────────
+function NavLink({ label, href, onClick }: { label: string; href: string; onClick?: () => void }) {
+  const isRoute = href.startsWith('/')
+  const className = 'font-body text-[17px] leading-none text-white hover:text-cyan transition-colors'
 
-function VinylLogo() {
-  return (
-    <Link to="/" className="flex items-center">
-      <img src="/logo.png" alt="FLOST8" className="h-10 w-auto" style={{ mixBlendMode: 'screen' }} />
+  return isRoute ? (
+    <Link to={href} onClick={onClick} className={className}>
+      {label}
     </Link>
+  ) : (
+    <a href={href} onClick={onClick} className={className}>
+      {label}
+    </a>
   )
 }
 
-// ── FloatingNav ───────────────────────────────────────────────────────────────
-
 export default function FloatingNav() {
-  const scrolled = useScrolled()
   const { open, toggle, close } = useMobileMenu()
 
   return (
-    <div className="fixed top-4 left-0 right-0 z-50 px-4 md:px-8">
-      {/* Pill */}
-      <motion.div
-        className={[
-          'max-w-6xl mx-auto rounded-full px-6 py-3',
-          'flex items-center justify-between',
-          scrolled ? 'border border-white/10' : 'border border-transparent',
-        ].join(' ')}
-        animate={{
-          backgroundColor: scrolled ? 'rgba(26,21,53,0.85)' : 'rgba(0,0,0,0)',
-          backdropFilter: scrolled ? 'blur(12px)' : 'blur(0px)',
-        }}
-        transition={{ duration: 0.3 }}
-      >
-        {/* Logo */}
-        <VinylLogo />
+    <header
+      className="fixed inset-x-0 top-0 z-50"
+    >
+      <div className="h-[68px] rounded-b-[34px] bg-navy px-6 md:px-10 flex items-center justify-between shadow-sm">
+        <Link to="/" aria-label="FLOST8 home" className="shrink-0">
+          <img src="/logo-transparent.png" alt="FLOST8" className="h-[42px] w-auto max-w-[130px]" />
+        </Link>
 
-        {/* Desktop nav */}
-        <nav className="hidden md:flex items-center gap-6">
-          {NAV_LINKS.map(({ label, href }) =>
-            href.startsWith('/') ? (
-              <Link
-                key={label}
-                to={href}
-                className="font-body text-sm font-medium tracking-wide text-white/80 hover:text-white relative group transition-colors"
-              >
-                {label}
-                <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-cyan transition-all duration-200 group-hover:w-full" />
-              </Link>
-            ) : (
-              <a
-                key={label}
-                href={href}
-                className="font-body text-sm font-medium tracking-wide text-white/80 hover:text-white relative group transition-colors"
-              >
-                {label}
-                <span className="absolute -bottom-0.5 left-0 w-0 h-px bg-cyan transition-all duration-200 group-hover:w-full" />
-              </a>
-            )
-          )}
+        <nav className="hidden md:flex items-center gap-8">
+          {NAV_LINKS.map(link => (
+            <NavLink key={link.label} {...link} />
+          ))}
         </nav>
 
-        {/* Desktop CTA + Mobile hamburger */}
         <div className="flex items-center gap-3">
           <Link
             to="/bookings"
-            className="hidden md:inline-flex bg-red rounded-full px-4 py-1.5 text-white text-sm font-medium font-body hover:bg-red/90 transition-colors"
+            className="hidden md:inline-flex justify-center rounded-full border-2 border-purple bg-cyan px-5 py-2 font-body italic text-[15px] leading-none text-navy shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
           >
             Book Now
           </Link>
 
           <button
             type="button"
-            className="md:hidden text-white p-1"
+            className="md:hidden rounded-full border border-cyan/70 p-3 text-cyan"
             onClick={toggle}
             aria-label={open ? 'Close menu' : 'Open menu'}
           >
             {open ? <X size={24} /> : <List size={24} />}
           </button>
         </div>
-      </motion.div>
+      </div>
 
-      {/* Mobile slide-down menu */}
       <AnimatePresence>
         {open && (
           <motion.div
             key="mobile-menu"
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
-            className="overflow-hidden max-w-6xl mx-auto mt-2 rounded-2xl border border-white/10"
-            style={{ backgroundColor: 'rgba(26,21,53,0.95)', backdropFilter: 'blur(12px)' }}
+            initial={{ opacity: 0, y: -12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -12 }}
+            transition={{ type: 'spring', stiffness: 200, damping: 25 }}
+            className="mx-4 mt-3 rounded-[28px] bg-navy p-6 shadow-xl md:hidden"
           >
-            <nav className="flex flex-col px-6 py-4 gap-4">
-              {NAV_LINKS.map(({ label, href }) =>
-                href.startsWith('/') ? (
-                  <Link
-                    key={label}
-                    to={href}
-                    onClick={close}
-                    className="font-body text-base font-medium tracking-wide text-white/80 hover:text-white transition-colors"
-                  >
-                    {label}
-                  </Link>
-                ) : (
-                  <a
-                    key={label}
-                    href={href}
-                    onClick={close}
-                    className="font-body text-base font-medium tracking-wide text-white/80 hover:text-white transition-colors"
-                  >
-                    {label}
-                  </a>
-                )
-              )}
+            <nav className="flex flex-col gap-5">
+              {NAV_LINKS.map(link => (
+                <NavLink key={link.label} {...link} onClick={close} />
+              ))}
               <Link
                 to="/bookings"
                 onClick={close}
-                className="mt-2 inline-flex justify-center bg-red rounded-full px-4 py-2 text-white text-sm font-medium font-body hover:bg-red/90 transition-colors"
+                className="inline-flex justify-center rounded-full border-2 border-purple bg-cyan px-6 py-3 font-body italic text-lg text-navy"
               >
                 Book Now
               </Link>
@@ -145,6 +86,6 @@ export default function FloatingNav() {
           </motion.div>
         )}
       </AnimatePresence>
-    </div>
+    </header>
   )
 }

@@ -64,18 +64,18 @@ export default function Hero() {
             animate="visible"
           >
             <a
-              href="mailto:bookings@flost8.lk"
+              href="/bookings"
               className="inline-flex min-w-[190px] items-center justify-center gap-2 rounded-full border border-cyan/70 bg-purple/80 px-5 py-3 font-body italic text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
+            >
+              <Eye size={18} weight="bold" />
+              Book Now
+            </a>
+            <a
+              href="mailto:bookings@flost8.lk"
+              className="inline-flex min-w-[190px] items-center justify-center gap-2 rounded-full border border-cyan bg-navy/35 px-5 py-3 font-body italic text-cyan transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
             >
               <Headphones size={18} weight="bold" />
               Become an Artist
-            </a>
-            <a
-              href="/#roster"
-              className="inline-flex min-w-[190px] items-center justify-center gap-2 rounded-full border border-cyan bg-navy/35 px-5 py-3 font-body italic text-cyan transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
-            >
-              <Eye size={18} weight="bold" />
-              See the Roster
             </a>
           </motion.div>
         </motion.div>
