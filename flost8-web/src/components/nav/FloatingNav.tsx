@@ -53,7 +53,7 @@ export default function FloatingNav() {
   const location = useLocation()
 
   useMotionValueEvent(scrollY, 'change', (latest) => {
-    if (shouldReduce) return
+    // Always update visual state; shouldReduce only suppresses the CSS transition, not the state itself
     setScrolled(latest > 20)
   })
 
@@ -62,7 +62,8 @@ export default function FloatingNav() {
 
   function isLinkActive(href: string): boolean {
     if (href === '/bookings') return location.pathname === '/bookings'
-    // Hash links: e.g. /#roster — match when on / with matching hash
+    // Hash links must be root-prefixed (e.g. /#roster, not #roster) so that
+    // location.pathname + location.hash matches the href string exactly.
     return currentPath === href || (href === '/' && location.pathname === '/' && !location.hash)
   }
 
