@@ -1,4 +1,5 @@
-import { motion } from 'framer-motion'
+import { useRef } from 'react'
+import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
 import Marquee from '../ui/Marquee'
 
 const leftCopy = 'FLO ST8 is a platform that connects artists, brands, events, venues, and content.'
@@ -7,8 +8,13 @@ const rightCopy = 'We turn performances into visibility, visibility into booking
 const spring = { type: 'spring' as const, stiffness: 80, damping: 20 }
 
 export default function BrandStatement() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const shouldReduce = useReducedMotion()
+  const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] })
+  const photoY = useTransform(scrollYProgress, [0, 1], shouldReduce ? ['0%', '0%'] : ['-8%', '8%'])
+
   return (
-    <section id="about" className="scroll-mt-32 bg-[#EEEEEE] md:scroll-mt-24">
+    <section ref={sectionRef} id="about" className="scroll-mt-32 bg-[#EEEEEE] md:scroll-mt-24">
       <div className="relative mx-auto max-w-[1280px] overflow-hidden px-4 pb-10 pt-14 sm:px-8 md:min-h-[520px] md:pb-0 md:pt-12 lg:px-[68px]">
         {/* Headline — two stacked lines */}
         <div className="relative z-10 flex flex-col gap-0">
@@ -69,17 +75,22 @@ export default function BrandStatement() {
         </motion.p>
 
         {/* Artist photo — center */}
-        <motion.img
-          src="/hero-artist.png"
-          alt=""
-          aria-hidden="true"
-          className="absolute bottom-0 left-[38%] hidden h-[460px] w-auto -translate-x-1/2 object-contain grayscale md:block lg:left-[28%] lg:h-[510px]"
-          style={{ mixBlendMode: 'multiply', filter: 'grayscale(1) drop-shadow(0 -8px 32px rgba(0,0,0,0.18)) drop-shadow(0 24px 48px rgba(0,0,0,0.22))' }}
-          initial={{ opacity: 0, y: 50 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ type: 'spring', stiffness: 60, damping: 18, delay: 0.3 }}
-        />
+        <motion.div
+          className="absolute bottom-0 left-[38%] hidden -translate-x-1/2 md:block lg:left-[28%]"
+          style={{ y: photoY }}
+        >
+          <motion.img
+            src="/hero-artist.png"
+            alt=""
+            aria-hidden="true"
+            className="h-[460px] w-auto object-contain grayscale lg:h-[510px]"
+            style={{ mixBlendMode: 'multiply', filter: 'grayscale(1) drop-shadow(0 -8px 32px rgba(0,0,0,0.18)) drop-shadow(0 24px 48px rgba(0,0,0,0.22))' }}
+            initial={{ opacity: 0, y: 50 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ type: 'spring', stiffness: 60, damping: 18, delay: 0.3 }}
+          />
+        </motion.div>
       </div>
       <Marquee />
     </section>
