@@ -93,7 +93,7 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
 
           {/* Specular sheen overlay — tracks tilt direction, pointer-events:none so it never blocks hover */}
           <motion.div
-            className="absolute inset-0 rounded-[inherit] pointer-events-none"
+            className="absolute inset-0 pointer-events-none"
             style={{
               background: sheenBackground,
               mixBlendMode: 'overlay',
