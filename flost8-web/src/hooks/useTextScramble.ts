@@ -11,6 +11,11 @@ export function useTextScramble(finalText: string, duration = 1500): string {
   )
 
   useEffect(() => {
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setDisplay(finalText)
+      return
+    }
+
     const nonSpaceIndices = finalText
       .split('')
       .reduce<number[]>((acc, c, i) => (c !== ' ' ? [...acc, i] : acc), [])
