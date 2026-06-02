@@ -12,8 +12,8 @@ const audienceCards = [
 function VinylRecord({ shouldReduce }: { shouldReduce: boolean | null }) {
   return (
     <motion.div
-      animate={shouldReduce ? undefined : { rotate: 360 }}
-      transition={{ duration: 9, ease: 'linear', repeat: Infinity }}
+      animate={shouldReduce ? { rotate: 0 } : { rotate: 360 }}
+      transition={shouldReduce ? { duration: 0 } : { duration: 9, ease: 'linear', repeat: Infinity }}
       className="pointer-events-none absolute -top-[120px] right-[70px] hidden h-[340px] w-[340px] rounded-full bg-purple/35 p-5 shadow-[0_16px_26px_rgba(0,0,0,0.25)] lg:block"
     >
       <svg viewBox="0 0 240 240" className="h-full w-full">
