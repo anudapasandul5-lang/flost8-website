@@ -7,6 +7,7 @@ import BookingsPage from './pages/BookingsPage'
 export default function App() {
   return (
     <ReactLenis root options={{ lerp: 0.08, duration: 1.4, smoothWheel: true }}>
+      <div className="grain" aria-hidden="true" />
       <BrowserRouter>
         <FloatingNav />
         <Routes>

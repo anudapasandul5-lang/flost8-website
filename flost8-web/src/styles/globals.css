@@ -98,4 +98,46 @@ body {
 
   .border-cyan-brand { border-color: var(--cyan); }
   .border-red-brand  { border-color: var(--red); }
+
+  /* ── Film grain — premium depth texture ── */
+  .grain {
+    position: fixed;
+    inset: 0;
+    z-index: 55; /* above content, below nav (nav uses z-40+) */
+    pointer-events: none;
+    mix-blend-mode: overlay;
+    opacity: 0.045;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 160px 160px;
+  }
+
+  /* ── Horizontal mask for marquee edge fade ── */
+  .mask-fade-x {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 8%,
+      black 92%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 8%,
+      black 92%,
+      transparent 100%
+    );
+  }
+}
+
+/* ── Reduced-motion safety net ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
