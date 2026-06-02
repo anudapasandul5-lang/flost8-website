@@ -11,16 +11,17 @@ export default function LivePhoto() {
     <section ref={sectionRef} className="bg-navy px-4 pb-16 sm:px-8 lg:px-10 lg:pb-24">
       <div className="mx-auto max-w-[1280px]">
         <div className="relative overflow-hidden">
-          <motion.img
-            src="/ui2/live-photo.jpeg"
-            alt="A packed FLOST8 event with stage lighting and crowd"
-            className="h-[220px] w-full object-cover object-[50%_68%] will-change-transform sm:h-[300px] lg:h-[360px]"
-            style={{ scale: imgScale }}
-            initial={{ opacity: 0, scale: 0.98 }}
-            whileInView={{ opacity: 1, scale: shouldReduce ? 1 : 1.04 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ type: 'spring', stiffness: 60, damping: 18 }}
-          />
+          <motion.div style={{ scale: imgScale }} className="will-change-transform">
+            <motion.img
+              src="/ui2/live-photo.jpeg"
+              alt="A packed FLOST8 event with stage lighting and crowd"
+              className="h-[220px] w-full object-cover object-[50%_68%] sm:h-[300px] lg:h-[360px]"
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+            />
+          </motion.div>
           {/* Gradient overlay */}
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
         </div>
