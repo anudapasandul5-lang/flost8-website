@@ -4,10 +4,10 @@ export default {
   theme: {
     extend: {
       colors: {
-        navy:     '#1A1535',
-        purple:   '#7B3FF5',
-        cyan:     '#78F4F5',
-        red:      '#E63946',
+        navy:     '#302A66',
+        purple:   '#AE43F7',
+        cyan:     '#70F0F2',
+        red:      '#F20D0D',
         lime:     '#CCFF00',
         'hot-pink': '#FF6FAA',
         orange:   '#E07040',
@@ -16,8 +16,8 @@ export default {
       },
       fontFamily: {
         display: ['Bebas Neue', 'sans-serif'],
-        script:  ['Caveat', 'cursive'],
-        body:    ['Outfit', 'sans-serif'],
+        script:  ['Hyperwave', 'cursive'],
+        body:    ['Circe', 'sans-serif'],
       },
     },
   },

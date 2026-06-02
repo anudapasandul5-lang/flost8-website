@@ -45,19 +45,7 @@ export function useTextScramble(finalText: string, duration = 1500): string {
     }, stepInterval)
 
     return () => clearInterval(interval)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [finalText, duration])
-
-  // Reset when totalChars changes (re-mount)
-  useEffect(() => {
-    setDisplay(
-      finalText
-        .split('')
-        .map((c) => (c === ' ' ? ' ' : CHARS[Math.floor(Math.random() * CHARS.length)]))
-        .join('')
-    )
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   return display
 }

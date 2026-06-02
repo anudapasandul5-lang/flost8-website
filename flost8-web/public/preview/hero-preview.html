@@ -1,0 +1,750 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FLOST8 — Design Preview (Phase 0)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap" rel="stylesheet">
+  <style>
+    /* ── Local fonts (resolved via Vite dev server @ localhost:5173) ── */
+    @font-face {
+      font-family: 'Hyperwave';
+      src: url('/fonts/Hyperwave.otf') format('opentype');
+      font-display: swap;
+    }
+    @font-face {
+      font-family: 'Circe';
+      src: url('/fonts/Circe-Regular.otf') format('opentype');
+      font-weight: 400; font-style: normal; font-display: swap;
+    }
+    @font-face {
+      font-family: 'Circe';
+      src: url('/fonts/Circe-Italic.otf') format('opentype');
+      font-weight: 400; font-style: italic; font-display: swap;
+    }
+
+    /* ── Brand tokens ── */
+    :root {
+      --black:   #050505;
+      --purple:  #AE43F7;
+      --purple-deep: #7a2db5;
+      --cyan:    #70F0F2;
+      --red:     #F20D0D;
+      --lime:    #CCFF00;
+      --hot-pink:#FF6FAA;
+      --fd: 'Bebas Neue', sans-serif;
+      --fs: 'Hyperwave', cursive;
+      --fb: 'Circe', sans-serif;
+      --ease: cubic-bezier(0.32, 0.72, 0, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html, body {
+      background: var(--black);
+      color: white;
+      font-family: var(--fb);
+      overflow-x: hidden;
+      -webkit-font-smoothing: antialiased;
+      min-height: 100dvh;
+    }
+
+    /* ── Grain overlay: fixed, pointer-events-none ── */
+    .grain {
+      position: fixed; inset: 0;
+      width: 100%; height: 100%;
+      z-index: 999;
+      pointer-events: none;
+    }
+
+    /* ── Keyframes ── */
+    @keyframes fadeUpBlur {
+      from { opacity: 0; transform: translateY(28px); filter: blur(8px); }
+      to   { opacity: 1; transform: translateY(0);    filter: blur(0); }
+    }
+    @keyframes vinyl-spin {
+      to { transform: rotate(360deg); }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      .vinyl { animation: none !important; }
+      .reveal { animation: none !important; opacity: 1 !important; filter: none !important; }
+    }
+
+    .reveal { opacity: 0; animation: fadeUpBlur 900ms var(--ease) forwards; }
+    .d0 { animation-delay:   0ms; }
+    .d1 { animation-delay: 180ms; }
+    .d2 { animation-delay: 350ms; }
+    .d3 { animation-delay: 500ms; }
+    .d4 { animation-delay: 640ms; }
+    .d5 { animation-delay: 770ms; }
+
+    .vinyl {
+      animation: vinyl-spin 5.8s linear infinite;
+      transform-origin: center;
+      flex-shrink: 0;
+    }
+
+    /* ═══════════════════════════════════════
+       NAV — floating glass pill
+    ═══════════════════════════════════════ */
+    .nav {
+      position: fixed;
+      top: 22px; left: 50%;
+      transform: translateX(-50%);
+      z-index: 100;
+      display: flex;
+      align-items: stretch;
+      background: rgba(5,5,5,0.58);
+      backdrop-filter: blur(24px) saturate(180%);
+      -webkit-backdrop-filter: blur(24px) saturate(180%);
+      border: 1px solid rgba(174,67,247,0.22);
+      border-radius: 9999px;
+      box-shadow:
+        inset 0 1px 0 rgba(255,255,255,0.07),
+        0 0 0 1px rgba(0,0,0,0.3),
+        0 12px 40px rgba(0,0,0,0.55),
+        0 0 60px rgba(174,67,247,0.08);
+      white-space: nowrap;
+      overflow: hidden;
+    }
+
+    /* Wordmark inside nav pill */
+    .nav-wm {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      font-family: var(--fd);
+      line-height: 0.88;
+      padding: 10px 20px;
+      border-right: 1px solid rgba(255,255,255,0.07);
+      text-decoration: none;
+    }
+    .nav-wm .wm-fl  { font-size: 17px; color: var(--purple); text-shadow: 0 0 18px rgba(174,67,247,0.9); }
+    .nav-wm .wm-r2  { display: flex; align-items: center; gap: 2px; font-size: 17px; }
+    .nav-wm .wm-r2 svg { width: 16px; height: 16px; }
+    .nav-wm .wm-st8 { color: var(--cyan); text-shadow: 0 0 18px rgba(112,240,242,0.9); }
+
+    /* Nav links */
+    .nav-links {
+      display: flex; align-items: center;
+      list-style: none;
+      padding: 0 24px;
+      gap: 28px;
+    }
+    @media (max-width: 620px) { .nav-links { display: none; } }
+    .nav-links a {
+      color: rgba(255,255,255,0.62);
+      text-decoration: none;
+      font-family: var(--fb);
+      font-size: 13.5px;
+      letter-spacing: 0.05em;
+      transition: color 250ms var(--ease);
+    }
+    .nav-links a:hover { color: var(--cyan); }
+
+    /* Nav Book CTA */
+    .nav-cta {
+      display: inline-flex; align-items: center; gap: 0;
+      align-self: center;
+      margin: 6px 8px 6px 0;
+      background: var(--purple);
+      color: white;
+      border: none;
+      border-radius: 9999px;
+      padding: 10px 10px 10px 18px;
+      font-family: var(--fb);
+      font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.03em;
+      cursor: pointer;
+      transition: background 300ms var(--ease), transform 300ms var(--ease);
+    }
+    .nav-cta:hover { background: #c060ff; }
+    .nav-cta:active { transform: scale(0.97); }
+    .nav-cta-icon {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: rgba(255,255,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; flex-shrink: 0;
+      margin-left: 8px;
+      transition: transform 300ms var(--ease);
+    }
+    .nav-cta:hover .nav-cta-icon { transform: translateX(2px) translateY(-2px) scale(1.1); }
+
+    /* ═══════════════════════════════════════
+       HERO
+    ═══════════════════════════════════════ */
+    .hero {
+      position: relative;
+      min-height: 100dvh;
+      display: flex;
+      align-items: flex-end;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background: url('/ui2/hero-bg.jpeg') center 28% / cover no-repeat;
+    }
+    /* Dark gradient overlay */
+    .hero-ov {
+      position: absolute; inset: 0;
+      background: linear-gradient(
+        160deg,
+        rgba(5,5,5,0.12) 0%,
+        rgba(5,5,5,0.30) 40%,
+        rgba(5,5,5,0.85) 75%,
+        #050505 100%
+      );
+    }
+    /* Glow orbs — static radial gradients, never animated */
+    .orb-purple {
+      position: absolute; top: -20%; right: -15%;
+      width: 80vw; height: 80vw;
+      max-width: 1000px; max-height: 1000px;
+      background: radial-gradient(circle, rgba(174,67,247,0.18) 0%, transparent 58%);
+      pointer-events: none;
+    }
+    .orb-cyan {
+      position: absolute; bottom: 5%; left: 8%;
+      width: 60vw; height: 60vw;
+      max-width: 800px; max-height: 800px;
+      background: radial-gradient(circle, rgba(112,240,242,0.09) 0%, transparent 58%);
+      pointer-events: none;
+    }
+
+    .hero-content {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 48px 96px;
+    }
+    @media (max-width: 640px) { .hero-content { padding: 0 20px 80px; } }
+
+    /* Eyebrow pill badge */
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: rgba(174,67,247,0.10);
+      border: 1px solid rgba(174,67,247,0.30);
+      border-radius: 9999px;
+      padding: 5px 14px;
+      font-family: var(--fb);
+      font-size: 10px;
+      font-weight: 500;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,0.65);
+      margin-bottom: 28px;
+    }
+    .eyebrow-dot {
+      width: 5px; height: 5px; border-radius: 50%;
+      background: var(--cyan);
+      box-shadow: 0 0 8px rgba(112,240,242,0.8);
+      flex-shrink: 0;
+    }
+
+    /* Hero CSS neon wordmark */
+    .hero-wm {
+      display: inline-flex;
+      flex-direction: column;
+      font-family: var(--fd);
+      line-height: 0.87;
+      margin-bottom: 16px;
+    }
+    .hero-wm .h-fl {
+      font-size: clamp(70px, 9.5vw, 128px);
+      color: var(--purple);
+      text-shadow:
+        0 0 50px rgba(174,67,247,0.55),
+        0 0 100px rgba(174,67,247,0.25);
+    }
+    .hero-wm .h-row2 {
+      display: flex; align-items: center;
+      font-size: clamp(70px, 9.5vw, 128px);
+      gap: 0.03em;
+    }
+    /* Size vinyl to approx match Bebas cap-height (~0.72 × font-size) */
+    .hero-wm .h-vinyl {
+      width: clamp(60px, 8.2vw, 110px);
+      height: clamp(60px, 8.2vw, 110px);
+    }
+    .hero-wm .h-st8 {
+      color: var(--cyan);
+      text-shadow:
+        0 0 50px rgba(112,240,242,0.55),
+        0 0 100px rgba(112,240,242,0.25);
+    }
+
+    /* Hero headline */
+    .hero-h1 {
+      font-family: var(--fd);
+      font-size: clamp(54px, 8.2vw, 115px);
+      line-height: 0.90;
+      letter-spacing: 0.01em;
+      color: white;
+      margin-bottom: 12px;
+    }
+    /* Subtle accent on a word */
+    .hero-h1 .accent { color: var(--purple); }
+
+    /* Tagline */
+    .hero-tagline {
+      font-family: var(--fs);
+      font-size: clamp(20px, 2.8vw, 32px);
+      color: rgba(255,255,255,0.48);
+      font-style: italic;
+      margin-bottom: 40px;
+    }
+
+    /* CTA row */
+    .hero-ctas {
+      display: flex; align-items: center; gap: 20px; flex-wrap: wrap;
+    }
+
+    /* Primary CTA — button-in-button */
+    .btn-book {
+      display: inline-flex; align-items: center; gap: 0;
+      background: var(--purple);
+      color: white;
+      border: none;
+      border-radius: 9999px;
+      padding: 18px 10px 18px 30px;
+      font-family: var(--fb);
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      box-shadow:
+        0 0 40px rgba(174,67,247,0.40),
+        0 0 80px rgba(174,67,247,0.15),
+        inset 0 1px 0 rgba(255,255,255,0.18);
+      transition: transform 400ms var(--ease), box-shadow 400ms var(--ease), background 400ms var(--ease);
+    }
+    .btn-book:hover {
+      transform: scale(1.03);
+      background: #c060ff;
+      box-shadow:
+        0 0 60px rgba(174,67,247,0.55),
+        0 0 120px rgba(174,67,247,0.2),
+        inset 0 1px 0 rgba(255,255,255,0.18);
+    }
+    .btn-book:active { transform: scale(0.97); }
+    .btn-arrow {
+      width: 46px; height: 46px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.16);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+      margin-left: 12px;
+      transition: transform 400ms var(--ease);
+    }
+    .btn-book:hover .btn-arrow { transform: translateX(3px) translateY(-3px) scale(1.12); }
+
+    /* Ghost CTA */
+    .btn-ghost {
+      color: rgba(255,255,255,0.52);
+      font-family: var(--fb);
+      font-size: 14px;
+      background: none; border: none;
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-color: rgba(255,255,255,0.14);
+      text-underline-offset: 4px;
+      transition: color 300ms var(--ease), text-decoration-color 300ms var(--ease);
+    }
+    .btn-ghost:hover { color: var(--cyan); text-decoration-color: rgba(112,240,242,0.3); }
+
+    /* ═══════════════════════════════════════
+       CARDS SECTION — double-bezel glass
+    ═══════════════════════════════════════ */
+    .section-roster {
+      position: relative;
+      padding: 120px 0 140px;
+      overflow: hidden;
+    }
+    @media (max-width: 640px) { .section-roster { padding: 80px 0 100px; } }
+
+    /* Ambient section glow */
+    .s-glow {
+      position: absolute;
+      top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      width: 120%; max-width: 1400px;
+      height: 700px;
+      background: radial-gradient(ellipse at center, rgba(174,67,247,0.07) 0%, transparent 60%);
+      pointer-events: none;
+    }
+
+    .s-inner {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 0 48px;
+      position: relative;
+      z-index: 1;
+    }
+    @media (max-width: 640px) { .s-inner { padding: 0 20px; } }
+
+    /* Section header */
+    .s-eyebrow {
+      display: inline-flex;
+      background: rgba(112,240,242,0.08);
+      border: 1px solid rgba(112,240,242,0.22);
+      border-radius: 9999px;
+      padding: 4px 14px;
+      font-family: var(--fb);
+      font-size: 10px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      color: var(--cyan);
+      margin-bottom: 14px;
+    }
+    .s-title {
+      font-family: var(--fd);
+      font-size: clamp(52px, 6.5vw, 90px);
+      line-height: 0.88;
+      color: white;
+    }
+    .s-script {
+      font-family: var(--fs);
+      font-size: clamp(26px, 3.2vw, 44px);
+      color: rgba(255,255,255,0.38);
+      font-style: italic;
+      margin-top: 4px;
+      margin-bottom: 56px;
+    }
+
+    /* 4-column cards grid */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+    @media (max-width: 960px)  { .cards-grid { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 480px)  { .cards-grid { grid-template-columns: 1fr; gap: 14px; } }
+
+    /* ── Double-bezel card ──
+       Outer shell: transparent bg + hairline purple border + p:3px + round-2rem
+       Inner core:  dark bg + inner highlight + radius(2rem - 3px)
+    */
+    .card {
+      background: rgba(255,255,255,0.025);
+      border: 1px solid rgba(174,67,247,0.18);
+      padding: 3px;
+      border-radius: 2rem;
+      cursor: pointer;
+      transition:
+        border-color 500ms var(--ease),
+        box-shadow   500ms var(--ease);
+    }
+    .card:hover {
+      border-color: rgba(174,67,247,0.48);
+      box-shadow:
+        0 0 40px rgba(174,67,247,0.14),
+        0 0 80px rgba(174,67,247,0.05);
+    }
+    .card-core {
+      background: rgba(9,7,19,0.92);
+      border-radius: calc(2rem - 3px);
+      box-shadow: inset 0 1px 1px rgba(255,255,255,0.07);
+      overflow: hidden;
+    }
+    .card-photo-wrap {
+      width: 100%; aspect-ratio: 3/4;
+      overflow: hidden;
+    }
+    .card-photo {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: top center;
+      display: block;
+      filter: grayscale(1) brightness(0.88);
+      transition:
+        filter     700ms var(--ease),
+        transform  700ms var(--ease);
+    }
+    .card:hover .card-photo {
+      filter: grayscale(0) brightness(1);
+      transform: scale(1.06);
+    }
+    .card-body {
+      padding: 18px 20px 22px;
+    }
+    .card-name {
+      font-family: var(--fd);
+      font-size: 28px;
+      letter-spacing: 0.03em;
+      line-height: 1;
+      color: white;
+    }
+    .card-genre {
+      font-family: var(--fb);
+      font-size: 11px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: rgba(112,240,242,0.65);
+      margin-top: 3px;
+    }
+    .card-foot {
+      display: flex; justify-content: flex-end;
+      margin-top: 16px;
+    }
+    .card-cta {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(174,67,247,0.11);
+      border: 1px solid rgba(174,67,247,0.24);
+      border-radius: 9999px;
+      padding: 7px 7px 7px 15px;
+      color: rgba(255,255,255,0.80);
+      font-family: var(--fb);
+      font-size: 12px;
+      font-weight: 500;
+      letter-spacing: 0.04em;
+      cursor: pointer;
+      transition:
+        background    300ms var(--ease),
+        border-color  300ms var(--ease);
+    }
+    .card-cta:hover {
+      background: rgba(174,67,247,0.24);
+      border-color: rgba(174,67,247,0.44);
+    }
+    .card-cta-icon {
+      width: 24px; height: 24px; border-radius: 50%;
+      background: rgba(174,67,247,0.30);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 11px; flex-shrink: 0;
+    }
+
+    /* ═══════════════════════════════════════
+       PREVIEW BADGE
+    ═══════════════════════════════════════ */
+    .preview-badge {
+      position: fixed; bottom: 20px; right: 20px;
+      background: rgba(112,240,242,0.06);
+      border: 1px solid rgba(112,240,242,0.15);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-family: var(--fb);
+      font-size: 10px;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.28);
+      z-index: 998;
+      pointer-events: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ── Grain overlay (fixed, pointer-events-none) ── -->
+  <svg class="grain" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+    <filter id="g" x="0%" y="0%" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.67" numOctaves="4" stitchTiles="stitch"/>
+      <feColorMatrix type="saturate" values="0"/>
+    </filter>
+    <rect width="100%" height="100%" filter="url(#g)" opacity="0.034"/>
+  </svg>
+
+  <!-- ═══════════════════════════════════════
+       FLOATING GLASS PILL NAV
+  ═══════════════════════════════════════ -->
+  <nav class="nav reveal d0" aria-label="Main navigation">
+
+    <!-- CSS neon wordmark -->
+    <a href="#top" class="nav-wm" aria-label="FLOST8 home">
+      <span class="wm-fl">fl</span>
+      <div class="wm-r2">
+        <!-- Vinyl SVG — the O -->
+        <svg class="vinyl" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <circle cx="110" cy="110" r="92" fill="#7a2db5" stroke="#70F0F2" stroke-width="5"/>
+          <circle cx="110" cy="110" r="55" fill="none" stroke="#70F0F2" stroke-width="3.5" opacity="0.85"/>
+          <circle cx="110" cy="110" r="8" fill="#050505" stroke="#70F0F2" stroke-width="3.5"/>
+          <path d="M64 56c23-13 58-16 91-3" fill="none" stroke="#70F0F2" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+          <path d="M152 166c-25 13-60 12-90-5" fill="none" stroke="#70F0F2" stroke-width="4" stroke-linecap="round" opacity="0.8"/>
+          <path d="M50 91c18-10 36-13 55-8" fill="none" stroke="#70F0F2" stroke-width="4" stroke-linecap="round" opacity="0.85"/>
+          <path d="M116 139c20 5 38 1 55-10" fill="none" stroke="#70F0F2" stroke-width="4" stroke-linecap="round" opacity="0.85"/>
+        </svg>
+        <span class="wm-st8">st8</span>
+      </div>
+    </a>
+
+    <!-- Nav links -->
+    <ul class="nav-links" role="list">
+      <li><a href="#roster">Roster</a></li>
+      <li><a href="#">Shows</a></li>
+      <li><a href="#">About</a></li>
+    </ul>
+
+    <!-- Book CTA button-in-button -->
+    <button type="button" class="nav-cta" aria-label="Make a booking">
+      Book Now
+      <span class="nav-cta-icon" aria-hidden="true">↗</span>
+    </button>
+  </nav>
+
+  <!-- ═══════════════════════════════════════
+       HERO — full-bleed photo + glow overlay
+  ═══════════════════════════════════════ -->
+  <section class="hero" id="top" aria-label="Hero">
+    <!-- Photo background -->
+    <div class="hero-bg" role="img" aria-label="Live event crowd"></div>
+    <!-- Dark overlay -->
+    <div class="hero-ov" aria-hidden="true"></div>
+    <!-- Glow orbs (static) -->
+    <div class="orb-purple" aria-hidden="true"></div>
+    <div class="orb-cyan"   aria-hidden="true"></div>
+
+    <div class="hero-content">
+
+      <!-- Eyebrow tag -->
+      <div class="eyebrow reveal d0">
+        <span class="eyebrow-dot"></span>
+        Colombo, Sri Lanka &nbsp;·&nbsp; Artist Management
+      </div>
+
+      <!-- CSS neon wordmark (large) -->
+      <div class="hero-wm reveal d1" aria-label="FLOST8">
+        <span class="h-fl">fl</span>
+        <div class="h-row2">
+          <!-- Vinyl SVG as the O -->
+          <svg class="h-vinyl vinyl" viewBox="0 0 220 220" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <circle cx="110" cy="110" r="92" fill="#7a2db5" stroke="#70F0F2" stroke-width="6"/>
+            <circle cx="110" cy="110" r="55" fill="none" stroke="#70F0F2" stroke-width="4" opacity="0.9"/>
+            <circle cx="110" cy="110" r="8" fill="#050505" stroke="#70F0F2" stroke-width="4"/>
+            <path d="M64 56c23-13 58-16 91-3"   fill="none" stroke="#70F0F2" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+            <path d="M152 166c-25 13-60 12-90-5" fill="none" stroke="#70F0F2" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+            <path d="M50 91c18-10 36-13 55-8"    fill="none" stroke="#70F0F2" stroke-width="5.5" stroke-linecap="round" opacity="0.9"/>
+            <path d="M116 139c20 5 38 1 55-10"   fill="none" stroke="#70F0F2" stroke-width="5.5" stroke-linecap="round" opacity="0.9"/>
+            <path d="M35 106c11-6 23-8 34-6"      fill="none" stroke="#70F0F2" stroke-width="3.5" stroke-linecap="round" opacity="0.72"/>
+            <path d="M184 104c-11 6-23 8-34 6"    fill="none" stroke="#70F0F2" stroke-width="3.5" stroke-linecap="round" opacity="0.72"/>
+          </svg>
+          <span class="h-st8">st8</span>
+        </div>
+      </div>
+
+      <!-- Main headline -->
+      <h1 class="hero-h1 reveal d2">
+        WHERE <span class="accent">ARTISTS</span><br>BECOME CULTURE
+      </h1>
+
+      <!-- Tagline -->
+      <p class="hero-tagline reveal d3">not an agency. a movement.</p>
+
+      <!-- CTAs -->
+      <div class="hero-ctas reveal d4">
+        <!-- Primary: button-in-button -->
+        <button type="button" class="btn-book">
+          Book an Artist
+          <span class="btn-arrow" aria-hidden="true">↗</span>
+        </button>
+        <!-- Ghost -->
+        <button type="button" class="btn-ghost">
+          Meet the Roster
+        </button>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ═══════════════════════════════════════
+       ROSTER — double-bezel glass cards
+  ═══════════════════════════════════════ -->
+  <section class="section-roster" id="roster" aria-label="Artist roster">
+    <div class="s-glow" aria-hidden="true"></div>
+
+    <div class="s-inner">
+      <!-- Section header -->
+      <div class="reveal d0">
+        <span class="s-eyebrow">The Roster</span>
+        <h2 class="s-title">MEET THE</h2>
+        <p class="s-script">artists.</p>
+      </div>
+
+      <!-- 4-column double-bezel grid -->
+      <div class="cards-grid">
+
+        <!-- Card 1: Dr. Green -->
+        <article class="card reveal d1" tabindex="0" aria-label="Dr. Green">
+          <div class="card-core">
+            <div class="card-photo-wrap">
+              <img src="/photos/dr-green.png" alt="Dr. Green" class="card-photo" loading="lazy">
+            </div>
+            <div class="card-body">
+              <div class="card-name">DR. GREEN</div>
+              <div class="card-genre">Electronic · Club</div>
+              <div class="card-foot">
+                <button type="button" class="card-cta">
+                  Book <span class="card-cta-icon" aria-hidden="true">↗</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 2: Sonal -->
+        <article class="card reveal d2" tabindex="0" aria-label="Sonal">
+          <div class="card-core">
+            <div class="card-photo-wrap">
+              <img src="/photos/sonal.png" alt="Sonal" class="card-photo" loading="lazy">
+            </div>
+            <div class="card-body">
+              <div class="card-name">SONAL</div>
+              <div class="card-genre">House · Techno</div>
+              <div class="card-foot">
+                <button type="button" class="card-cta">
+                  Book <span class="card-cta-icon" aria-hidden="true">↗</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 3: Maalin -->
+        <article class="card reveal d3" tabindex="0" aria-label="Maalin">
+          <div class="card-core">
+            <div class="card-photo-wrap">
+              <img src="/photos/maalin.png" alt="Maalin" class="card-photo" loading="lazy">
+            </div>
+            <div class="card-body">
+              <div class="card-name">MAALIN</div>
+              <div class="card-genre">Afrobeats · Dancehall</div>
+              <div class="card-foot">
+                <button type="button" class="card-cta">
+                  Book <span class="card-cta-icon" aria-hidden="true">↗</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <!-- Card 4: Rakhil -->
+        <article class="card reveal d4" tabindex="0" aria-label="Rakhil">
+          <div class="card-core">
+            <div class="card-photo-wrap">
+              <img src="/photos/rakhil.png" alt="Rakhil" class="card-photo" loading="lazy">
+            </div>
+            <div class="card-body">
+              <div class="card-name">RAKHIL</div>
+              <div class="card-genre">Hip-Hop · Urban</div>
+              <div class="card-foot">
+                <button type="button" class="card-cta">
+                  Book <span class="card-cta-icon" aria-hidden="true">↗</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- Preview badge -->
+  <div class="preview-badge" role="status" aria-live="polite">
+    Design preview · Phase 0 · flost8-web/public/preview/
+  </div>
+
+</body>
+</html>

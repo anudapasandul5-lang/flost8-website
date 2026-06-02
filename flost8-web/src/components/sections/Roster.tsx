@@ -22,7 +22,7 @@ export default function Roster() {
     <section id="roster" className="scroll-mt-20 bg-[#F1EFEC] pt-16 pb-24">
       <div className="mx-auto max-w-[1280px] px-4 sm:px-8 lg:px-12">
         <motion.h2
-          className="text-center font-script text-[40px] uppercase leading-none text-red sm:text-[52px] lg:text-[58px]"
+          className="text-center font-script text-[56px] uppercase leading-none text-red sm:text-[72px] lg:text-[84px]"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -32,7 +32,7 @@ export default function Roster() {
         </motion.h2>
 
         <motion.div
-          className="mt-10 flex flex-wrap justify-end gap-3 md:mt-16"
+          className="mt-3 flex flex-wrap justify-end gap-3 md:mt-4"
           initial={{ opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}

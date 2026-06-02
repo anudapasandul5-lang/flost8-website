@@ -1,66 +1,33 @@
-import { useState, useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { CheckCircle } from '@phosphor-icons/react'
-import { APPS_SCRIPT_URL, TURNSTILE_SITE_KEY, CONTACT_EMAIL } from '../lib/config'
+import { useUpcomingShows } from '../hooks/useUpcomingShows'
+import { BOOKING_API_URL, CONTACT_EMAIL, TURNSTILE_SITE_KEY } from '../lib/config'
+import {
+  BOOKING_FIELDS,
+  EMPTY_BOOKING_FORM,
+  buildBookingPayload,
+  errorsFromApi,
+  validateBookingForm,
+  type BookingFormData,
+  type UpcomingShow,
+} from '../lib/bookingContract'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
-
-interface Show {
-  title: string
-  artist: string
-  date: string
-  venue: string
-  city: string
+declare global {
+  interface Window {
+    onTurnstileSuccess?: (token: string) => void
+  }
 }
-
-// ─── Placeholder data ─────────────────────────────────────────────────────────
-
-const PLACEHOLDER_SHOWS: Show[] = [
-  { title: 'Neon Nights',     artist: 'DR. GREEN',     date: 'Jun 14 2026', venue: 'The Factory',      city: 'Colombo'    },
-  { title: 'Sunday Sessions', artist: 'SONAL',         date: 'Jun 21 2026', venue: 'Arugam Bay Hotel', city: 'Arugam Bay' },
-  { title: 'City Lights',     artist: 'MAALIN',        date: 'Jul 5 2026',  venue: 'Hilton Rooftop',   city: 'Colombo'    },
-]
-
-// ─── Form config ──────────────────────────────────────────────────────────────
-
-interface FieldDef {
-  id: string
-  label: string
-  type: 'text' | 'email' | 'tel' | 'date' | 'select' | 'textarea'
-  required: boolean
-  placeholder?: string
-  options?: string[]
-  fullWidth?: boolean
-}
-
-const FORM_FIELDS: FieldDef[] = [
-  // Row 1
-  { id: 'name',        label: 'Your Name',        type: 'text',     required: true,  placeholder: 'Full name' },
-  { id: 'email',       label: 'Email Address',    type: 'email',    required: true,  placeholder: 'you@example.com' },
-  // Row 2
-  { id: 'phone',       label: 'Phone Number',     type: 'tel',      required: true,  placeholder: '+94 77 000 0000' },
-  { id: 'company',     label: 'Company / Brand',  type: 'text',     required: false, placeholder: 'Optional' },
-  // Row 3
-  { id: 'artist',      label: 'Artist Requested', type: 'select',   required: true,
-    options: ['Any Artist', 'DR. GREEN', 'SONAL', 'MAALIN', 'RAKHIL', 'THE PROFESSOR', 'ANUSH'] },
-  { id: 'event_type',  label: 'Event Type',       type: 'select',   required: true,
-    options: ['Corporate Event', 'Private Party', 'Club Night', 'Festival', 'Wedding', 'Other'] },
-  // Row 4
-  { id: 'event_date',  label: 'Event Date',       type: 'date',     required: true },
-  { id: 'venue',       label: 'Venue / Location', type: 'text',     required: true,  placeholder: 'Venue name, City' },
-  // Row 5
-  { id: 'budget',      label: 'Budget (LKR)',     type: 'text',     required: false, placeholder: 'Approximate budget' },
-  { id: 'audience',    label: 'Expected Audience',type: 'text',     required: false, placeholder: 'e.g. 200 people' },
-  // Row 6 — full width
-  { id: 'message',     label: 'Additional Notes', type: 'textarea', required: false, placeholder: 'Anything else we should know?', fullWidth: true },
-]
-
-// ─── Shared class strings ─────────────────────────────────────────────────────
 
 const INPUT_CLS =
   'w-full bg-white/5 border border-white/10 text-white font-body text-sm rounded-lg px-4 py-3 focus:outline-none focus:border-cyan transition-colors placeholder:text-white/30'
 
-// ─── Sub-components ───────────────────────────────────────────────────────────
+function getInitialBookingForm(): BookingFormData {
+  const requestedArtist = new URLSearchParams(window.location.search).get('artist')
+  return requestedArtist
+    ? { ...EMPTY_BOOKING_FORM, artist: requestedArtist }
+    : EMPTY_BOOKING_FORM
+}
 
 function SkeletonRows() {
   return (
@@ -72,7 +39,7 @@ function SkeletonRows() {
   )
 }
 
-function ShowRow({ show }: { show: Show }) {
+function ShowRow({ show }: { show: UpcomingShow }) {
   return (
     <div className="border-b border-white/10 py-6">
       {/* Desktop grid */}
@@ -91,60 +58,34 @@ function ShowRow({ show }: { show: Show }) {
   )
 }
 
-// ─── Main page ────────────────────────────────────────────────────────────────
-
 export default function BookingsPage() {
-  // Shows state
-  const [shows, setShows] = useState<Show[]>([])
-  const [showsLoading, setShowsLoading] = useState(true)
-  const [showsError, setShowsError] = useState(false)
-
-  // Form state
-  const [formData, setFormData] = useState<Record<string, string>>({})
+  const { shows, loading: showsLoading, error: showsError } = useUpcomingShows()
+  const [formData, setFormData] = useState<BookingFormData>(getInitialBookingForm)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState(false)
+  const [turnstileToken, setTurnstileToken] = useState('')
 
-  // Fetch shows
   useEffect(() => {
-    if (!APPS_SCRIPT_URL) {
-      setShows(PLACEHOLDER_SHOWS)
-      setShowsLoading(false)
-      return
+    window.onTurnstileSuccess = setTurnstileToken
+    return () => {
+      delete window.onTurnstileSuccess
     }
-    fetch(`${APPS_SCRIPT_URL}?action=upcoming`)
-      .then(r => r.json())
-      .then(data => {
-        setShows(data.shows || data)
-        setShowsLoading(false)
-      })
-      .catch(() => {
-        setShowsError(true)
-        setShowsLoading(false)
-      })
   }, [])
 
-  // Field change handler
-  function handleChange(id: string, value: string) {
+  function handleChange(id: keyof BookingFormData, value: string) {
     setFormData(prev => ({ ...prev, [id]: value }))
     if (errors[id]) {
       setErrors(prev => { const next = { ...prev }; delete next[id]; return next })
     }
   }
 
-  // Validate & submit
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
     setSubmitError(false)
 
-    // Validate required fields
-    const newErrors: Record<string, string> = {}
-    FORM_FIELDS.forEach(f => {
-      if (f.required && !formData[f.id]?.trim()) {
-        newErrors[f.id] = 'This field is required'
-      }
-    })
+    const newErrors = validateBookingForm(formData)
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors)
       return
@@ -152,12 +93,25 @@ export default function BookingsPage() {
 
     setSubmitting(true)
     try {
-      const res = await fetch(APPS_SCRIPT_URL || '#', {
+      if (!BOOKING_API_URL) throw new Error('missing Apps Script URL')
+
+      const res = await fetch(BOOKING_API_URL, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify(buildBookingPayload(formData, turnstileToken)),
       })
-      if (!res.ok) throw new Error('non-200')
+      const data: unknown = await res.json().catch(() => null)
+      const apiErrors = data && typeof data === 'object' && 'errors' in data
+        ? errorsFromApi((data as { errors: unknown }).errors)
+        : {}
+
+      if (Object.keys(apiErrors).length > 0) {
+        setErrors(apiErrors)
+      }
+      if (!res.ok || !data || typeof data !== 'object' || !('ok' in data) || data.ok !== true) {
+        throw new Error('booking rejected')
+      }
+
       setSubmitted(true)
     } catch {
       setSubmitError(true)
@@ -169,8 +123,6 @@ export default function BookingsPage() {
   return (
     <div className="bg-navy min-h-screen pt-32">
       <div className="max-w-6xl mx-auto px-4 md:px-8">
-
-        {/* ── Section 1: Upcoming Shows ─────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -201,7 +153,6 @@ export default function BookingsPage() {
           ))}
         </motion.div>
 
-        {/* ── Section 2: Inquiry Form ───────────────────────────── */}
         <motion.div
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -229,7 +180,7 @@ export default function BookingsPage() {
           ) : (
             <form onSubmit={handleSubmit} noValidate>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {FORM_FIELDS.map(field => (
+                {BOOKING_FIELDS.map(field => (
                   <div
                     key={field.id}
                     className={field.fullWidth ? 'md:col-span-2' : ''}
@@ -245,15 +196,15 @@ export default function BookingsPage() {
                     {field.type === 'select' ? (
                       <select
                         id={field.id}
-                        value={formData[field.id] ?? ''}
+                        value={formData[field.id]}
                         onChange={e => handleChange(field.id, e.target.value)}
                         className={`${INPUT_CLS} appearance-none`}
                         style={{ colorScheme: 'dark' }}
                       >
-                        <option value="" disabled>Select…</option>
+                        <option value="" disabled>Select...</option>
                         {field.options?.map(opt => (
-                          <option key={opt} value={opt} className="bg-navy text-white">
-                            {opt}
+                          <option key={opt.value} value={opt.value} className="bg-navy text-white">
+                            {opt.label}
                           </option>
                         ))}
                       </select>
@@ -262,7 +213,7 @@ export default function BookingsPage() {
                         id={field.id}
                         rows={4}
                         placeholder={field.placeholder}
-                        value={formData[field.id] ?? ''}
+                        value={formData[field.id]}
                         onChange={e => handleChange(field.id, e.target.value)}
                         className={`${INPUT_CLS} resize-none h-32`}
                       />
@@ -270,8 +221,11 @@ export default function BookingsPage() {
                       <input
                         id={field.id}
                         type={field.type}
+                        min={field.min}
+                        max={field.max}
+                        step={field.step}
                         placeholder={field.placeholder}
-                        value={formData[field.id] ?? ''}
+                        value={formData[field.id]}
                         onChange={e => handleChange(field.id, e.target.value)}
                         className={INPUT_CLS}
                         style={field.type === 'date' ? { colorScheme: 'dark' } : undefined}
@@ -284,7 +238,6 @@ export default function BookingsPage() {
                   </div>
                 ))}
 
-                {/* Turnstile */}
                 <div className="md:col-span-2">
                   {TURNSTILE_SITE_KEY ? (
                     <div
@@ -299,7 +252,6 @@ export default function BookingsPage() {
                   )}
                 </div>
 
-                {/* API error */}
                 {submitError && (
                   <p className="font-body text-sm text-red text-center md:col-span-2">
                     Something went wrong. Please try again or email{' '}
@@ -307,19 +259,17 @@ export default function BookingsPage() {
                   </p>
                 )}
 
-                {/* Submit */}
                 <button
                   type="submit"
                   disabled={submitting}
                   className="md:col-span-2 w-full bg-red text-white font-body font-medium py-4 rounded-full text-base hover:bg-red/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
-                  {submitting ? 'Sending…' : 'Submit Booking Enquiry'}
+                  {submitting ? 'Sending...' : 'Submit Booking Enquiry'}
                 </button>
               </div>
             </form>
           )}
         </motion.div>
-
       </div>
     </div>
   )

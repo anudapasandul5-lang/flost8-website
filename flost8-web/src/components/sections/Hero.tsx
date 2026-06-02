@@ -53,7 +53,7 @@ export default function Hero() {
             <br />
             {line2}
           </h1>
-          <p className="mt-5 font-body text-lg italic text-white/80">
+          <p className="mt-5 font-body text-2xl italic text-white/80 md:text-4xl">
             not an agency. a movement.
           </p>
 

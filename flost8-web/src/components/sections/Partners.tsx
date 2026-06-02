@@ -17,7 +17,7 @@ export default function Partners() {
         </motion.p>
 
         <motion.div
-          className="relative mt-10 rounded-[24px] border-[5px] border-[#EA4323] bg-[#F4F3F6] px-6 py-10 shadow-[0_12px_18px_rgba(0,0,0,0.35)] sm:rounded-[34px] sm:px-16 sm:py-16"
+          className="relative mt-10 overflow-hidden rounded-[24px] border-[5px] border-[#EA4323] bg-[#F4F3F6] px-6 py-10 shadow-[0_12px_18px_rgba(0,0,0,0.35)] sm:rounded-[34px] sm:px-16 sm:py-16"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -39,19 +39,6 @@ export default function Partners() {
               </span>
             ))}
           </div>
-          <svg
-            viewBox="0 0 1280 180"
-            className="pointer-events-none absolute -bottom-24 left-0 w-full"
-            preserveAspectRatio="none"
-            aria-hidden="true"
-          >
-            <path
-              d="M0 80 C 220 15 350 190 520 95 S 820 75 980 80 S 1190 105 1280 10"
-              fill="none"
-              stroke="#70F0F2"
-              strokeWidth="4"
-            />
-          </svg>
         </motion.div>
       </div>
     </section>

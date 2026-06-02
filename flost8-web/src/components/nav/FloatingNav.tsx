@@ -43,13 +43,6 @@ export default function FloatingNav() {
         </nav>
 
         <div className="flex items-center gap-3">
-          <Link
-            to="/bookings"
-            className="hidden md:inline-flex justify-center rounded-full border-2 border-purple bg-cyan px-5 py-2 font-body italic text-[15px] leading-none text-navy shadow-[inset_0_1px_0_rgba(255,255,255,0.2)] transition-transform hover:-translate-y-0.5 active:scale-[0.98]"
-          >
-            Book Now
-          </Link>
-
           <button
             type="button"
             className="md:hidden rounded-full border border-cyan/70 p-3 text-cyan"

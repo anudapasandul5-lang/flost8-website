@@ -1,19 +1,31 @@
 import { Link } from 'react-router-dom'
 
 const footerCols = [
-  { heading: 'PLATFORM', links: ['The Roster', 'Content Feed', 'Events', 'Brand Deals'], hrefs: ['#roster', '#shows', '/bookings', 'mailto:bookings@flost8.lk'] },
-  { heading: 'STUDIO', links: ['About', 'Press', 'Careers', 'Press kit'], hrefs: ['#about', 'mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk'] },
-  { heading: 'FOR YOU', links: ['Artists', 'Venues', 'Brands', 'Organizers'], hrefs: ['/bookings', '/bookings', 'mailto:bookings@flost8.lk', '/bookings'] },
-  { heading: 'FOR YOU', links: ['Artists', 'Venues', 'Brands', 'Organizers'], hrefs: ['/bookings', '/bookings', 'mailto:bookings@flost8.lk', '/bookings'] },
+  {
+    heading: 'PLATFORM',
+    links: ['The Roster', 'Upcoming Shows', 'Book an Artist', 'Brand Deals'],
+    hrefs: ['#roster', '#shows', '/bookings', 'mailto:bookings@flost8.lk'],
+  },
+  {
+    heading: 'FOR ARTISTS',
+    links: ['Join the Roster', 'Content Engine', 'Brand Partnerships', 'Booking Support'],
+    hrefs: ['mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk', '/bookings'],
+  },
+  {
+    heading: 'FOR VENUES & EVENTS',
+    links: ['Curated Lineups', 'B2B / B3B Sets', 'Content Coverage', 'Promotion Support'],
+    hrefs: ['/bookings', '/bookings', 'mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk'],
+  },
+  {
+    heading: 'FOR BRANDS',
+    links: ['Direct Access to DJs', 'Product Placement', 'Lifestyle Integration', 'Content With Reach'],
+    hrefs: ['mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk'],
+  },
 ] as const
 
 export default function Footer() {
   return (
     <footer>
-      <div className="bg-navy px-6 pb-0 pt-8 sm:px-12 md:px-[96px]">
-        <img src="/logo-transparent.png" alt="FLOST8" className="h-[150px] w-auto" />
-      </div>
-
       <div className="relative h-[100px] overflow-hidden bg-navy sm:h-[140px] md:h-[190px]">
         <svg viewBox="0 0 1440 190" className="absolute bottom-0 h-full w-full" preserveAspectRatio="none" aria-hidden="true">
           <path
@@ -32,14 +44,14 @@ export default function Footer() {
       </div>
 
       <div className="bg-cyan px-8 pb-16 pt-10 md:px-16">
-        <div className="mx-auto grid max-w-[1160px] grid-cols-2 gap-10 md:grid-cols-4">
+        <div className="mx-auto grid max-w-[1160px] grid-cols-2 gap-6 sm:gap-8 md:grid-cols-4 md:gap-10">
           {footerCols.map(col => (
             <div key={`${col.heading}-${col.links[0]}`}>
-              <h3 className="mb-5 font-display text-[22px] uppercase leading-none text-purple sm:text-[28px] md:text-[32px]">{col.heading}</h3>
+              <h3 className="mb-4 font-display text-[13px] uppercase leading-tight text-purple sm:text-[18px] md:mb-5 md:text-[28px]">{col.heading}</h3>
               <ul>
                 {col.links.map((label, index) => {
                   const href = col.hrefs[index]
-                  const className = 'mb-3 block font-body text-[17px] italic text-purple transition-colors hover:text-navy'
+                  const className = 'mb-2 block font-body text-[13px] italic text-purple transition-colors hover:text-navy sm:text-[15px] md:mb-3 md:text-[17px]'
                   return (
                     <li key={label}>
                       {href.startsWith('/') ? (
@@ -58,6 +70,9 @@ export default function Footer() {
             </div>
           ))}
         </div>
+        <p className="mt-10 text-center font-body text-[14px] italic text-purple/70">
+          © 2026 FLOST8. All rights reserved. · flost8.lk
+        </p>
       </div>
     </footer>
   )

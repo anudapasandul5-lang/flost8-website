@@ -48,7 +48,7 @@ export function Metrics() {
         </motion.div>
 
         <motion.p
-          className="mt-14 text-center font-script text-[36px] uppercase leading-[1.15] text-lime sm:text-[48px] lg:mt-28 lg:text-[58px]"
+          className="mt-14 text-center font-script text-[44px] uppercase leading-[1.15] text-lime sm:text-[58px] lg:mt-28 lg:text-[72px]"
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}

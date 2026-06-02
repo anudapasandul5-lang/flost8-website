@@ -1,25 +1,25 @@
 import { motion } from 'framer-motion'
 
-interface MarqueeProps {
-  speed?: number
-}
+const items = [
+  <>WE <span className="text-black">BUILD</span> ARTISTS.</>,
+  <>WE <span className="text-black">CREATE</span> VISIBILITY.</>,
+  <>WE <span className="text-navy">DRIVE</span> BOOKINGS.</>,
+]
 
-const BAND_TEXT = 'WE BUILD ARTISTS.  ·  WE CREATE VISIBILITY.  ·  WE DRIVE BOOKINGS.  ·  '
-
-export default function Marquee({ speed = 20 }: MarqueeProps) {
+export default function Marquee() {
   return (
-    <div className="w-full bg-red py-4 overflow-hidden" aria-hidden="true">
+    <div className="flex min-h-[118px] items-center overflow-hidden bg-red">
       <motion.div
-        className="flex whitespace-nowrap"
-        animate={{ x: ['0%', '-33.333%'] }}
-        transition={{ duration: speed, ease: 'linear', repeat: Infinity }}
+        className="flex shrink-0 items-center gap-16 whitespace-nowrap font-body text-[30px] uppercase tracking-wide text-white"
+        style={{ width: 'max-content' }}
+        animate={{ x: ['0%', '-50%'] }}
+        transition={{ duration: 22, ease: 'linear', repeat: Infinity }}
       >
-        {[0, 1, 2].map((i) => (
-          <span
-            key={i}
-            className="font-display text-xl md:text-2xl text-white tracking-widest uppercase flex-shrink-0 pr-0"
-          >
-            {BAND_TEXT}
+        {[0, 1].map(copy => (
+          <span key={copy} className="flex items-center gap-16 pr-16">
+            {items.map((item, i) => (
+              <span key={i}>{item}</span>
+            ))}
           </span>
         ))}
       </motion.div>
