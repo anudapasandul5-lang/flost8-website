@@ -1,5 +1,6 @@
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight } from '@phosphor-icons/react'
+import { staggerParent, fadeUp, EASE } from '../../lib/motion'
 
 const services = [
   { title: 'ARTIST\nDEVELOPMENT', photo: '/photos/maalin.png' },
@@ -7,16 +8,11 @@ const services = [
   { title: 'BOOKING\nSYSTEM', photo: '/ui2/live-photo.jpeg' },
 ] as const
 
-const cardVariant = {
-  hidden: { opacity: 0, y: 40, scale: 0.95 },
-  visible: { opacity: 1, y: 0, scale: 1, transition: { type: 'spring' as const, stiffness: 80, damping: 20 } },
-}
-
-function ServiceCard({ title, photo }: { title: string; photo: string }) {
+function ServiceCard({ title, photo, shouldReduce }: { title: string; photo: string; shouldReduce: boolean | null }) {
   return (
     <motion.article
-      variants={cardVariant}
-      whileHover={{ scale: 1.02, transition: { type: 'spring', stiffness: 200, damping: 20 } }}
+      variants={fadeUp}
+      whileHover={shouldReduce ? undefined : { scale: 1.02, transition: { duration: 0.4, ease: EASE } }}
       className="relative aspect-[0.82] cursor-pointer overflow-hidden rounded-[28px] bg-black shadow-[0_10px_16px_rgba(0,0,0,0.4)]"
     >
       <img src={photo} alt="" className="absolute inset-0 h-full w-full object-cover" />
@@ -31,12 +27,9 @@ function ServiceCard({ title, photo }: { title: string; photo: string }) {
   )
 }
 
-const containerVariant = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.12, delayChildren: 0.2 } },
-}
-
 export default function WhatWeDo() {
+  const shouldReduce = useReducedMotion()
+
   return (
     <section className="relative overflow-hidden bg-navy px-4 py-16 sm:px-8 lg:px-10 lg:py-24">
       <img
@@ -49,10 +42,10 @@ export default function WhatWeDo() {
 
       <div className="relative z-10 mx-auto grid max-w-[1280px] items-center gap-10 lg:grid-cols-[300px_1fr]">
         <motion.div
-          initial={{ opacity: 0, x: -40 }}
+          initial={shouldReduce ? { opacity: 1, x: 0 } : { opacity: 0, x: -40 }}
           whileInView={{ opacity: 1, x: 0 }}
           viewport={{ once: true }}
-          transition={{ type: 'spring', stiffness: 70, damping: 18 }}
+          transition={{ duration: 0.7, ease: EASE }}
         >
           <p className="font-body text-[25px] uppercase leading-[1.15] text-white">
             WE OPERATE
@@ -72,13 +65,13 @@ export default function WhatWeDo() {
 
         <motion.div
           className="grid grid-cols-1 gap-7 md:grid-cols-3"
-          variants={containerVariant}
-          initial="hidden"
+          variants={staggerParent}
+          initial={shouldReduce ? 'visible' : 'hidden'}
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
         >
           {services.map(service => (
-            <ServiceCard key={service.title} {...service} />
+            <ServiceCard key={service.title} {...service} shouldReduce={shouldReduce} />
           ))}
         </motion.div>
       </div>

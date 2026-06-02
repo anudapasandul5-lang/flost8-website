@@ -1,42 +1,35 @@
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { FunnelSimple, Headphones } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
 import { ARTISTS } from '../../lib/config'
 import ArtistCard from '../ui/ArtistCard'
+import { staggerParent, fadeUp, EASE } from '../../lib/motion'
 
 const row1 = ARTISTS.slice(0, 4)
 const row2 = ARTISTS.slice(4, 6)
 
-const container = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.1, delayChildren: 0.1 } },
-}
-
-const card = {
-  hidden: { opacity: 0, y: 50 },
-  visible: { opacity: 1, y: 0, transition: { type: 'spring' as const, stiffness: 80, damping: 20 } },
-}
-
 export default function Roster() {
+  const shouldReduce = useReducedMotion()
+
   return (
     <section id="roster" className="scroll-mt-20 bg-[#F1EFEC] pt-16 pb-24">
       <div className="mx-auto max-w-[1280px] px-4 sm:px-8 lg:px-12">
         <motion.h2
           className="text-center font-script text-[56px] uppercase leading-none text-red sm:text-[72px] lg:text-[84px]"
-          initial={{ opacity: 0, y: 30 }}
+          initial={shouldReduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ type: 'spring', stiffness: 80, damping: 20 }}
+          transition={{ duration: 0.7, ease: EASE }}
         >
           Meet The Roster
         </motion.h2>
 
         <motion.div
           className="mt-3 flex flex-wrap justify-end gap-3 md:mt-4"
-          initial={{ opacity: 0 }}
+          initial={shouldReduce ? { opacity: 1 } : { opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
-          transition={{ delay: 0.2, duration: 0.4 }}
+          transition={{ delay: 0.2, duration: 0.4, ease: EASE }}
         >
           <button
             type="button"
@@ -57,13 +50,13 @@ export default function Roster() {
         {/* Row 1 — 4 artists */}
         <motion.div
           className="mt-12 grid grid-cols-2 gap-6 lg:grid-cols-4"
-          variants={container}
-          initial="hidden"
+          variants={staggerParent}
+          initial={shouldReduce ? 'visible' : 'hidden'}
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
         >
           {row1.map((artist, index) => (
-            <motion.div key={artist.slug} variants={card}>
+            <motion.div key={artist.slug} variants={fadeUp}>
               <ArtistCard artist={artist} index={index} />
             </motion.div>
           ))}
@@ -72,18 +65,18 @@ export default function Roster() {
         {/* Row 2 — 2 artists + "See the entire roster" tile */}
         <motion.div
           className="mt-6 grid grid-cols-2 gap-6 lg:grid-cols-4"
-          variants={container}
-          initial="hidden"
+          variants={staggerParent}
+          initial={shouldReduce ? 'visible' : 'hidden'}
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
         >
           {row2.map((artist, index) => (
-            <motion.div key={artist.slug} variants={card}>
+            <motion.div key={artist.slug} variants={fadeUp}>
               <ArtistCard artist={artist} index={index + 4} />
             </motion.div>
           ))}
 
-          <motion.div variants={card} className="col-span-2">
+          <motion.div variants={fadeUp} className="col-span-2">
             <Link
               to="/bookings"
               className="flex h-full min-h-[200px] items-center justify-center bg-navy transition-opacity hover:opacity-90"

@@ -1,5 +1,6 @@
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import AudienceCard from '../ui/AudienceCard'
+import { staggerParent, fadeUp, EASE } from '../../lib/motion'
 
 const audienceCards = [
   { title: 'ARTIST',      subtitle: 'We turn DJs into brands.',              ctaLabel: 'Join Roster',  href: 'mailto:bookings@flost8.lk' },
@@ -8,10 +9,10 @@ const audienceCards = [
   { title: 'ORGANIZERS',  subtitle: 'Ready-made lineups. Events that perform.', ctaLabel: 'Book Now',     href: '/bookings' },
 ]
 
-function VinylRecord() {
+function VinylRecord({ shouldReduce }: { shouldReduce: boolean | null }) {
   return (
     <motion.div
-      animate={{ rotate: 360 }}
+      animate={shouldReduce ? undefined : { rotate: 360 }}
       transition={{ duration: 9, ease: 'linear', repeat: Infinity }}
       className="pointer-events-none absolute -top-[120px] right-[70px] hidden h-[340px] w-[340px] rounded-full bg-purple/35 p-5 shadow-[0_16px_26px_rgba(0,0,0,0.25)] lg:block"
     >
@@ -28,16 +29,18 @@ function VinylRecord() {
 }
 
 export default function Services() {
+  const shouldReduce = useReducedMotion()
+
   return (
     <section className="relative overflow-visible bg-gradient-to-r from-[#A376F3] to-[#E979C7] px-4 pb-20 pt-16 sm:px-8 lg:px-10 lg:pb-24 lg:pt-20">
-      <VinylRecord />
+      <VinylRecord shouldReduce={shouldReduce} />
       <div className="mx-auto max-w-[1280px]">
         <motion.h2
           className="font-display text-[34px] uppercase leading-[1] text-lime sm:text-[44px] md:text-[62px]"
-          initial={{ opacity: 0, y: 30 }}
+          initial={shouldReduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ type: 'spring', stiffness: 80, damping: 20 }}
+          transition={{ duration: 0.7, ease: EASE }}
         >
           ENTER THE FLOW.
           <br />
@@ -46,25 +49,25 @@ export default function Services() {
 
         <motion.p
           className="mt-6 max-w-[620px] font-body text-[18px] leading-[1.6] text-white/80"
-          initial={{ opacity: 0, y: 20 }}
+          initial={shouldReduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ type: 'spring', stiffness: 80, damping: 20, delay: 0.15 }}
+          transition={{ duration: 0.7, ease: EASE, delay: 0.15 }}
         >
           FLO ST8 is not just a platform. It's a community where artists collaborate, brands integrate, venues participate, and audiences engage.
         </motion.p>
 
         <motion.div
           className="mt-12 grid grid-cols-1 gap-10 lg:grid-cols-2"
-          initial="hidden"
+          variants={staggerParent}
+          initial={shouldReduce ? 'visible' : 'hidden'}
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
-          variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.1, delayChildren: 0.2 } } }}
         >
           {audienceCards.map(card => (
             <motion.div
               key={card.title}
-              variants={{ hidden: { opacity: 0, x: 30 }, visible: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 80, damping: 20 } } }}
+              variants={fadeUp}
             >
               <AudienceCard {...card} />
             </motion.div>
