@@ -3,12 +3,15 @@ import { useState, useEffect } from 'react'
 const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&'
 
 export function useTextScramble(finalText: string, duration = 1500): string {
-  const [display, setDisplay] = useState<string>(() =>
-    finalText
+  const [display, setDisplay] = useState<string>(() => {
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return finalText
+    }
+    return finalText
       .split('')
       .map((c) => (c === ' ' ? ' ' : CHARS[Math.floor(Math.random() * CHARS.length)]))
       .join('')
-  )
+  })
 
   useEffect(() => {
     if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {

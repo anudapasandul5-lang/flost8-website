@@ -30,16 +30,10 @@ export default function Hero() {
       <div className="absolute inset-0 bg-gradient-to-r from-[#302A66]/35 via-[#AE43F7]/10 to-[#302A66]/45" />
 
       <div className="relative z-10 mx-auto flex h-full max-w-[1040px] items-center justify-center gap-16 px-6 py-20 md:py-0">
-        <motion.img
+        <img
           src="/logo-transparent.png"
           alt="FLOST8"
           className="w-[180px] shrink-0 md:w-[335px]"
-          initial={shouldReduce ? 'visible' : 'hidden'}
-          animate="visible"
-          variants={{
-            hidden: { opacity: 0, x: -50 },
-            visible: { opacity: 1, x: 0, transition: { type: 'spring', stiffness: 70, damping: 18, delay: 0.1 } },
-          }}
         />
 
         <motion.div
