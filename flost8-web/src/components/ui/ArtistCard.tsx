@@ -1,7 +1,7 @@
 import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowUpRight } from '@phosphor-icons/react'
-import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion'
+import { motion, useMotionValue, useTransform, useSpring, useReducedMotion } from 'framer-motion'
 
 export interface Artist {
   slug: string
@@ -16,13 +16,32 @@ interface ArtistCardProps {
 
 export default function ArtistCard({ artist }: ArtistCardProps) {
   const ref = useRef<HTMLDivElement>(null)
+  const shouldReduce = useReducedMotion()
+
   const x = useMotionValue(0)
   const y = useMotionValue(0)
 
   const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [8, -8]), { stiffness: 200, damping: 30 })
   const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-8, 8]), { stiffness: 200, damping: 30 })
 
+  const dynamicShadow = useTransform(
+    [rotateX, rotateY],
+    ([rx, ry]: number[]) =>
+      shouldReduce
+        ? '0 4px 14px rgba(0,0,0,0.45)'
+        : `${-ry * 0.5}px ${8 + Math.abs(rx)}px ${24 + Math.abs(rx) * 2}px rgba(0,0,0,${0.3 + Math.abs(rx) / 100})`
+  )
+
+  const sheenBackground = useTransform(
+    [rotateX, rotateY],
+    ([rx, ry]: number[]) =>
+      shouldReduce
+        ? 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.12) 0%, transparent 60%)'
+        : `radial-gradient(circle at ${50 + (ry as number) * 2}% ${50 - (rx as number) * 2}%, rgba(255,255,255,0.12) 0%, transparent 60%)`
+  )
+
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
+    if (shouldReduce) return
     const rect = ref.current?.getBoundingClientRect()
     if (!rect) return
     x.set((e.clientX - rect.left) / rect.width - 0.5)
@@ -30,6 +49,7 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
   }
 
   function handleMouseLeave() {
+    if (shouldReduce) return
     x.set(0)
     y.set(0)
   }
@@ -39,11 +59,16 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
       ref={ref}
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
-      style={{ rotateX, rotateY, transformPerspective: 800 }}
+      style={{
+        rotateX: shouldReduce ? 0 : rotateX,
+        rotateY: shouldReduce ? 0 : rotateY,
+        transformPerspective: 800,
+        boxShadow: dynamicShadow,
+      }}
       className="cursor-pointer"
     >
       <Link to={`/bookings?artist=${encodeURIComponent(artist.slug)}`} className="block">
-        <article className="overflow-hidden bg-white shadow-[0_4px_14px_rgba(0,0,0,0.45)] border-[3px] border-cyan">
+        <article className="relative overflow-hidden bg-white border-[3px] border-cyan">
           <div className="aspect-[1/1.08] bg-black">
             <img
               src={`/photos/${artist.slug}.png`}
@@ -65,6 +90,15 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
               <p className="pt-1 font-body text-[10px] leading-none text-black sm:pt-2 sm:text-[13px]">{artist.role}</p>
             </div>
           </div>
+
+          {/* Specular sheen overlay — tracks tilt direction, pointer-events:none so it never blocks hover */}
+          <motion.div
+            className="absolute inset-0 rounded-[inherit] pointer-events-none"
+            style={{
+              background: sheenBackground,
+              mixBlendMode: 'overlay',
+            }}
+          />
         </article>
       </Link>
     </motion.div>
