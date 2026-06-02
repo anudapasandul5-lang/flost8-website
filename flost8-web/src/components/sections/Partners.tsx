@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion'
+import { staggerParent, scaleIn, EASE } from '../../lib/motion'
 
 const partners = ['CocaCola', 'IBM', 'NIKE', 'adidas', 'HARVARD']
 
@@ -23,12 +24,21 @@ export default function Partners() {
           viewport={{ once: true }}
           transition={{ type: 'spring', stiffness: 70, damping: 18, delay: 0.15 }}
         >
-          <div className="grid grid-cols-2 items-center gap-12 md:grid-cols-5">
+          <motion.div
+            className="grid grid-cols-2 items-center gap-12 md:grid-cols-5"
+            variants={staggerParent}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+          >
             {partners.map((partner, index) => (
-              <span
+              <motion.span
                 key={partner}
+                variants={scaleIn}
+                whileHover={{ scale: 1.05 }}
+                transition={{ duration: 0.25, ease: EASE }}
                 className={[
-                  'font-body text-[24px] font-bold leading-none text-black sm:text-[36px]',
+                  'inline-block cursor-default font-body text-[24px] font-bold leading-none text-black sm:text-[36px]',
                   index === 0 ? 'font-script text-red' : '',
                   index === 1 ? 'font-serif text-[#2D7DB9]' : '',
                   index === 3 ? 'font-display lowercase' : '',
@@ -36,9 +46,9 @@ export default function Partners() {
                 ].join(' ')}
               >
                 {partner}
-              </span>
+              </motion.span>
             ))}
-          </div>
+          </motion.div>
         </motion.div>
       </div>
     </section>

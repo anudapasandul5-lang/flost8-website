@@ -8,9 +8,9 @@ const items = [
 
 export default function Marquee() {
   return (
-    <div className="flex min-h-[118px] items-center overflow-hidden bg-red">
+    <div className="mask-fade-x group flex min-h-[118px] items-center overflow-hidden bg-red">
       <motion.div
-        className="flex shrink-0 items-center gap-16 whitespace-nowrap font-body text-[30px] uppercase tracking-wide text-white"
+        className="flex shrink-0 items-center gap-16 whitespace-nowrap font-body text-[30px] uppercase tracking-wide text-white group-hover:[animation-play-state:paused]"
         style={{ width: 'max-content' }}
         animate={{ x: ['0%', '-50%'] }}
         transition={{ duration: 22, ease: 'linear', repeat: Infinity }}
