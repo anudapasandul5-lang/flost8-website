@@ -1,3 +1,4 @@
+import { useEffect, useRef, useState } from 'react'
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
 import { Eye, Headphones } from '@phosphor-icons/react'
 import { useTextScramble } from '../../hooks/useTextScramble'
@@ -11,8 +12,36 @@ export default function Hero() {
   const { scrollYProgress } = useScroll()
   const bgY = useTransform(scrollYProgress, [0, 1], shouldReduce ? ['0%', '0%'] : ['0%', '20%'])
 
+  const sectionRef = useRef<HTMLElement>(null)
+  const videoRef = useRef<HTMLVideoElement>(null)
+  const [videoReady, setVideoReady] = useState(false)
+  const [videoFailed, setVideoFailed] = useState(false)
+
+  // Pause/resume the loop based on viewport visibility
+  useEffect(() => {
+    if (shouldReduce || videoFailed) return
+    const video = videoRef.current
+    const section = sectionRef.current
+    if (!video || !section) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          video.play().catch(() => setVideoFailed(true))
+        } else {
+          video.pause()
+        }
+      },
+      { threshold: 0.1 }
+    )
+    observer.observe(section)
+    return () => observer.disconnect()
+  }, [shouldReduce, videoFailed])
+
+  const showVideo = !shouldReduce && !videoFailed
+
   return (
-    <section className="relative h-auto min-h-[500px] overflow-hidden bg-navy md:h-[640px]" aria-label="Hero">
+    <section ref={sectionRef} className="relative h-auto min-h-[500px] overflow-hidden bg-navy md:h-[640px]" aria-label="Hero">
       <motion.div
         style={{ y: bgY }}
         className="absolute inset-0 will-change-transform"
@@ -22,18 +51,49 @@ export default function Hero() {
           src="/ui2/hero-bg.jpeg"
           alt=""
           aria-hidden="true"
-          className="h-full w-full object-cover"
-          style={{ height: '120%', top: '-10%', position: 'absolute', width: '100%' }}
+          className="h-full w-full object-cover transition-opacity duration-700"
+          style={{
+            height: '120%',
+            top: '-10%',
+            position: 'absolute',
+            width: '100%',
+            opacity: showVideo && videoReady ? 0 : 1,
+          }}
         />
+        {showVideo && (
+          <video
+            ref={videoRef}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="metadata"
+            poster="/ui2/hero-bg.jpeg"
+            aria-hidden="true"
+            className="h-full w-full object-cover transition-opacity duration-700"
+            style={{
+              height: '120%',
+              top: '-10%',
+              position: 'absolute',
+              width: '100%',
+              opacity: videoReady ? 1 : 0,
+            }}
+            onCanPlay={() => setVideoReady(true)}
+            onError={() => setVideoFailed(true)}
+          >
+            <source src="/ui2/hero-loop.webm" type="video/webm" />
+            <source src="/ui2/hero-loop.mp4" type="video/mp4" />
+          </video>
+        )}
       </motion.div>
-      <div className="absolute inset-0 bg-[#302A66]/70" />
+      <div className="absolute inset-0 bg-[#302A66]/60" />
       <div className="absolute inset-0 bg-gradient-to-r from-[#302A66]/35 via-[#AE43F7]/10 to-[#302A66]/45" />
 
-      <div className="relative z-10 mx-auto flex h-full max-w-[1040px] items-center justify-center gap-16 px-6 py-20 md:py-0">
+      <div className="relative z-10 mx-auto flex h-full max-w-[1040px] flex-col items-center justify-center gap-6 px-6 py-16 md:flex-row md:gap-16 md:py-0">
         <img
           src="/logo-transparent.png"
           alt="FLOST8"
-          className="w-[180px] shrink-0 md:w-[335px]"
+          className="w-[140px] shrink-0 md:w-[335px]"
         />
 
         <motion.div
@@ -50,7 +110,7 @@ export default function Hero() {
             <br />
             {line2}
           </motion.h1>
-          <motion.p variants={fadeUp} className="mt-5 font-body text-2xl italic text-white/80 md:text-4xl">
+          <motion.p variants={fadeUp} className="mt-0.5 font-body text-2xl italic text-white/80 md:text-4xl">
             not an agency. a movement.
           </motion.p>
 
