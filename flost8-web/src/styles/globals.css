@@ -1,5 +1,5 @@
 /* ── Google Fonts ── */
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=League+Gothic&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
 
 /* ── Local Fonts ── */
 @font-face {
@@ -26,7 +26,6 @@
   font-display: swap;
 }
 
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -43,10 +42,9 @@
   --cream:     #F5F0E8;
   --off-black: #111118;
 
-  --font-display:   'Bebas Neue', sans-serif;
-  --font-script:    'Hyperwave', cursive;
-  --font-body:      'Circe', sans-serif;
-  --font-league:    'League Gothic', sans-serif;
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-script:  'Hyperwave', cursive;
+  --font-body:    'Circe', sans-serif;
 }
 
 /* ── Base Reset ── */
@@ -76,10 +74,9 @@ body {
 
 /* ── Tailwind Custom Utilities ── */
 @layer utilities {
-  .font-display   { font-family: var(--font-display); }
-  .font-script    { font-family: var(--font-script); }
-  .font-body      { font-family: var(--font-body); }
-  .font-league    { font-family: var(--font-league); }
+  .font-display  { font-family: var(--font-display); }
+  .font-script   { font-family: var(--font-script); }
+  .font-body     { font-family: var(--font-body); }
 
   .text-navy     { color: var(--navy); }
   .text-purple   { color: var(--purple); }
@@ -113,36 +110,6 @@ body {
     background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='flost8-grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23flost8-grain)'/%3E%3C/svg%3E");
     background-repeat: repeat;
     background-size: 160px 160px;
-  }
-
-  /* ── Photo overlay scrims (editorial image treatments) ── */
-  .overlay-photo {
-    background: linear-gradient(to top, rgb(17 17 24 / 0.72), rgb(48 42 102 / 0.35) 50%, rgb(48 42 102 / 0.12));
-  }
-
-  .overlay-scrim {
-    background-color: rgb(48 42 102 / 0.55);
-  }
-
-  /* ── Ghost outline text (editorial display headings) ── */
-  .text-outline-cream {
-    color: var(--cream);
-  }
-
-  .text-outline-navy {
-    color: var(--navy);
-  }
-
-  @supports (-webkit-text-stroke: 2px black) {
-    .text-outline-cream {
-      -webkit-text-stroke: 2px var(--cream);
-      color: transparent;
-    }
-
-    .text-outline-navy {
-      -webkit-text-stroke: 2px var(--navy);
-      color: transparent;
-    }
   }
 
   /* ── Horizontal mask for marquee edge fade ── */

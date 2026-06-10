@@ -5,12 +5,12 @@ export const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? '';
 export const CONTACT_EMAIL = 'bookings@flost8.lk';
 export const DOMAIN = 'flost8.lk';
 
-// Attitude-word metrics — punchy, all-caps, semantic to label
+// Metric placeholders — update when real numbers are ready
 export const METRICS = {
-  bookingsDriven:    'LOUD',
-  activePartners:    'PACKED',
-  citiesReached:     'SOLD OUT',
-  monthlyReach:      'EVERY ROOM',
+  bookingsDriven:    '00',
+  activePartners:    '00',
+  citiesReached:     '00',
+  monthlyReach:      '00',
 } as const;
 
 export const ARTISTS = PUBLIC_ARTISTS;

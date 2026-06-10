@@ -1,80 +1,93 @@
 import { motion, useReducedMotion } from 'framer-motion'
+import { FunnelSimple, Headphones } from '@phosphor-icons/react'
 import { Link } from 'react-router-dom'
 import { ARTISTS } from '../../lib/config'
 import ArtistCard from '../ui/ArtistCard'
 import { staggerParent, fadeUp, EASE } from '../../lib/motion'
 
+const row1 = ARTISTS.slice(0, 4)
+const row2 = ARTISTS.slice(4, 6)
+
 export default function Roster() {
   const shouldReduce = useReducedMotion()
 
   return (
-    <>
-    <div id="roster" />
-    <section className="overflow-hidden bg-cream py-section">
-      <div className="mx-auto max-w-[1280px] px-gutter">
+    <section id="roster" className="scroll-mt-20 bg-[#F1EFEC] pt-16 pb-24">
+      <div className="mx-auto max-w-[1280px] px-4 sm:px-8 lg:px-12">
         <motion.h2
-          className="font-league text-display-2xl uppercase leading-none text-navy lg:-ml-gutter"
+          className="text-center font-script text-[56px] uppercase leading-none text-red sm:text-[72px] lg:text-[84px]"
           initial={shouldReduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 1.5, ease: EASE }}
+          transition={{ duration: 0.7, ease: EASE }}
         >
-          MEET <span className="font-script text-red lowercase">the</span> ROSTER
+          Meet The Roster
         </motion.h2>
 
-        {/* Asymmetric roster grid */}
         <motion.div
-          className="mt-10 grid grid-cols-2 gap-6 lg:grid-cols-12"
+          className="mt-3 flex flex-wrap justify-end gap-3 md:mt-4"
+          initial={shouldReduce ? { opacity: 1 } : { opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: 0.2, duration: 0.4, ease: EASE }}
+        >
+          <button
+            type="button"
+            className="inline-flex items-center justify-center gap-2 rounded-full border-2 border-black bg-red px-6 py-3 font-body italic text-white shadow-[0_3px_8px_rgba(0,0,0,0.25)] transition-transform active:scale-[0.98] hover:-translate-y-0.5"
+          >
+            <Headphones size={18} weight="bold" />
+            All Roster
+          </button>
+          <button
+            type="button"
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-black bg-[#F1EFEC] px-5 py-3 font-body italic text-black transition-transform active:scale-[0.98] hover:-translate-y-0.5"
+          >
+            <FunnelSimple size={18} weight="bold" />
+            Filter
+          </button>
+        </motion.div>
+
+        {/* Row 1 — 4 artists */}
+        <motion.div
+          className="mt-12 grid grid-cols-2 gap-6 lg:grid-cols-4"
           variants={staggerParent}
           initial={shouldReduce ? 'visible' : 'hidden'}
           whileInView="visible"
           viewport={{ once: true, margin: '-50px' }}
-          transition={{ staggerChildren: 0.22, delayChildren: 0.12 }}
         >
-          {/* Card 1 — featured */}
-          <motion.div variants={fadeUp} className="lg:col-span-5">
-            <ArtistCard artist={ARTISTS[0]} index={0} />
-          </motion.div>
+          {row1.map((artist, index) => (
+            <motion.div key={artist.slug} variants={fadeUp}>
+              <ArtistCard artist={artist} index={index} />
+            </motion.div>
+          ))}
+        </motion.div>
 
-          {/* Card 2 */}
-          <motion.div variants={fadeUp} className="lg:col-span-7 lg:translate-y-6">
-            <ArtistCard artist={ARTISTS[1]} index={1} />
-          </motion.div>
+        {/* Row 2 — 2 artists + "See the entire roster" tile */}
+        <motion.div
+          className="mt-6 grid grid-cols-2 gap-6 lg:grid-cols-4"
+          variants={staggerParent}
+          initial={shouldReduce ? 'visible' : 'hidden'}
+          whileInView="visible"
+          viewport={{ once: true, margin: '-50px' }}
+        >
+          {row2.map((artist, index) => (
+            <motion.div key={artist.slug} variants={fadeUp}>
+              <ArtistCard artist={artist} index={index + 4} />
+            </motion.div>
+          ))}
 
-          {/* Card 3 */}
-          <motion.div variants={fadeUp} className="lg:col-span-4 lg:-translate-y-4">
-            <ArtistCard artist={ARTISTS[2]} index={2} />
-          </motion.div>
-
-          {/* Card 4 */}
-          <motion.div variants={fadeUp} className="lg:col-span-4">
-            <ArtistCard artist={ARTISTS[3]} index={3} />
-          </motion.div>
-
-          {/* Card 5 */}
-          <motion.div variants={fadeUp} className="lg:col-span-4 lg:translate-y-6">
-            <ArtistCard artist={ARTISTS[4]} index={4} />
-          </motion.div>
-
-          {/* Card 6 */}
-          <motion.div variants={fadeUp} className="col-span-2 lg:col-span-5 lg:-mt-2">
-            <ArtistCard artist={ARTISTS[5]} index={5} />
-          </motion.div>
-
-          {/* CTA band — color-inverting */}
-          <motion.div variants={fadeUp} className="col-span-2 lg:col-span-7 lg:-mt-2">
+          <motion.div variants={fadeUp} className="col-span-2">
             <Link
               to="/bookings"
-              className="group flex h-full min-h-[200px] items-center justify-center bg-red transition-colors duration-300 hover:bg-navy lg:min-h-full"
+              className="flex h-full min-h-[200px] items-center justify-center bg-navy transition-opacity hover:opacity-90"
             >
-              <p className="text-center font-display text-display-md leading-tight text-cream transition-colors duration-300">
-                SEE THE ENTIRE ROSTER
+              <p className="text-center font-display text-[38px] leading-tight text-white lg:text-[48px]">
+                SEE THE<br />ENTIRE ROSTER
               </p>
             </Link>
           </motion.div>
         </motion.div>
       </div>
     </section>
-    </>
   )
 }

@@ -1,10 +1,11 @@
 import { useRef } from 'react'
 import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
 import Marquee from '../ui/Marquee'
-import { EASE } from '../../lib/motion'
 
 const leftCopy = 'FLO ST8 is a platform that connects artists, brands, events, venues, and content.'
 const rightCopy = 'We turn performances into visibility, visibility into bookings, and bookings into long-term growth.'
+
+const spring = { type: 'spring' as const, stiffness: 80, damping: 20 }
 
 export default function BrandStatement() {
   const sectionRef = useRef<HTMLElement>(null)
@@ -13,8 +14,8 @@ export default function BrandStatement() {
   const photoY = useTransform(scrollYProgress, [0, 1], shouldReduce ? ['0%', '0%'] : ['-8%', '8%'])
 
   return (
-    <section ref={sectionRef} id="about" className="scroll-mt-32 overflow-x-hidden bg-cream md:scroll-mt-24">
-      <div className="relative mx-auto max-w-[1280px] overflow-hidden px-gutter py-section-tight md:min-h-[520px]">
+    <section ref={sectionRef} id="about" className="scroll-mt-32 bg-[#EEEEEE] md:scroll-mt-24">
+      <div className="relative mx-auto max-w-[1280px] overflow-hidden px-4 pb-10 pt-14 sm:px-8 md:min-h-[520px] md:pb-0 md:pt-12 lg:px-[68px]">
         {/* Headline — two stacked lines */}
         <div className="relative z-10 flex flex-col gap-0">
           <div className="flex items-baseline gap-3 sm:gap-5 md:gap-6">
@@ -23,14 +24,14 @@ export default function BrandStatement() {
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 1.1, ease: EASE, delay: 0 }}
+              transition={{ ...spring, delay: 0 }}
             >WHERE</motion.span>
             <motion.span
               className="font-script text-[52px] leading-none text-red sm:text-[68px] md:text-[80px] lg:text-[92px]"
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 1.1, ease: EASE, delay: 0.1 }}
+              transition={{ ...spring, delay: 0.1 }}
             >ARTISTS</motion.span>
           </div>
           <div className="flex items-baseline gap-3 sm:gap-5 md:gap-6">
@@ -39,14 +40,14 @@ export default function BrandStatement() {
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 1.1, ease: EASE, delay: 0.2 }}
+              transition={{ ...spring, delay: 0.2 }}
             >BECOME</motion.span>
             <motion.span
-              className="font-script text-display-md leading-none text-red sm:text-display-lg lg:text-display-xl lg:-mr-12"
+              className="font-script text-[52px] leading-none text-red sm:text-[68px] md:text-[80px] lg:text-[92px]"
               initial={{ opacity: 0, y: 40 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ duration: 1.1, ease: EASE, delay: 0.3 }}
+              transition={{ ...spring, delay: 0.3 }}
             >CULTURE</motion.span>
           </div>
         </div>
@@ -57,7 +58,7 @@ export default function BrandStatement() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 1, ease: EASE, delay: 0.4 }}
+          transition={{ ...spring, delay: 0.4 }}
         >
           {leftCopy}
         </motion.p>
@@ -68,22 +69,14 @@ export default function BrandStatement() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 1, ease: EASE, delay: 0.5 }}
+          transition={{ ...spring, delay: 0.5 }}
         >
           {rightCopy}
         </motion.p>
 
-        {/* Ghost word behind artist photo */}
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute bottom-0 left-1/2 z-0 hidden -translate-x-1/2 select-none font-league text-display-2xl text-outline-navy md:block"
-        >
-          CULTURE
-        </span>
-
         {/* Artist photo — center */}
         <motion.div
-          className="absolute bottom-0 left-[38%] z-[1] hidden -translate-x-1/2 md:block lg:left-[28%]"
+          className="absolute bottom-0 left-[38%] hidden -translate-x-1/2 md:block lg:left-[28%]"
           style={{ y: photoY }}
         >
           <motion.img
