@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, type RefObject } from 'react'
 import type Lenis from 'lenis'
-import { animate, createAnimatable } from 'animejs'
+import { animate } from 'animejs'
 import { splitGraphemes, type CharNode } from '../lib/splitText'
 
 export interface HeroMotionRefs {
@@ -12,8 +12,6 @@ export interface HeroMotionRefs {
   prefixRef: RefObject<HTMLSpanElement | null>
   /** The accent word that cycles ("CULTURE" → …). */
   wordRef: RefObject<HTMLSpanElement | null>
-  /** The radial glow element. */
-  glowRef: RefObject<HTMLDivElement | null>
   /** From useReducedMotion(). */
   shouldReduce: boolean
   /** From useLenis(); may be null until mounted. */
@@ -38,7 +36,6 @@ export function useHeroMotion({
   line1Ref,
   prefixRef,
   wordRef,
-  glowRef,
   shouldReduce,
   lenis,
 }: HeroMotionRefs) {
@@ -87,34 +84,6 @@ export function useHeroMotion({
     }, 42)
 
     return () => window.clearInterval(intervalId)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldReduce])
-
-  // ---- Cursor-follow glow ----
-  useLayoutEffect(() => {
-    if (shouldReduce) return
-    if (!window.matchMedia('(pointer: fine)').matches) return
-    const hero = sectionRef.current
-    const glow = glowRef.current
-    if (!hero || !glow) return
-
-    const movable = createAnimatable(glow, { x: 0, y: 0, duration: 500, ease: 'out(3)' })
-    const onEnter = () => (glow.style.opacity = '1')
-    const onLeave = () => (glow.style.opacity = '0')
-    const onMove = (e: MouseEvent) => {
-      const r = hero.getBoundingClientRect()
-      movable.x(e.clientX - r.left)
-      movable.y(e.clientY - r.top)
-    }
-    hero.addEventListener('mouseenter', onEnter)
-    hero.addEventListener('mouseleave', onLeave)
-    hero.addEventListener('mousemove', onMove)
-    return () => {
-      hero.removeEventListener('mouseenter', onEnter)
-      hero.removeEventListener('mouseleave', onLeave)
-      hero.removeEventListener('mousemove', onMove)
-      movable.revert()
-    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldReduce])
 

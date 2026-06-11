@@ -14,7 +14,6 @@ export default function Hero() {
   const line1Ref = useRef<HTMLSpanElement>(null)
   const prefixRef = useRef<HTMLSpanElement>(null)
   const wordRef = useRef<HTMLSpanElement>(null)
-  const glowRef = useRef<HTMLDivElement>(null)
   const [videoReady, setVideoReady] = useState(false)
   const [videoFailed, setVideoFailed] = useState(false)
 
@@ -23,7 +22,6 @@ export default function Hero() {
     line1Ref,
     prefixRef,
     wordRef,
-    glowRef,
     shouldReduce: !!shouldReduce,
     lenis,
   })
@@ -101,19 +99,6 @@ export default function Hero() {
       {/* Dark grade for legibility */}
       <div className="absolute inset-0 bg-gradient-to-b from-base/40 via-base/55 to-base" aria-hidden="true" />
       <div className="absolute inset-0 bg-gradient-to-r from-base/80 to-transparent" aria-hidden="true" />
-
-      {/* Cursor-follow glow — pointer/desktop only, toggled by useHeroMotion */}
-      <div
-        ref={glowRef}
-        aria-hidden="true"
-        className="pointer-events-none absolute left-0 top-0 z-[5] h-[560px] w-[560px] -translate-x-1/2 -translate-y-1/2 rounded-full opacity-0 blur-md transition-opacity duration-300"
-        style={{
-          marginLeft: '-280px',
-          marginTop: '-280px',
-          background:
-            'radial-gradient(circle, rgba(157,20,255,0.30), transparent 62%)',
-        }}
-      />
 
       <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[1200px] flex-col justify-center px-6 pb-28 pt-32 md:px-10 md:pb-36 md:pt-36">
         <motion.div
