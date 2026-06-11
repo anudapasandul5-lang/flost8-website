@@ -76,7 +76,7 @@ export default function Partners() {
             return (
               <div
                 key={p.slug}
-                className={`group partner-tile relative aspect-square w-20 overflow-hidden bg-base-raise transition-shadow duration-[450ms] will-change-transform hover:shadow-[0_0_26px_rgba(157,20,255,0.45)] sm:w-24 md:w-28 ${circle ? 'rounded-full' : 'rounded-xl'}`}
+                className={`group partner-tile relative aspect-square w-20 overflow-hidden bg-base-raise outline outline-1 outline-offset-0 outline-transparent transition-[box-shadow,outline-color] duration-[450ms] will-change-transform hover:shadow-[0_0_26px_rgba(157,20,255,0.45)] hover:outline-accent/60 sm:w-24 md:w-28 ${circle ? 'rounded-full' : 'rounded-xl'}`}
                 style={{ opacity: shouldReduce ? 1 : 0 }}
               >
                 <img
@@ -84,10 +84,6 @@ export default function Partners() {
                   alt={p.name}
                   loading="lazy"
                   className="h-full w-full object-cover opacity-55 grayscale transition-all duration-[750ms] will-change-transform group-hover:scale-[1.05] group-hover:opacity-100 group-hover:grayscale-0"
-                />
-                <span
-                  aria-hidden="true"
-                  className={`pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/0 transition-colors duration-[450ms] group-hover:ring-accent/40 ${circle ? 'rounded-full' : 'rounded-xl'}`}
                 />
               </div>
             )
