@@ -117,7 +117,7 @@ export default function Hero() {
 
       <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[1200px] flex-col justify-center px-6 pb-28 pt-32 md:px-10 md:pb-36 md:pt-36">
         <motion.div
-          className="max-w-full md:max-w-[60%]"
+          className="max-w-full md:max-w-[72%]"
           variants={staggerParentSlow}
           initial={shouldReduce ? 'visible' : 'hidden'}
           animate="visible"
@@ -131,7 +131,7 @@ export default function Hero() {
 
           <h1
             aria-label="WHERE ARTISTS BECOME CULTURE"
-            className="mt-4 font-display text-[72px] leading-[0.9] text-ink md:text-[112px] lg:text-[128px]"
+            className="mt-4 font-display text-[56px] leading-[0.92] text-ink sm:text-[68px] md:text-[92px] lg:text-[108px]"
           >
             <span ref={line1Ref}>WHERE ARTISTS</span>
             <br />

@@ -198,5 +198,6 @@ body {
 }
 
 /* Hero headline motion layer — isolate transform work to char/glyph spans */
+h1 .word { display: inline-block; white-space: nowrap; }
 h1 .char { display: inline-block; will-change: transform, opacity; }
 h1 .glyph { display: inline-block; will-change: transform; }

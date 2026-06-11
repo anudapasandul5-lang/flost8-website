@@ -11,26 +11,37 @@ export interface CharNode {
 }
 
 /**
- * Replaces `el`'s text with one wrapper per character:
- *   <span class="char"><span class="glyph">X</span></span>
- * Spaces are preserved as non-breaking glyphs. The outer/inner split lets
- * scatter (outer) and hover (inner) animate transforms without fighting.
- * Returns the created char nodes (visual only — keep an aria-label on a parent).
+ * Replaces `el`'s text with per-character wrappers, grouped by word:
+ *   <span class="word"><span class="char"><span class="glyph">X</span></span>…</span>
+ * Each word is an inline-block (`white-space: nowrap`) so letters never break
+ * mid-word; real breaking spaces sit between words so the line still wraps at
+ * word boundaries. The outer/inner char split lets scatter (outer .char) and
+ * hover (inner .glyph) animate transforms without fighting.
+ * Returns a flat list of char nodes (visual only — keep an aria-label on a parent).
  */
 export function splitGraphemes(el: HTMLElement): CharNode[] {
   const text = el.textContent ?? ''
   el.textContent = ''
   const nodes: CharNode[] = []
-  for (const ch of [...text]) {
-    const char = document.createElement('span')
-    char.className = 'char'
-    char.setAttribute('aria-hidden', 'true')
-    const glyph = document.createElement('span')
-    glyph.className = 'glyph'
-    glyph.textContent = ch === ' ' ? ' ' : ch
-    char.appendChild(glyph)
-    el.appendChild(char)
-    nodes.push({ char, glyph, final: ch })
-  }
+  const words = text.split(' ')
+  words.forEach((word, wi) => {
+    // Real breaking space between words (allows wrapping at word boundaries).
+    if (wi > 0) el.appendChild(document.createTextNode(' '))
+    if (word === '') return
+    const wordSpan = document.createElement('span')
+    wordSpan.className = 'word'
+    for (const ch of [...word]) {
+      const char = document.createElement('span')
+      char.className = 'char'
+      char.setAttribute('aria-hidden', 'true')
+      const glyph = document.createElement('span')
+      glyph.className = 'glyph'
+      glyph.textContent = ch
+      char.appendChild(glyph)
+      wordSpan.appendChild(char)
+      nodes.push({ char, glyph, final: ch })
+    }
+    el.appendChild(wordSpan)
+  })
   return nodes
 }
