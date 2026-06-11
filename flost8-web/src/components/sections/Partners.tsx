@@ -29,9 +29,9 @@ export default function Partners() {
     const anim = animate(gridRef.current.querySelectorAll('.partner-tile'), {
       opacity: [0, 1],
       scale: [0.6, 1],
-      duration: 650,
+      duration: 780,
       ease: 'outBack',
-      delay: stagger(55, { from: 'center' }),
+      delay: stagger(140, { from: 'center' }),
     })
     return () => {
       anim.revert()
