@@ -33,7 +33,7 @@ export default function Shows() {
   const { shows, loading } = useUpcomingShows(5)
 
   return (
-    <section id="shows" className="relative bg-base py-14 md:py-20">
+    <section id="shows" className="relative bg-base py-10 md:py-20">
       <div className="max-w-[1400px] mx-auto px-6 md:px-10">
         <motion.div
           initial={shouldReduce ? undefined : 'hidden'}
@@ -71,7 +71,7 @@ export default function Shows() {
                   <motion.div
                     className="absolute inset-0 bg-gradient-to-r from-base-raise via-[var(--accent-soft)] to-base-raise"
                     animate={{ opacity: [0.4, 0.8, 0.4] }}
-                    transition={{ duration: 1.6, repeat: Infinity, ease: 'easeInOut', delay: i * 0.15 }}
+                    transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', delay: i * 0.15 }}
                   />
                 )}
               </div>
@@ -117,7 +117,7 @@ export default function Shows() {
                       alt=""
                       aria-hidden="true"
                       loading="lazy"
-                      className="duotone-purple absolute inset-0 h-full w-full object-cover opacity-60 transition-transform duration-500 ease-out group-hover:scale-105"
+                      className="duotone-purple absolute inset-0 h-full w-full object-cover opacity-60 transition-transform duration-[750ms] ease-out group-hover:scale-105"
                     />
                   ) : (
                     <div className="absolute inset-0 bg-base-raise" />
@@ -128,7 +128,7 @@ export default function Shows() {
                   <div className="relative z-10 grid h-full grid-cols-[1fr_auto] items-center gap-4 px-5 py-5 md:px-8 md:py-6">
                     <motion.div
                       className="min-w-0"
-                      transition={{ duration: 0.3, ease: 'easeOut' }}
+                      transition={{ duration: 0.45, ease: 'easeOut' }}
                       whileHover={shouldReduce ? undefined : { x: 6 }}
                     >
                       <p className="font-display text-ink text-3xl md:text-5xl leading-tight truncate">

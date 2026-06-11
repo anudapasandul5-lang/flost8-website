@@ -151,7 +151,7 @@ export default function WhatWeDo() {
   }, [shouldReduce, paused])
 
   return (
-    <section id="about" className="relative bg-base py-14 md:py-20">
+    <section id="about" className="relative bg-base py-10 md:py-20">
       <div className="mx-auto max-w-[1400px] px-6 md:px-10">
         <motion.div
           variants={staggerParent}

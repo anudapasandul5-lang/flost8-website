@@ -57,7 +57,7 @@ export default function Partners() {
   }, [shouldReduce])
 
   return (
-    <section className="relative bg-base py-10 md:py-14">
+    <section className="relative bg-base py-8 md:py-14">
       <div className="mx-auto max-w-[1400px] px-6 md:px-10">
         <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">
           Trusted by venues &amp; brands

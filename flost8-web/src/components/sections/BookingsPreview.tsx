@@ -7,7 +7,7 @@ export default function BookingsPreview() {
   const shouldReduce = useReducedMotion()
 
   return (
-    <section id="book" className="relative bg-base py-14 md:py-20 overflow-hidden">
+    <section id="book" className="relative bg-base py-10 md:py-20 overflow-hidden">
       {/* Crowd backdrop */}
       <img
         src="/ui2/gen/crowd.jpg"

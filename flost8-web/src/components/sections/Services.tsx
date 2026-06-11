@@ -36,7 +36,7 @@ export default function Services() {
         </motion.div>
 
         <motion.div
-          className="mt-16 md:mt-20 border-t border-white/10"
+          className="mt-10 md:mt-20 border-t border-white/10"
           variants={staggerParent}
           initial={shouldReduce ? 'visible' : 'hidden'}
           whileInView="visible"
@@ -49,7 +49,7 @@ export default function Services() {
               whileHover={shouldReduce ? undefined : 'hover'}
               initial="rest"
               animate="rest"
-              className="group relative grid grid-cols-[auto_1fr] md:grid-cols-[120px_1fr_260px] items-center gap-x-6 md:gap-x-10 gap-y-2 py-8 md:py-12 border-b border-white/10"
+              className="group relative grid grid-cols-[auto_1fr] md:grid-cols-[120px_1fr_260px] items-center gap-x-6 md:gap-x-10 gap-y-2 py-6 md:py-12 border-b border-white/10"
             >
               <motion.span
                 aria-hidden="true"
@@ -84,7 +84,7 @@ export default function Services() {
                   alt=""
                   aria-hidden="true"
                   loading="lazy"
-                  className="grade-portrait h-44 w-full object-cover md:h-32"
+                  className="grade-portrait h-32 w-full object-cover md:h-32"
                 />
               </div>
             </motion.div>
