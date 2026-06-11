@@ -18,6 +18,10 @@ const PARTNERS = [
   { slug: 'traveling_bruncher', name: 'The Traveling Bruncher' },
 ] as const
 
+// Logos that are a circle on a solid square — clip the tile to a circle so the
+// leftover square corners (white/black) don't show on the dark page.
+const CIRCLE_LOGOS = new Set(['spinner_energy_drink', 'traveling_bruncher'])
+
 export default function Partners() {
   const shouldReduce = useReducedMotion()
   const gridRef = useRef<HTMLDivElement>(null)
@@ -67,24 +71,27 @@ export default function Partners() {
         <span className="sr-only">{PARTNERS.map((p) => p.name).join(', ')}</span>
 
         <div ref={gridRef} className="mt-10 flex flex-wrap justify-center gap-4 md:mt-12 md:gap-6">
-          {PARTNERS.map((p) => (
-            <div
-              key={p.slug}
-              className="group partner-tile relative aspect-square w-20 overflow-hidden rounded-xl bg-base-raise transition-shadow duration-[450ms] will-change-transform hover:shadow-[0_0_26px_rgba(157,20,255,0.45)] sm:w-24 md:w-28"
-              style={{ opacity: shouldReduce ? 1 : 0 }}
-            >
-              <img
-                src={`/logos/color/${p.slug}.jpg`}
-                alt={p.name}
-                loading="lazy"
-                className="h-full w-full object-cover opacity-55 grayscale transition-all duration-[750ms] will-change-transform group-hover:scale-[1.05] group-hover:opacity-100 group-hover:grayscale-0"
-              />
-              <span
-                aria-hidden="true"
-                className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/0 transition-colors duration-[450ms] group-hover:ring-accent/40"
-              />
-            </div>
-          ))}
+          {PARTNERS.map((p) => {
+            const circle = CIRCLE_LOGOS.has(p.slug)
+            return (
+              <div
+                key={p.slug}
+                className={`group partner-tile relative aspect-square w-20 overflow-hidden bg-base-raise transition-shadow duration-[450ms] will-change-transform hover:shadow-[0_0_26px_rgba(157,20,255,0.45)] sm:w-24 md:w-28 ${circle ? 'rounded-full' : 'rounded-xl'}`}
+                style={{ opacity: shouldReduce ? 1 : 0 }}
+              >
+                <img
+                  src={`/logos/color/${p.slug}.jpg`}
+                  alt={p.name}
+                  loading="lazy"
+                  className="h-full w-full object-cover opacity-55 grayscale transition-all duration-[750ms] will-change-transform group-hover:scale-[1.05] group-hover:opacity-100 group-hover:grayscale-0"
+                />
+                <span
+                  aria-hidden="true"
+                  className={`pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/0 transition-colors duration-[450ms] group-hover:ring-accent/40 ${circle ? 'rounded-full' : 'rounded-2xl'}`}
+                />
+              </div>
+            )
+          })}
         </div>
       </div>
     </section>
