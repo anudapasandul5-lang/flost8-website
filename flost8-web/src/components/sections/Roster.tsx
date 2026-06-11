@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { PUBLIC_ARTISTS } from '../../lib/artistRoster'
 import { staggerParent, fadeUp, SPRING } from '../../lib/motion'
+import EyebrowRule from '../ui/EyebrowRule'
 
-const AUTO_CYCLE_MS = 2200
+const AUTO_CYCLE_MS = 3500
 
 export default function Roster() {
   const shouldReduce = useReducedMotion()
@@ -34,6 +35,7 @@ export default function Roster() {
         >
           The Roster
         </motion.p>
+        <EyebrowRule />
         <motion.h2
           variants={fadeUp}
           className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl"

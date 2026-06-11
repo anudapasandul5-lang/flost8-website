@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight } from '@phosphor-icons/react'
 import { staggerParent, fadeUp, SPRING } from '../../lib/motion'
+import EyebrowRule from '../ui/EyebrowRule'
 
 const panels = [
   {
@@ -34,7 +35,7 @@ const panels = [
   },
 ] as const
 
-const AUTO_CYCLE_MS = 3000
+const AUTO_CYCLE_MS = 4500
 
 function Panel({
   panel,
@@ -68,7 +69,7 @@ function Panel({
       onFocus={onActivate}
       onClick={onActivate}
       onKeyDown={handleKeyDown}
-      className={`group edge-refract relative flex min-h-[64px] cursor-pointer flex-col overflow-hidden rounded-2xl bg-base-raise transition-colors duration-300 md:h-full md:min-h-0 ${
+      className={`group edge-refract relative flex min-h-[64px] cursor-pointer flex-col overflow-hidden rounded-2xl bg-base-raise transition-colors duration-[450ms] md:h-full md:min-h-0 ${
         isActive ? 'flex-[5]' : 'flex-1'
       }`}
       style={isActive ? { backgroundColor: 'var(--accent-soft)' } : undefined}
@@ -79,7 +80,7 @@ function Panel({
         alt=""
         aria-hidden="true"
         loading="lazy"
-        className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
+        className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-[750ms] ${
           isActive ? 'opacity-45' : 'opacity-20'
         }`}
       />
@@ -112,7 +113,7 @@ function Panel({
         <motion.div
           initial={shouldReduce ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.4, ease: 'easeOut', delay: shouldReduce ? 0 : 0.15 }}
+          transition={{ duration: 0.6, ease: 'easeOut', delay: shouldReduce ? 0 : 0.15 }}
           className="relative z-10 flex h-full flex-col justify-end gap-3 p-6 md:p-8 lg:p-10"
         >
           <span className="font-display text-xl text-accent">
@@ -165,6 +166,7 @@ export default function WhatWeDo() {
           >
             What We Do
           </motion.p>
+          <EyebrowRule />
           <motion.h2
             variants={fadeUp}
             className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl"

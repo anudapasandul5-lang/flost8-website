@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
 import { fadeUp, staggerParent } from '../../lib/motion'
+import EyebrowRule from '../ui/EyebrowRule'
 
 export default function SoundEthos() {
   const shouldReduce = useReducedMotion()
@@ -37,6 +38,7 @@ export default function SoundEthos() {
         >
           The Sound
         </motion.p>
+        <EyebrowRule />
         <motion.h2
           variants={fadeUp}
           className="mt-4 font-display text-ink text-6xl leading-[0.9] md:text-8xl"

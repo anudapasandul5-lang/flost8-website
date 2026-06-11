@@ -1,6 +1,7 @@
 import { useReducedMotion, useInView } from 'framer-motion'
 import { useRef, useEffect } from 'react'
 import { animate, stagger } from 'animejs'
+import EyebrowRule from '../ui/EyebrowRule'
 
 const PARTNERS = [
   { slug: 'corso', name: 'Corso' },
@@ -43,6 +44,7 @@ export default function Partners() {
         <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">
           Trusted by venues &amp; brands
         </p>
+        <EyebrowRule />
 
         <span className="sr-only">{PARTNERS.map((p) => p.name).join(', ')}</span>
 
