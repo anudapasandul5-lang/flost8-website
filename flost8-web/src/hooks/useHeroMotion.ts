@@ -27,6 +27,15 @@ function rand(min: number, max: number) {
   return Math.random() * (max - min) + min
 }
 
+function seedScatter(
+  nodes: CharNode[],
+  map: WeakMap<HTMLElement, { x: number; y: number; r: number }>,
+) {
+  for (const n of nodes) {
+    map.set(n.char, { x: rand(-90, 90), y: rand(-140, 70), r: rand(-45, 45) })
+  }
+}
+
 export function useHeroMotion({
   sectionRef,
   line1Ref,
@@ -38,9 +47,9 @@ export function useHeroMotion({
 }: HeroMotionRefs) {
   // Char nodes shared across effects. Filled in the layout effect below.
   const line1Chars = useRef<CharNode[]>([])
-  const allHeadlineChars = useRef<CharNode[]>([])
-  // Per-char scatter offsets, seeded once.
-  const offsets = useRef<{ x: number; y: number; r: number }[]>([])
+  // Per-char scatter offsets keyed by the (outer) .char element, so they
+  // survive the cycling word re-splitting its spans.
+  const scatterOffsets = useRef(new WeakMap<HTMLElement, { x: number; y: number; r: number }>())
 
   // ---- Split lines + intro (runs once, before paint to avoid a flash) ----
   useLayoutEffect(() => {
@@ -52,20 +61,11 @@ export function useHeroMotion({
     line1Chars.current = splitGraphemes(line1)
     const prefixChars = splitGraphemes(prefix)
     const wordChars = splitGraphemes(word)
-    allHeadlineChars.current = [
-      ...line1Chars.current,
-      ...prefixChars,
-      ...wordChars,
-    ]
-    offsets.current = allHeadlineChars.current.map(() => ({
-      x: rand(-90, 90),
-      y: rand(-140, 70),
-      r: rand(-45, 45),
-    }))
+    seedScatter([...line1Chars.current, ...prefixChars, ...wordChars], scatterOffsets.current)
 
     if (shouldReduce) {
       // Static, fully visible. No animation.
-      for (const n of allHeadlineChars.current) n.glyph.style.opacity = '1'
+      for (const n of [...line1Chars.current, ...prefixChars, ...wordChars]) n.glyph.style.opacity = '1'
       return
     }
 
@@ -76,6 +76,7 @@ export function useHeroMotion({
     const finals = line1Chars.current.map((n) => n.final)
     let frame = 0
     const frames = 20
+    let line1SettleAnim: ReturnType<typeof animate> | null = null
     const intervalId = window.setInterval(() => {
       const revealCount = Math.floor((frame / frames) * finals.length)
       line1Chars.current.forEach((n, i) => {
@@ -90,7 +91,7 @@ export function useHeroMotion({
         window.clearInterval(intervalId)
         line1Chars.current.forEach((n) => (n.glyph.textContent =
           n.final === ' ' ? ' ' : n.final))
-        animate(
+        line1SettleAnim = animate(
           line1Chars.current.map((n) => n.glyph),
           { y: [18, 0], opacity: [0.4, 1], duration: 560, delay: stagger(26), ease: 'outExpo' },
         )
@@ -104,6 +105,7 @@ export function useHeroMotion({
 
     return () => {
       window.clearInterval(intervalId)
+      line1SettleAnim?.revert()
       line2Anim.revert()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -126,7 +128,10 @@ export function useHeroMotion({
         frames: 16,
         speedMs: 38,
         onDone: () => {
-          splitGraphemes(word) // rebuild char/glyph spans for the new word
+          // Rebuild the word's spans AND seed offsets for the new nodes so
+          // scroll-scatter keeps working after a word swap.
+          const newWordChars = splitGraphemes(word)
+          seedScatter(newWordChars, scatterOffsets.current)
         },
       })
     }
@@ -135,6 +140,7 @@ export function useHeroMotion({
       window.clearInterval(id)
       stopScramble?.()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldReduce])
 
   // ---- Cursor-follow glow ----
@@ -162,6 +168,7 @@ export function useHeroMotion({
       hero.removeEventListener('mousemove', onMove)
       movable.revert()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldReduce])
 
   // ---- Scroll-scatter exit (Lenis-driven) ----
@@ -171,18 +178,20 @@ export function useHeroMotion({
     if (!hero) return
 
     let ticking = false
+    let rafId = 0
     const apply = () => {
       const p = Math.min(Math.max(lenis.scroll / (hero.offsetHeight * 0.7), 0), 1)
-      allHeadlineChars.current.forEach((n, i) => {
-        const o = offsets.current[i] ?? { x: 0, y: 0, r: 0 }
-        n.char.style.transform = `translate(${o.x * p}px, ${o.y * p}px) rotate(${o.r * p}deg)`
-        n.char.style.opacity = String(1 - p)
+      const chars = hero.querySelectorAll<HTMLElement>('.char')
+      chars.forEach((c) => {
+        const o = scatterOffsets.current.get(c) ?? { x: 0, y: 0, r: 0 }
+        c.style.transform = `translate(${o.x * p}px, ${o.y * p}px) rotate(${o.r * p}deg)`
+        c.style.opacity = String(1 - p)
       })
       ticking = false
     }
     const onScroll = () => {
       if (!ticking) {
-        requestAnimationFrame(apply)
+        rafId = requestAnimationFrame(apply)
         ticking = true
       }
     }
@@ -190,7 +199,9 @@ export function useHeroMotion({
     apply() // set initial state for non-zero scroll (refresh mid-page)
     return () => {
       lenis.off('scroll', onScroll)
+      cancelAnimationFrame(rafId)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldReduce, lenis])
 
   // ---- Per-letter hover spring (delegated so it survives word rebuilds) ----
@@ -206,5 +217,6 @@ export function useHeroMotion({
     }
     hero.addEventListener('mouseover', onOver)
     return () => hero.removeEventListener('mouseover', onOver)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldReduce])
 }
