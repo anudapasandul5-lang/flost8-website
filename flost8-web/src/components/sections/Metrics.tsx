@@ -25,7 +25,7 @@ export function Metrics() {
   const inView = useInView(gridRef, { once: true, margin: '-80px' })
 
   return (
-    <section className="relative overflow-hidden bg-base py-12 md:py-16">
+    <section className="relative overflow-hidden bg-base pt-4 md:pt-5 pb-12 md:pb-16">
       <img
         src="/ui2/gen/stage.jpg"
         alt=""
@@ -47,7 +47,7 @@ export function Metrics() {
             <motion.div
               key={stat.label}
               variants={fadeUp}
-              className="flex flex-col items-start gap-3 px-6 py-8 md:px-10 md:py-10"
+              className="flex flex-col items-start gap-3 px-6 py-6 md:px-10 md:py-7"
             >
               <span className="font-display text-6xl leading-none text-ink md:text-7xl">
                 <Counter value={stat.value} reduce={!!shouldReduce} active={inView} />

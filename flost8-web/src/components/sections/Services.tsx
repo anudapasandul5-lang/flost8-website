@@ -11,7 +11,7 @@ export default function Services() {
   const shouldReduce = useReducedMotion()
 
   return (
-    <section id="services" className="relative bg-base py-14 md:py-20">
+    <section id="services" className="relative bg-base pt-14 md:pt-20 pb-6 md:pb-6">
       <div className="mx-auto max-w-[1400px] px-6 md:px-10">
         <motion.div
           variants={staggerParent}
@@ -58,7 +58,7 @@ export default function Services() {
                   rest: { backgroundColor: 'rgba(157, 20, 255, 0)' },
                   hover: { backgroundColor: 'var(--accent-soft)' },
                 }}
-                transition={{ duration: 0.3, ease: 'easeOut' }}
+                transition={{ duration: 0.45, ease: 'easeOut' }}
               />
 
               <span className="font-display text-accent text-6xl md:text-8xl leading-none self-start md:self-center">
@@ -69,7 +69,7 @@ export default function Services() {
                 <motion.h3
                   className="font-display text-ink text-3xl md:text-5xl"
                   variants={{ rest: { x: 0 }, hover: { x: 8 } }}
-                  transition={{ duration: 0.3, ease: 'easeOut' }}
+                  transition={{ duration: 0.45, ease: 'easeOut' }}
                 >
                   {service.title}
                 </motion.h3>
@@ -92,11 +92,11 @@ export default function Services() {
         </motion.div>
 
         <motion.div
-          className="mt-10 md:mt-12"
+          className="mt-6 md:mt-8"
           initial={shouldReduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, ease: 'easeOut' }}
+          transition={{ duration: 0.9, ease: 'easeOut' }}
         >
           <Link
             to="/bookings"
