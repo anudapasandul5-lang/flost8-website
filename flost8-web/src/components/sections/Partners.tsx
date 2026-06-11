@@ -5,7 +5,7 @@ import EyebrowRule from '../ui/EyebrowRule'
 const PARTNERS = [
   { slug: 'corso', name: 'Corso' },
   { slug: 'sun_crush', name: 'Sun Crush' },
-  { slug: 'spinner_energy_drink', name: 'Spinner Energy Drink' },
+  { slug: 'a_logo', name: 'Ascent' },
   { slug: 'vibe_mount', name: 'Vibe Mount' },
   { slug: 'pixels_n_pints', name: 'Pixels n Pints' },
   { slug: 'soul_boner', name: 'Soul Boner' },
@@ -13,9 +13,9 @@ const PARTNERS = [
   { slug: 'speedbay', name: 'Speedbay' },
   { slug: 'reignite', name: 'Reignite' },
   { slug: 'hype_bomb', name: 'Hype Bomb' },
-  { slug: 'a_logo', name: 'Ascent' },
-  { slug: 'vocaine', name: 'Vocaine' },
+  { slug: 'spinner_energy_drink', name: 'Spinner Energy Drink' },
   { slug: 'traveling_bruncher', name: 'The Traveling Bruncher' },
+  { slug: 'vocaine', name: 'Vocaine' },
 ] as const
 
 // Logos that are a circle on a solid square — clip the tile to a circle so the
