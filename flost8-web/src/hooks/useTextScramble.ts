@@ -1,20 +1,30 @@
 import { useState, useEffect } from 'react'
 
-const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%&'
+// Letters only — calmer than symbols/digits, reads as a clean decode.
+const CHARS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+// How many characters scramble at the leading edge. Small window = a tidy
+// sweep left-to-right instead of the whole line jittering at once.
+const WINDOW = 2
 
+function isReducedMotion(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    window.matchMedia('(prefers-reduced-motion: reduce)').matches
+  )
+}
+
+/**
+ * Resolves `finalText` with a clean left-to-right scramble sweep.
+ * - First paint is the real text (no gibberish flash on reload).
+ * - Only a 2-char window cycles as the reveal passes; settled and
+ *   not-yet-reached characters stay put, so nothing bounces around.
+ */
 export function useTextScramble(finalText: string, duration = 1500): string {
-  const [display, setDisplay] = useState<string>(() => {
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      return finalText
-    }
-    return finalText
-      .split('')
-      .map((c) => (c === ' ' ? ' ' : CHARS[Math.floor(Math.random() * CHARS.length)]))
-      .join('')
-  })
+  // Start settled — avoids the random-gibberish flash on mount/reload.
+  const [display, setDisplay] = useState<string>(finalText)
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+    if (isReducedMotion()) {
       setDisplay(finalText)
       return
     }
@@ -24,13 +34,10 @@ export function useTextScramble(finalText: string, duration = 1500): string {
       .reduce<number[]>((acc, c, i) => (c !== ' ' ? [...acc, i] : acc), [])
 
     const stepCount = nonSpaceIndices.length
+    if (stepCount === 0) return
     const stepInterval = duration / stepCount
 
     let revealed = 0
-    const chars = finalText
-      .split('')
-      .map((c) => (c === ' ' ? ' ' : CHARS[Math.floor(Math.random() * CHARS.length)]))
-
     const interval = setInterval(() => {
       if (revealed >= stepCount) {
         clearInterval(interval)
@@ -38,16 +45,13 @@ export function useTextScramble(finalText: string, duration = 1500): string {
         return
       }
 
-      // Reveal next character
-      const idx = nonSpaceIndices[revealed]
-      chars[idx] = finalText[idx]
-      revealed++
-
-      // Randomise remaining unrevealed chars
-      for (let i = revealed; i < stepCount; i++) {
-        const charIdx = nonSpaceIndices[i]
-        chars[charIdx] = CHARS[Math.floor(Math.random() * CHARS.length)]
+      const chars = finalText.split('')
+      // Only the small leading window scrambles; everything else is final.
+      for (let k = revealed; k < Math.min(revealed + WINDOW, stepCount); k++) {
+        const idx = nonSpaceIndices[k]
+        chars[idx] = CHARS[Math.floor(Math.random() * CHARS.length)]
       }
+      revealed++
 
       setDisplay(chars.join(''))
     }, stepInterval)

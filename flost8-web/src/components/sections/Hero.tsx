@@ -5,8 +5,8 @@ import { useTextScramble } from '../../hooks/useTextScramble'
 import { staggerParentSlow, fadeUp } from '../../lib/motion'
 
 export default function Hero() {
-  const line1 = useTextScramble('WHERE ARTISTS', 1400)
-  const line2 = useTextScramble('BECOME CULTURE', 1900)
+  const line1 = useTextScramble('WHERE ARTISTS', 1100)
+  const line2 = useTextScramble('BECOME CULTURE', 1500)
 
   const shouldReduce = useReducedMotion()
 
