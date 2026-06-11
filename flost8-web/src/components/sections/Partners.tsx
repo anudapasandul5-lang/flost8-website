@@ -46,7 +46,7 @@ export default function Partners() {
                 src={`/logos/color/${p.slug}.jpg`}
                 alt={p.name}
                 loading="lazy"
-                className="h-full w-full object-cover transition-all duration-500 will-change-transform [@media(hover:hover)]:opacity-55 [@media(hover:hover)]:grayscale group-hover:scale-[1.05] group-hover:opacity-100 group-hover:grayscale-0"
+                className="h-full w-full object-cover opacity-55 grayscale transition-all duration-500 will-change-transform group-hover:scale-[1.05] group-hover:opacity-100 group-hover:grayscale-0"
               />
               <span
                 aria-hidden="true"
