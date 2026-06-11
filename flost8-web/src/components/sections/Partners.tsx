@@ -87,7 +87,7 @@ export default function Partners() {
                 />
                 <span
                   aria-hidden="true"
-                  className={`pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/0 transition-colors duration-[450ms] group-hover:ring-accent/40 ${circle ? 'rounded-full' : 'rounded-2xl'}`}
+                  className={`pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/0 transition-colors duration-[450ms] group-hover:ring-accent/40 ${circle ? 'rounded-full' : 'rounded-xl'}`}
                 />
               </div>
             )
