@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, type RefObject } from 'react'
 import type Lenis from 'lenis'
-import { animate, stagger, createAnimatable } from 'animejs'
+import { animate, createAnimatable } from 'animejs'
 import { splitGraphemes, type CharNode } from '../lib/splitText'
 
 export interface HeroMotionRefs {
@@ -48,7 +48,7 @@ export function useHeroMotion({
   // survive the cycling word re-splitting its spans.
   const scatterOffsets = useRef(new WeakMap<HTMLElement, { x: number; y: number; r: number }>())
 
-  // ---- Split lines + intro (runs once, before paint to avoid a flash) ----
+  // ---- Split lines + scramble-in intro (runs once, before paint) ----
   useLayoutEffect(() => {
     const line1 = line1Ref.current
     const prefix = prefixRef.current
@@ -58,53 +58,35 @@ export function useHeroMotion({
     line1Chars.current = splitGraphemes(line1)
     const prefixChars = splitGraphemes(prefix)
     const wordChars = splitGraphemes(word)
-    seedScatter([...line1Chars.current, ...prefixChars, ...wordChars], scatterOffsets.current)
+    const all = [...line1Chars.current, ...prefixChars, ...wordChars]
+    seedScatter(all, scatterOffsets.current)
+    for (const n of all) n.glyph.style.opacity = '1'
 
     if (shouldReduce) {
-      // Static, fully visible. No animation.
-      for (const n of [...line1Chars.current, ...prefixChars, ...wordChars]) n.glyph.style.opacity = '1'
+      for (const n of all) n.glyph.textContent = n.final === ' ' ? ' ' : n.final
       return
     }
 
-    // Hide line 2 until its fade; line 1 will scramble (stays visible).
-    for (const n of prefixChars) n.glyph.style.opacity = '0'
-    for (const n of wordChars) n.glyph.style.opacity = '0'
-
-    const finals = line1Chars.current.map((n) => n.final)
+    const GLY = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#%&/'
     let frame = 0
-    const frames = 20
-    let line1SettleAnim: ReturnType<typeof animate> | null = null
+    const frames = 22
     const intervalId = window.setInterval(() => {
-      const revealCount = Math.floor((frame / frames) * finals.length)
-      line1Chars.current.forEach((n, i) => {
-        n.glyph.style.opacity = '1'
-        if (n.final === ' ') return
+      const revealCount = Math.floor((frame / frames) * all.length)
+      all.forEach((n, i) => {
+        if (n.final === ' ') {
+          n.glyph.textContent = ' '
+          return
+        }
         n.glyph.textContent =
-          i < revealCount
-            ? finals[i]
-            : 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'[Math.floor(Math.random() * 26)]
+          i < revealCount ? n.final : GLY[Math.floor(Math.random() * GLY.length)]
       })
       if (frame++ >= frames) {
         window.clearInterval(intervalId)
-        line1Chars.current.forEach((n) => (n.glyph.textContent =
-          n.final === ' ' ? ' ' : n.final))
-        line1SettleAnim = animate(
-          line1Chars.current.map((n) => n.glyph),
-          { y: [18, 0], opacity: [0.4, 1], duration: 560, delay: stagger(26), ease: 'outExpo' },
-        )
+        all.forEach((n) => (n.glyph.textContent = n.final === ' ' ? ' ' : n.final))
       }
     }, 42)
 
-    const line2Anim = animate(
-      [...prefixChars, ...wordChars].map((n) => n.glyph),
-      { y: [24, 0], opacity: [0, 1], duration: 600, delay: 600, ease: 'outExpo' },
-    )
-
-    return () => {
-      window.clearInterval(intervalId)
-      line1SettleAnim?.revert()
-      line2Anim.revert()
-    }
+    return () => window.clearInterval(intervalId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldReduce])
 

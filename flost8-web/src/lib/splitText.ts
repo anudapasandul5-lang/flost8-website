@@ -27,7 +27,7 @@ export function splitGraphemes(el: HTMLElement): CharNode[] {
     char.setAttribute('aria-hidden', 'true')
     const glyph = document.createElement('span')
     glyph.className = 'glyph'
-    glyph.textContent = ch === ' ' ? ' ' : ch
+    glyph.textContent = ch === ' ' ? ' ' : ch
     char.appendChild(glyph)
     el.appendChild(char)
     nodes.push({ char, glyph, final: ch })
