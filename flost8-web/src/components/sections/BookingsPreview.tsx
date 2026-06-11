@@ -1,63 +1,77 @@
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Link } from 'react-router-dom'
-import { ArrowCircleRight } from '@phosphor-icons/react'
-import { useUpcomingShows } from '../../hooks/useUpcomingShows'
-import type { UpcomingShow } from '../../lib/bookingContract'
-
-const fallbackShows: UpcomingShow[] = [
-  { date: 'JUN 14 2026', artist: 'DR. GREEN', venue: 'The Factory', city: 'Colombo' },
-  { date: 'JUL 05 2026', artist: 'SONAL', venue: 'Ballroom 47', city: 'Colombo' },
-  { date: 'AUG 22 2026', artist: 'MAALIN', venue: 'Rooftop Stage', city: 'Galle' },
-]
-
-function ShowRow({ show, index }: { show: UpcomingShow; index: number }) {
-  return (
-    <motion.div
-      initial={{ opacity: 0, x: -30 }}
-      whileInView={{ opacity: 1, x: 0 }}
-      viewport={{ once: true, margin: '-20px' }}
-      transition={{ type: 'spring', stiffness: 80, damping: 20, delay: index * 0.12 }}
-      className="grid grid-cols-1 items-start gap-2 rounded-[24px] border-[3px] border-cyan bg-[#5C98B2] px-5 py-4 shadow-[inset_0_1px_0_rgba(255,255,255,0.1)] sm:rounded-full sm:border-[4px] sm:px-10 sm:py-4 md:min-h-[86px] md:grid-cols-[280px_220px_1fr_auto] md:items-center md:gap-5"
-    >
-      <span className="font-display text-[28px] leading-none text-white sm:text-[38px]">{show.date}</span>
-      <span className="font-body text-[20px] uppercase leading-none text-white sm:text-[28px]">{show.artist}</span>
-      <span className="font-body text-[18px] italic leading-none text-white/80 sm:text-[28px] sm:text-white">
-        {show.venue}, {show.city}
-      </span>
-      <Link
-        to="/bookings"
-        className="inline-flex items-center justify-center gap-4 justify-self-start rounded-full bg-navy py-2 pl-1 pr-6 font-body italic text-white transition-transform hover:-translate-y-0.5 active:scale-[0.98] md:justify-self-end"
-      >
-        <ArrowCircleRight size={42} weight="fill" className="text-cyan" />
-        Book Now
-      </Link>
-    </motion.div>
-  )
-}
+import { ArrowUpRight } from '@phosphor-icons/react'
+import { fadeUp, staggerParent } from '../../lib/motion'
 
 export default function BookingsPreview() {
-  const { shows, loading } = useUpcomingShows(3)
-  const displayShows = loading || shows.length === 0 ? fallbackShows : shows.slice(0, 3)
+  const shouldReduce = useReducedMotion()
 
   return (
-    <section id="shows" className="scroll-mt-20 bg-navy px-4 py-16 sm:px-8 lg:px-10 lg:py-24">
-      <div className="mx-auto max-w-[1220px]">
+    <section id="book" className="relative bg-base py-14 md:py-20 overflow-hidden">
+      {/* Crowd backdrop */}
+      <img
+        src="/ui2/gen/crowd.jpg"
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-40"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-r from-base via-base/85 to-base/40"
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-b from-base/70 via-transparent to-base"
+      />
+
+      {/* Oversized watermark */}
+      <span
+        aria-hidden
+        className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 select-none whitespace-nowrap font-display text-accent/5 text-[22vw] leading-none md:text-[16vw]"
+      >
+        BOOK
+      </span>
+
+      <motion.div
+        className="relative z-10 mx-auto max-w-[1400px] px-6 md:px-10"
+        variants={staggerParent}
+        initial={shouldReduce ? 'visible' : 'hidden'}
+        whileInView="visible"
+        viewport={{ once: true, amount: 0.3 }}
+      >
         <motion.h2
-          className="text-center font-script text-[40px] uppercase leading-none text-cyan sm:text-[54px] lg:text-[62px]"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ type: 'spring', stiffness: 80, damping: 20 }}
+          variants={fadeUp}
+          className="font-display text-ink text-6xl md:text-8xl leading-[0.92]"
         >
-          Upcoming Shows
+          READY WHEN
+          <br />
+          YOU ARE.
         </motion.h2>
 
-        <div className="mt-16 grid gap-10">
-          {displayShows.map((show, index) => (
-            <ShowRow key={`${show.artist}-${show.date}-${index}`} show={show} index={index} />
-          ))}
-        </div>
-      </div>
+        <motion.p
+          variants={fadeUp}
+          className="mt-6 font-grotesk text-[var(--ink-72)] max-w-[52ch] text-lg md:text-xl"
+        >
+          Lock a FLOST8 artist for your night, brand, or event.
+        </motion.p>
+
+        <motion.div variants={fadeUp} className="mt-10 flex flex-wrap items-center gap-4">
+          <Link
+            to="/bookings"
+            className="accent-press edge-refract inline-flex min-h-[44px] items-center gap-2 rounded-full bg-accent px-7 py-4 font-grotesk text-ink"
+          >
+            Book Now
+            <ArrowUpRight size={20} weight="bold" />
+          </Link>
+          <a
+            href="mailto:bookings@flost8.lk"
+            className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-[var(--accent-line)] px-7 py-4 font-grotesk text-ink transition-colors hover:bg-[var(--accent-soft)]"
+          >
+            Become an Artist
+          </a>
+        </motion.div>
+      </motion.div>
     </section>
   )
 }

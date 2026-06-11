@@ -1,54 +1,59 @@
-import { motion } from 'framer-motion'
-import { staggerParent, scaleIn, EASE } from '../../lib/motion'
+import { motion, useReducedMotion } from 'framer-motion'
+import { staggerParent, fadeUp } from '../../lib/motion'
 
-const partners = ['CocaCola', 'IBM', 'NIKE', 'adidas', 'HARVARD']
+const PARTNERS = [
+  { slug: 'corso', name: 'Corso' },
+  { slug: 'sun_crush', name: 'Sun Crush' },
+  { slug: 'spinner_energy_drink', name: 'Spinner Energy Drink' },
+  { slug: 'vibe_mount', name: 'Vibe Mount' },
+  { slug: 'pixels_n_pints', name: 'Pixels n Pints' },
+  { slug: 'soul_boner', name: 'Soul Boner' },
+  { slug: 'abstract_mark', name: 'Apex' },
+  { slug: 'speedbay', name: 'Speedbay' },
+  { slug: 'reignite', name: 'Reignite' },
+  { slug: 'hype_bomb', name: 'Hype Bomb' },
+  { slug: 'a_logo', name: 'Ascent' },
+  { slug: 'vocaine', name: 'Vocaine' },
+  { slug: 'traveling_bruncher', name: 'The Traveling Bruncher' },
+] as const
 
 export default function Partners() {
+  const shouldReduce = useReducedMotion()
+
   return (
-    <section className="relative overflow-hidden bg-[#5E79A6] px-4 pb-20 sm:px-8 lg:px-10 lg:pb-24">
-      <div className="mx-auto max-w-[1280px] text-center">
-        <motion.p
-          className="font-body text-[20px] italic leading-snug text-white sm:text-[26px] lg:text-[30px]"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ type: 'spring', stiffness: 80, damping: 20 }}
-        >
-          Partnerships with brands, venues, festivals, and lifestyle platforms across 14 cities.
-        </motion.p>
+    <section className="relative bg-base py-10 md:py-14">
+      <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+        <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">
+          Trusted by venues &amp; brands
+        </p>
+
+        <span className="sr-only">{PARTNERS.map((p) => p.name).join(', ')}</span>
 
         <motion.div
-          className="relative mt-10 overflow-hidden rounded-[24px] border-[5px] border-[#EA4323] bg-[#F4F3F6] px-6 py-10 shadow-[0_12px_18px_rgba(0,0,0,0.35)] sm:rounded-[34px] sm:px-16 sm:py-16"
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ type: 'spring', stiffness: 70, damping: 18, delay: 0.15 }}
+          className="mt-10 flex flex-wrap justify-center gap-4 md:mt-12 md:gap-6"
+          variants={staggerParent}
+          initial={shouldReduce ? 'visible' : 'hidden'}
+          whileInView="visible"
+          viewport={{ once: true, margin: '-60px' }}
         >
-          <motion.div
-            className="grid grid-cols-2 items-center gap-12 md:grid-cols-5"
-            variants={staggerParent}
-            initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
-          >
-            {partners.map((partner, index) => (
-              <motion.span
-                key={partner}
-                variants={scaleIn}
-                whileHover={{ scale: 1.05 }}
-                transition={{ duration: 0.25, ease: EASE }}
-                className={[
-                  'inline-block cursor-default font-body text-[24px] font-bold leading-none text-black sm:text-[36px]',
-                  index === 0 ? 'font-script text-red' : '',
-                  index === 1 ? 'font-serif text-[#2D7DB9]' : '',
-                  index === 3 ? 'font-display lowercase' : '',
-                  index === 4 ? 'text-[26px]' : '',
-                ].join(' ')}
-              >
-                {partner}
-              </motion.span>
-            ))}
-          </motion.div>
+          {PARTNERS.map((p) => (
+            <motion.div
+              key={p.slug}
+              variants={fadeUp}
+              className="group relative aspect-square w-20 overflow-hidden rounded-xl bg-base-raise transition-shadow duration-300 hover:shadow-[0_0_26px_rgba(157,20,255,0.45)] sm:w-24 md:w-28"
+            >
+              <img
+                src={`/logos/color/${p.slug}.jpg`}
+                alt={p.name}
+                loading="lazy"
+                className="h-full w-full object-cover transition-all duration-500 will-change-transform [@media(hover:hover)]:opacity-55 [@media(hover:hover)]:grayscale group-hover:scale-[1.05] group-hover:opacity-100 group-hover:grayscale-0"
+              />
+              <span
+                aria-hidden="true"
+                className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/0 transition-colors duration-300 group-hover:ring-accent/40"
+              />
+            </motion.div>
+          ))}
         </motion.div>
       </div>
     </section>

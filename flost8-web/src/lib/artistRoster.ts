@@ -8,7 +8,7 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
   { slug: 'maalin', name: 'MAALIN', role: 'DJ / Producer' },
   { slug: 'dr-green', name: 'DR. GREEN', role: 'DJ / Producer' },
   { slug: 'sonal', name: 'SONAL', role: 'DJ / Producer' },
-  { slug: 'rakhil', name: 'RAKHIL', role: 'DJ / Producer' },
+  { slug: 'imthxd', name: 'IMTHXD', role: 'DJ / Producer' },
   { slug: 'the-professor', name: 'THE PROFESSOR', role: 'DJ / Producer' },
   { slug: 'anush', name: 'ANUSH', role: 'DJ / Producer' },
 ]

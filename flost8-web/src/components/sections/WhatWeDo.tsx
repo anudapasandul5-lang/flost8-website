@@ -1,77 +1,202 @@
+import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight } from '@phosphor-icons/react'
-import { staggerParent, fadeUp, EASE } from '../../lib/motion'
+import { staggerParent, fadeUp, SPRING } from '../../lib/motion'
 
-const services = [
-  { title: 'ARTIST\nDEVELOPMENT', photo: '/photos/maalin.png' },
-  { title: 'CONTENT\nENGINE', photo: '/photos/anush.png' },
-  { title: 'BOOKING\nSYSTEM', photo: '/ui2/live-photo.jpeg' },
+const panels = [
+  {
+    label: 'THE MOVEMENT',
+    heading: 'Artists, not a client list.',
+    body: 'FLOST8 is a collective. We build the people, the sound, and the rooms they take over — not a roster we rent out by the hour.',
+    cta: 'How we think',
+    img: '/ui2/gen/silhouette.jpg',
+  },
+  {
+    label: 'UNDERGROUND',
+    heading: 'Built where it happens.',
+    body: 'From Colombo clubs, studios, and late nights — not boardrooms. The culture comes first because we live in it.',
+    cta: 'Our world',
+    img: '/ui2/gen/djstage.jpg',
+  },
+  {
+    label: 'CAREERS',
+    heading: 'Names that outlast a season.',
+    body: 'We develop artists for the long game: identity, craft, and stage presence that compound, gig after gig.',
+    cta: 'What we build',
+    img: '/ui2/gen/crowddusk.jpg',
+  },
+  {
+    label: 'CULTURE',
+    heading: 'Moments people travel for.',
+    body: 'Sets, visuals, and nights engineered to be remembered — and shared far beyond the room.',
+    cta: 'See the work',
+    img: '/ui2/gen/stage.jpg',
+  },
 ] as const
 
-function ServiceCard({ title, photo, shouldReduce }: { title: string; photo: string; shouldReduce: boolean | null }) {
+const AUTO_CYCLE_MS = 3000
+
+function Panel({
+  panel,
+  index,
+  isActive,
+  shouldReduce,
+  onActivate,
+}: {
+  panel: (typeof panels)[number]
+  index: number
+  isActive: boolean
+  shouldReduce: boolean | null
+  onActivate: () => void
+}) {
+  const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault()
+      onActivate()
+    }
+  }
+
   return (
-    <motion.article
+    <motion.div
+      layout={shouldReduce ? false : true}
+      transition={shouldReduce ? { duration: 0 } : SPRING}
       variants={fadeUp}
-      whileHover={shouldReduce ? undefined : { scale: 1.02, transition: { duration: 0.4, ease: EASE } }}
-      className="relative aspect-[0.82] cursor-pointer overflow-hidden rounded-[28px] bg-black shadow-[0_10px_16px_rgba(0,0,0,0.4)]"
+      role="button"
+      tabIndex={0}
+      aria-pressed={isActive}
+      onMouseEnter={onActivate}
+      onFocus={onActivate}
+      onClick={onActivate}
+      onKeyDown={handleKeyDown}
+      className={`group edge-refract relative flex min-h-[64px] cursor-pointer flex-col overflow-hidden rounded-2xl bg-base-raise transition-colors duration-300 md:h-full md:min-h-0 ${
+        isActive ? 'flex-[5]' : 'flex-1'
+      }`}
+      style={isActive ? { backgroundColor: 'var(--accent-soft)' } : undefined}
     >
-      <img src={photo} alt="" className="absolute inset-0 h-full w-full object-cover" />
-      <div className="absolute inset-0 bg-[#150E28]/55" />
-      <div className="absolute right-6 top-6 flex h-14 w-14 items-center justify-center rounded-full border-[3px] border-white text-white">
-        <ArrowUpRight size={30} weight="bold" />
-      </div>
-      <h3 className="absolute bottom-6 left-6 whitespace-pre-line font-display text-[32px] leading-[0.95] text-white sm:bottom-8 sm:left-8 sm:text-[42px]">
-        {title}
-      </h3>
-    </motion.article>
+      {/* Scene backdrop */}
+      <img
+        src={panel.img}
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        className={`pointer-events-none absolute inset-0 h-full w-full object-cover transition-opacity duration-500 ${
+          isActive ? 'opacity-45' : 'opacity-20'
+        }`}
+      />
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 bg-gradient-to-t from-base via-base/60 to-base/25"
+      />
+
+      {isActive && (
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 left-0 z-10 w-[2px] bg-accent"
+        />
+      )}
+
+      {/* Inactive: rotated label + index */}
+      {!isActive && (
+        <div className="relative z-10 flex h-full items-center justify-between px-5 py-4 md:flex-col md:items-center md:justify-between md:px-0 md:py-8">
+          <span className="font-grotesk text-[12px] uppercase tracking-[0.2em] text-[var(--ink-50)] md:order-2 md:[writing-mode:vertical-rl] md:[transform:rotate(180deg)]">
+            {panel.label}
+          </span>
+          <span className="font-display text-lg text-accent md:order-1 md:text-xl">
+            {String(index + 1).padStart(2, '0')}
+          </span>
+        </div>
+      )}
+
+      {/* Active content */}
+      {isActive && (
+        <motion.div
+          initial={shouldReduce ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.4, ease: 'easeOut', delay: shouldReduce ? 0 : 0.15 }}
+          className="relative z-10 flex h-full flex-col justify-end gap-3 p-6 md:p-8 lg:p-10"
+        >
+          <span className="font-display text-xl text-accent">
+            {String(index + 1).padStart(2, '0')}
+          </span>
+          <h3 className="font-display text-3xl leading-[0.95] text-ink md:text-5xl">
+            {panel.heading}
+          </h3>
+          <p className="mt-1 max-w-[44ch] font-grotesk text-base font-medium leading-relaxed text-white/90">
+            {panel.body}
+          </p>
+          <span className="mt-2 inline-flex w-fit items-center gap-1 font-grotesk text-sm text-accent-ink">
+            {panel.cta}
+            <ArrowUpRight size={16} weight="bold" />
+          </span>
+        </motion.div>
+      )}
+    </motion.div>
   )
 }
 
 export default function WhatWeDo() {
   const shouldReduce = useReducedMotion()
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [paused, setPaused] = useState(false)
+
+  useEffect(() => {
+    if (shouldReduce || paused) return
+
+    const id = window.setInterval(() => {
+      setActiveIndex((current) => (current + 1) % panels.length)
+    }, AUTO_CYCLE_MS)
+
+    return () => window.clearInterval(id)
+  }, [shouldReduce, paused])
 
   return (
-    <section className="relative overflow-hidden bg-navy px-4 py-16 sm:px-8 lg:px-10 lg:py-24">
-      <img
-        src="/ui2/hero-bg.jpeg"
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover"
-      />
-      <div className="absolute inset-0 bg-purple/65" />
-
-      <div className="relative z-10 mx-auto grid max-w-[1280px] items-center gap-10 lg:grid-cols-[300px_1fr]">
+    <section id="about" className="relative bg-base py-14 md:py-20">
+      <div className="mx-auto max-w-[1400px] px-6 md:px-10">
         <motion.div
-          initial={shouldReduce ? { opacity: 1, x: 0 } : { opacity: 0, x: -40 }}
-          whileInView={{ opacity: 1, x: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: EASE }}
-        >
-          <p className="font-body text-[25px] uppercase leading-[1.15] text-white">
-            WE OPERATE
-            <br />
-            ACROSS 3 CORE AREAS
-          </p>
-          <h2 className="mt-4 font-display text-[52px] uppercase leading-[0.98] text-white sm:text-[64px] lg:text-[88px]">
-            WHAT
-            <br />
-            WE
-            <br />
-            ACTUALLY
-            <br />
-            DO
-          </h2>
-        </motion.div>
-
-        <motion.div
-          className="grid grid-cols-1 gap-7 md:grid-cols-3"
           variants={staggerParent}
           initial={shouldReduce ? 'visible' : 'hidden'}
           whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
+          viewport={{ once: true, margin: '-80px' }}
+          className="mb-12 md:mb-16"
         >
-          {services.map(service => (
-            <ServiceCard key={service.title} {...service} shouldReduce={shouldReduce} />
+          <motion.p
+            variants={fadeUp}
+            className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink"
+          >
+            What We Do
+          </motion.p>
+          <motion.h2
+            variants={fadeUp}
+            className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl"
+          >
+            NOT AN{' '}
+            <span className="line-through decoration-accent decoration-4 text-[var(--ink-50)]">
+              AGENCY
+            </span>
+            . A MOVEMENT.
+          </motion.h2>
+        </motion.div>
+
+        <motion.div
+          variants={staggerParent}
+          initial={shouldReduce ? 'visible' : 'hidden'}
+          whileInView="visible"
+          viewport={{ once: true, margin: '-80px' }}
+          onMouseEnter={() => setPaused(true)}
+          onMouseLeave={() => setPaused(false)}
+          onFocusCapture={() => setPaused(true)}
+          onBlurCapture={() => setPaused(false)}
+          className="flex flex-col gap-2 md:h-[440px] md:flex-row md:gap-3"
+        >
+          {panels.map((panel, index) => (
+            <Panel
+              key={panel.label}
+              panel={panel}
+              index={index}
+              isActive={activeIndex === index}
+              shouldReduce={shouldReduce}
+              onActivate={() => setActiveIndex(index)}
+            />
           ))}
         </motion.div>
       </div>

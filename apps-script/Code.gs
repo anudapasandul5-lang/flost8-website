@@ -1,5 +1,22 @@
 // FLOST8 Bookings API — Google Apps Script
 // Deploy as Web App: Execute as Me, Access: Anyone
+//
+// =============================================================================
+// Script Properties required (in addition to existing TURNSTILE_SECRET,
+// BOOKINGS_SHEET_ID, OWNER_EMAIL, FROM_EMAIL_ALIAS, WHATSAPP_FALLBACK_NUMBER):
+//
+//   DUAL_WRITE_PHASE  — Controls write routing during cutover.
+//                       Values: 'dual' (default) | 'new_only' | 'old_only'
+//                       'dual'     → write old Bookings sheet AND new Inbound master
+//                       'old_only' → existing behaviour, skip new Inbound master
+//                       'new_only' → write new Inbound master only, skip old sheet
+//
+//   INBOUND_MASTER_ID — Google Sheets ID of the new Inbound master sheet
+//                       (FLOST8 — Inbound). Required when phase is 'dual' or
+//                       'new_only'.
+//
+//   DUAL_WRITE_FAILURES — Auto-managed counter; do not set manually.
+// =============================================================================
 
 function doGet(e) {
   var action = (e && e.parameter && e.parameter.action) || '';
@@ -112,8 +129,6 @@ function validateInquiry(body) {
   if (!body.organizer_email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(body.organizer_email))) {
     errors.push({ field: 'organizer_email', message: 'Valid email address required' });
   }
-
-  req('console_setup', 10, 500);
 
   return errors;
 }
@@ -361,6 +376,82 @@ function logEmailRetry(body, leadId, err) {
   ]);
 }
 
+// ─── Block 14a: writeInboundMasterRow ────────────────────────────────────────
+// Writes a single row to the new Inbound master sheet (Data tab).
+// Maps website form fields to the master Inbound schema (spec §3.2 + §4.1).
+// Returns the row_id UUID on success.
+// Throws on any error — caller must wrap in try/catch.
+
+function writeInboundMasterRow(body) {
+  var props     = PropertiesService.getScriptProperties();
+  var masterId  = props.getProperty('INBOUND_MASTER_ID');
+  if (!masterId) throw new Error('INBOUND_MASTER_ID Script Property not set');
+
+  var ss        = SpreadsheetApp.openById(masterId);
+  var sheet     = ss.getSheetByName('Data');
+  if (!sheet)   throw new Error('Inbound master has no "Data" tab');
+
+  var headerMap = getHeaderMap(sheet);     // util/schema.gs
+  var now       = new Date();
+  var rowId     = Utilities.getUuid();
+
+  // Normalize artist: form sends slugs; master expects dropdown values.
+  var artistVal = String(body.artist || '').trim();
+  try {
+    artistVal = normalizeInboundArtistSelection(artistVal, getActiveArtists());
+  } catch (e) {
+    artistVal = normalizeInboundArtistSelection(artistVal, []);
+    Logger.log('[dual-write] artist normalize used fallback: ' + e.message);
+  }
+  if (artistVal && !isInboundArtistOption(artistVal)) {
+    Logger.log('[dual-write] WARNING: artist_requested "' + artistVal +
+               '" not in ARTIST_OPTIONS_INBOUND — writing as-is');
+  }
+
+  // Compose contact_info from phone + email (whichever fields the form provides)
+  var contactParts = [];
+  if (body.direct_number) contactParts.push(String(body.direct_number).trim());
+  if (body.organizer_email) contactParts.push(String(body.organizer_email).trim());
+  var contactInfo = contactParts.join(' | ');
+
+  // notes field — truncate to 500 chars per spec
+  var notesRaw  = String(body.console_setup || body.notes || '').trim();
+  var notes     = notesRaw.length > 500 ? notesRaw.substring(0, 500) : notesRaw;
+
+  var data = {
+    row_id:               rowId,
+    date_received:        Utilities.formatDate(now, 'Asia/Colombo', 'yyyy-MM-dd'),
+    lead_name:            String(body.organizer_name || '').trim(),
+    contact_info:         contactInfo,
+    channel:              'Website',
+    artist_requested:     artistVal || 'Any',
+    event_date_requested: String(body.event_date || '').trim(),
+    stage:                'New',
+    meeting_date:         '',
+    location:             String(body.city || 'Colombo').trim() || 'Colombo',
+    notes:                notes,
+    source_form:          'Website',
+    submitted_by:         'Website',
+    submitted_by_status:  'ok',
+    last_synced:          now.toISOString(),
+    row_hash:             '',   // left empty; sync tick will re-hash on next run
+    deleted:              false,
+    deleted_at:           '',
+    deleted_by:           ''
+  };
+
+  // Append: get next empty row, then write by header name.
+  var newRow = sheet.getLastRow() + 1;
+  // Initialise the full row to empty strings first so the row exists.
+  var totalCols = sheet.getLastColumn();
+  if (totalCols < 1) totalCols = Object.keys(headerMap).length;
+  sheet.getRange(newRow, 1, 1, totalCols)
+       .setValues([new Array(totalCols).fill('')]);
+  writeRowByHeader(sheet, newRow, headerMap, data);   // util/schema.gs
+
+  return rowId;
+}
+
 // ─── Block 14: handleInquiry ──────────────────────────────────────────────────
 
 function handleInquiry(body) {
@@ -380,12 +471,40 @@ function handleInquiry(body) {
   }
 
   if (dedupCheck(body.direct_number, body.venue, body.event_date)) {
+    // Dedup fires — skip BOTH old and new writes (same dedup decision).
     return jsonOut({ ok: true, deduped: true });
   }
 
-  // Write Sheet row FIRST so lead is never lost even if emails fail
+  // ── Determine dual-write phase ─────────────────────────────────────────────
+  var phase = (PropertiesService.getScriptProperties()
+                 .getProperty('DUAL_WRITE_PHASE') || 'dual').trim().toLowerCase();
+
+  // Write Sheet row(s) FIRST so the lead is never lost even if emails fail.
   var leadId = generateLeadId();
-  writeBookingRow(body, leadId);
+
+  // ── Old Bookings sheet write ───────────────────────────────────────────────
+  if (phase === 'old_only' || phase === 'dual') {
+    writeBookingRow(body, leadId);
+  }
+
+  // ── New Inbound master write ───────────────────────────────────────────────
+  if (phase === 'dual' || phase === 'new_only') {
+    try {
+      var newRowId = writeInboundMasterRow(body);
+      Logger.log('[dual-write] phase=' + phase + ' ok | new_inbound row_id=' + newRowId);
+    } catch (dualErr) {
+      Logger.log('[dual-write] phase=' + phase + ' FAIL ' + dualErr);
+      // Increment failure counter in Script Properties (best-effort).
+      try {
+        var sp        = PropertiesService.getScriptProperties();
+        var failCount = parseInt(sp.getProperty('DUAL_WRITE_FAILURES') || '0') + 1;
+        sp.setProperty('DUAL_WRITE_FAILURES', String(failCount));
+      } catch (counterErr) {
+        Logger.log('[dual-write] could not update DUAL_WRITE_FAILURES: ' + counterErr);
+      }
+      // Do NOT rethrow — old write already succeeded; user request must not fail.
+    }
+  }
 
   try {
     sendBookerEmail(body, leadId);

@@ -1,56 +1,51 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { METRICS } from '../../lib/config'
-import { StatCard } from '../ui/StatCard'
-import { staggerParent, scaleIn, EASE } from '../../lib/motion'
+import { staggerParent, fadeUp } from '../../lib/motion'
 
 const stats = [
-  { value: METRICS.bookingsDriven, label: 'BOOKINGS\nDRIVEN' },
-  { value: METRICS.activePartners, label: 'ACTIVE\nPARTNERS' },
-  { value: METRICS.citiesReached, label: 'CITIES\nREACHED' },
-  { value: METRICS.monthlyReach, label: 'MONTHLY\nCONTENT REACH' },
+  { value: METRICS.bookingsDriven, label: 'Bookings driven' },
+  { value: METRICS.activePartners, label: 'Active partners' },
+  { value: METRICS.citiesReached, label: 'Cities reached' },
+  { value: METRICS.monthlyReach, label: 'Monthly reach' },
 ] as const
 
 export function Metrics() {
   const shouldReduce = useReducedMotion()
 
   return (
-    <section id="metrics" className="bg-[#5E79A6] px-4 pb-16 pt-16 sm:px-8 lg:px-10 lg:pt-[150px]">
-      <div className="mx-auto max-w-[1280px]">
-        <motion.h2
-          className="text-center font-display text-[32px] uppercase leading-none text-lime sm:text-[44px] lg:text-[52px]"
-          initial={shouldReduce ? 'visible' : { opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: EASE }}
-        >
-          METRICS RIGHT NOW
-        </motion.h2>
-
+    <section className="relative overflow-hidden bg-base py-12 md:py-16">
+      <img
+        src="/ui2/gen/stage.jpg"
+        alt=""
+        aria-hidden="true"
+        loading="lazy"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-20"
+      />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-b from-base via-base/85 to-base" />
+      <div className="relative z-10 mx-auto max-w-[1400px] px-6 md:px-10">
         <motion.div
-          className="mt-14 grid grid-cols-2 gap-5 lg:grid-cols-4 lg:gap-9"
+          className="grid grid-cols-2 divide-x divide-y divide-white/10 border border-white/10 md:grid-cols-4 md:divide-y-0"
           variants={staggerParent}
           initial={shouldReduce ? 'visible' : 'hidden'}
           whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
+          viewport={{ once: true, margin: '-80px' }}
         >
-          {stats.map((stat, index) => (
-            <motion.div key={stat.label} variants={scaleIn}>
-              <StatCard value={stat.value} label={stat.label} index={index} />
+          {stats.map((stat) => (
+            <motion.div
+              key={stat.label}
+              variants={fadeUp}
+              className="flex flex-col items-start gap-3 px-6 py-8 md:px-10 md:py-10"
+            >
+              <span className="font-display text-6xl leading-none text-ink md:text-7xl">
+                {stat.value}
+                <span className="text-accent">+</span>
+              </span>
+              <span className="font-grotesk text-xs uppercase tracking-[0.15em] text-[var(--ink-50)] md:text-sm">
+                {stat.label}
+              </span>
             </motion.div>
           ))}
         </motion.div>
-
-        <motion.p
-          className="mt-14 text-center font-script text-[44px] uppercase leading-[1.15] text-lime sm:text-[58px] lg:mt-28 lg:text-[72px]"
-          initial={shouldReduce ? 'visible' : { opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.7, ease: EASE }}
-        >
-          We don&apos;t run ads.
-          <br />
-          We run rooms.
-        </motion.p>
       </div>
     </section>
   )

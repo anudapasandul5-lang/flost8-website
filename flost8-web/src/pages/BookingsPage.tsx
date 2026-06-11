@@ -127,42 +127,12 @@ export default function BookingsPage() {
           initial={{ opacity: 0, y: 40 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
-        >
-          <h1 className="font-display text-5xl md:text-7xl text-white uppercase tracking-tight mb-2">
-            UPCOMING SHOWS
-          </h1>
-          <div className="h-1 bg-red w-24 mb-12" />
-
-          {showsLoading && <SkeletonRows />}
-
-          {!showsLoading && showsError && (
-            <div className="text-center py-12">
-              <p className="font-body text-white/50">Could not load shows. Check back later.</p>
-            </div>
-          )}
-
-          {!showsLoading && !showsError && shows.length === 0 && (
-            <div className="text-center py-12">
-              <p className="font-body text-white/50">No upcoming shows scheduled. Check back soon.</p>
-            </div>
-          )}
-
-          {!showsLoading && !showsError && shows.map((show, i) => (
-            <ShowRow key={`${show.artist}-${i}`} show={show} />
-          ))}
-        </motion.div>
-
-        <motion.div
-          initial={{ opacity: 0, y: 40 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5 }}
+          transition={{ duration: 0.75 }}
           className="pb-24"
         >
-          <h2 className="font-display text-5xl md:text-7xl text-white uppercase tracking-tight mb-2 mt-20">
+          <h1 className="font-display text-5xl md:text-7xl text-white uppercase tracking-tight mb-2">
             MAKE A BOOKING
-          </h2>
+          </h1>
           <div className="h-1 bg-red w-24 mb-12" />
 
           {submitted ? (
@@ -269,6 +239,37 @@ export default function BookingsPage() {
               </div>
             </form>
           )}
+        </motion.div>
+
+        <motion.div
+          initial={{ opacity: 0, y: 40 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          transition={{ duration: 0.75 }}
+          className="pb-24"
+        >
+          <h2 className="font-display text-5xl md:text-7xl text-white uppercase tracking-tight mb-2 mt-20">
+            UPCOMING SHOWS
+          </h2>
+          <div className="h-1 bg-red w-24 mb-12" />
+
+          {showsLoading && <SkeletonRows />}
+
+          {!showsLoading && showsError && (
+            <div className="text-center py-12">
+              <p className="font-body text-white/50">Could not load shows. Check back later.</p>
+            </div>
+          )}
+
+          {!showsLoading && !showsError && shows.length === 0 && (
+            <div className="text-center py-12">
+              <p className="font-body text-white/50">No upcoming shows scheduled. Check back soon.</p>
+            </div>
+          )}
+
+          {!showsLoading && !showsError && shows.map((show, i) => (
+            <ShowRow key={`${show.artist}-${i}`} show={show} />
+          ))}
         </motion.div>
       </div>
     </div>

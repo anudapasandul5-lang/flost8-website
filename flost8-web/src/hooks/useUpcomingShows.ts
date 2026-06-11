@@ -2,6 +2,12 @@ import { useEffect, useState } from 'react'
 import { BOOKING_API_URL } from '../lib/config'
 import { normalizeUpcomingShows, PLACEHOLDER_SHOWS, type UpcomingShow } from '../lib/bookingContract'
 
+// Until the live calendar has real events, show dummy dates instead of an empty band.
+function withFallback(shows: UpcomingShow[], limit?: number): UpcomingShow[] {
+  if (shows.length > 0) return shows
+  return typeof limit === 'number' ? PLACEHOLDER_SHOWS.slice(0, limit) : PLACEHOLDER_SHOWS
+}
+
 interface UpcomingShowsState {
   shows: UpcomingShow[]
   loading: boolean
@@ -32,14 +38,14 @@ export function useUpcomingShows(limit?: number): UpcomingShowsState {
       .then((response) => response.json())
       .then((data) => {
         setState({
-          shows: normalizeUpcomingShows(data, limit),
+          shows: withFallback(normalizeUpcomingShows(data, limit), limit),
           loading: false,
           error: false,
         })
       })
       .catch((error: unknown) => {
         if (error instanceof DOMException && error.name === 'AbortError') return
-        setState({ shows: [], loading: false, error: true })
+        setState({ shows: withFallback([], limit), loading: false, error: true })
       })
 
     return () => controller.abort()

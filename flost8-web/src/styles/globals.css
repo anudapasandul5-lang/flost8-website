@@ -1,5 +1,5 @@
 /* ── Google Fonts ── */
-@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&display=swap');
 
 /* ── Local Fonts ── */
 @font-face {
@@ -30,7 +30,7 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Brand Tokens ── */
+/* ── Legacy Brand Tokens (KEPT — bookings page depends on these; do not remove) ── */
 :root {
   --navy:      #302A66;
   --purple:    #AE43F7;
@@ -45,6 +45,28 @@
   --font-display: 'Bebas Neue', sans-serif;
   --font-script:  'Hyperwave', cursive;
   --font-body:    'Circe', sans-serif;
+}
+
+/* ── REBUILD: Single-Purple Editorial System (homepage) ── */
+:root {
+  /* surfaces — near-black, purple-tinted. never pure black */
+  --bg:        #120917;
+  --bg-raise:  #1B0F24;   /* lifted panel / ticket row */
+  --bg-line:   rgba(255,255,255,0.10);
+
+  /* ink */
+  --ink:       #FFFFFF;
+  --ink-72:    rgba(255,255,255,0.72);
+  --ink-50:    rgba(255,255,255,0.50);
+  --ink-32:    rgba(255,255,255,0.32);
+
+  /* single accent — electric purple (user-mandated) */
+  --accent:    #9D14FF;
+  --accent-ink:#C88BFF;          /* lighter purple for small text on dark */
+  --accent-soft: rgba(157,20,255,0.14);
+  --accent-line: rgba(157,20,255,0.45);
+
+  --font-grotesk: 'Space Grotesk', system-ui, -apple-system, sans-serif;
 }
 
 /* ── Base Reset ── */
@@ -111,6 +133,39 @@ body {
     background-repeat: repeat;
     background-size: 160px 160px;
   }
+
+  /* ── REBUILD utilities ── */
+  .font-grotesk { font-family: var(--font-grotesk); }
+
+  .bg-base       { background-color: var(--bg); }
+  .bg-raise      { background-color: var(--bg-raise); }
+  .text-ink      { color: var(--ink); }
+  .text-accent2  { color: var(--accent); }
+
+  /* purple duotone for atmosphere/shows imagery (not portraits) */
+  .duotone-purple {
+    filter: grayscale(1) brightness(0.85) contrast(1.05);
+    background-color: var(--accent);
+    background-blend-mode: multiply;
+  }
+  /* portrait grade: dark + slightly desaturated at rest, warms on hover via group */
+  .grade-portrait {
+    filter: grayscale(0.35) brightness(0.82) contrast(1.04);
+    transition: filter 0.5s cubic-bezier(0.16,1,0.3,1);
+  }
+  .group:hover .grade-portrait,
+  .group:focus-within .grade-portrait,
+  .grade-portrait.is-active {
+    filter: grayscale(0) brightness(1) contrast(1);
+  }
+
+  /* tinted edge-refraction (NOT a neon outer glow) */
+  .edge-refract {
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10),
+                inset 0 0 0 1px var(--bg-line);
+  }
+  .accent-press { transition: transform 0.18s cubic-bezier(0.16,1,0.3,1); }
+  .accent-press:active { transform: scale(0.97); }
 
   /* ── Horizontal mask for marquee edge fade ── */
   .mask-fade-x {

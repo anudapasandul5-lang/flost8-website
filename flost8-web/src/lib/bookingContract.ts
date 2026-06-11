@@ -123,7 +123,9 @@ export const BOOKING_FIELDS: BookingFieldDef[] = [
 export const PLACEHOLDER_SHOWS: UpcomingShow[] = [
   { artist: 'DR. GREEN', date: 'Jun 14 2026', venue: 'The Factory', city: 'Colombo' },
   { artist: 'SONAL', date: 'Jun 21 2026', venue: 'Arugam Bay Hotel', city: 'Arugam Bay' },
+  { artist: 'IMTHXD', date: 'Jun 28 2026', venue: 'Kama', city: 'Colombo' },
   { artist: 'MAALIN', date: 'Jul 5 2026', venue: 'Hilton Rooftop', city: 'Colombo' },
+  { artist: 'THE PROFESSOR', date: 'Jul 19 2026', venue: 'Salt', city: 'Mirissa' },
 ]
 
 export function normalizeUpcomingShows(data: unknown, limit?: number): UpcomingShow[] {

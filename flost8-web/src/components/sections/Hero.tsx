@@ -1,16 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
-import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
-import { Eye, Headphones } from '@phosphor-icons/react'
+import { motion, useReducedMotion } from 'framer-motion'
+import { ArrowUpRight, PaperPlaneTilt } from '@phosphor-icons/react'
 import { useTextScramble } from '../../hooks/useTextScramble'
-import { staggerParent, fadeUp, EASE } from '../../lib/motion'
+import { staggerParentSlow, fadeUp } from '../../lib/motion'
 
 export default function Hero() {
-  const line1 = useTextScramble('WHERE ARTIST', 1400)
+  const line1 = useTextScramble('WHERE ARTISTS', 1400)
   const line2 = useTextScramble('BECOME CULTURE', 1900)
 
   const shouldReduce = useReducedMotion()
-  const { scrollYProgress } = useScroll()
-  const bgY = useTransform(scrollYProgress, [0, 1], shouldReduce ? ['0%', '0%'] : ['0%', '20%'])
 
   const sectionRef = useRef<HTMLElement>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
@@ -41,12 +39,12 @@ export default function Hero() {
   const showVideo = !shouldReduce && !videoFailed
 
   return (
-    <section ref={sectionRef} className="relative h-auto min-h-[500px] overflow-hidden bg-navy md:h-[640px]" aria-label="Hero">
-      <motion.div
-        style={{ y: bgY }}
-        className="absolute inset-0 will-change-transform"
-        aria-hidden="true"
-      >
+    <section
+      ref={sectionRef}
+      className="relative min-h-[100dvh] overflow-hidden bg-base"
+      aria-label="Hero"
+    >
+      <div className="absolute inset-0" aria-hidden="true">
         <img
           src="/ui2/hero-bg.jpeg"
           alt=""
@@ -85,59 +83,60 @@ export default function Hero() {
             <source src="/ui2/hero-loop.mp4" type="video/mp4" />
           </video>
         )}
-      </motion.div>
-      <div className="absolute inset-0 bg-[#302A66]/60" />
-      <div className="absolute inset-0 bg-gradient-to-r from-[#302A66]/35 via-[#AE43F7]/10 to-[#302A66]/45" />
+      </div>
 
-      <div className="relative z-10 mx-auto flex h-full max-w-[1040px] flex-col items-center justify-center gap-6 px-6 py-16 md:flex-row md:gap-16 md:py-0">
-        <img
-          src="/logo-transparent.png"
-          alt="FLOST8"
-          className="w-[140px] shrink-0 md:w-[335px]"
-        />
+      {/* Dark grade for legibility */}
+      <div className="absolute inset-0 bg-gradient-to-b from-base/40 via-base/55 to-base" aria-hidden="true" />
+      <div className="absolute inset-0 bg-gradient-to-r from-base/80 to-transparent" aria-hidden="true" />
 
+      <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[1200px] flex-col justify-center px-6 pb-28 pt-32 md:px-10 md:pb-36 md:pt-36">
         <motion.div
-          className="max-w-[650px] text-center md:text-left"
-          variants={staggerParent}
+          className="max-w-full md:max-w-[60%]"
+          variants={staggerParentSlow}
           initial={shouldReduce ? 'visible' : 'hidden'}
           animate="visible"
         >
+          <motion.p
+            variants={fadeUp}
+            className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink"
+          >
+            Colombo &middot; Artist Collective
+          </motion.p>
+
           <motion.h1
             variants={fadeUp}
-            className="font-display text-[64px] leading-[0.92] text-white md:text-[82px] lg:text-[92px]"
+            className="mt-4 font-display text-[72px] leading-[0.9] text-ink md:text-[112px] lg:text-[128px]"
           >
             {line1}
             <br />
             {line2}
           </motion.h1>
-          <motion.p variants={fadeUp} className="mt-0.5 font-body text-2xl italic text-white/80 md:text-4xl">
+
+          <motion.p
+            variants={fadeUp}
+            className="mt-4 font-grotesk text-xl text-[var(--ink-72)] md:text-2xl"
+          >
             not an agency. a movement.
           </motion.p>
 
           <motion.div
             variants={fadeUp}
-            className="mt-6 flex flex-col items-center gap-4 sm:flex-row md:items-start"
+            className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center"
           >
-            <motion.a
+            <a
               href="/bookings"
-              className="inline-flex min-w-[190px] items-center justify-center gap-2 rounded-full border border-cyan/70 bg-purple/80 px-5 py-3 font-body italic text-white shadow-[inset_0_1px_0_rgba(255,255,255,0.1)]"
-              whileHover={{ scale: 1.02, boxShadow: '0 0 32px rgba(174,67,247,0.6)' }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.3, ease: EASE }}
+              className="edge-refract accent-press inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 font-grotesk text-ink"
             >
-              <Eye size={18} weight="bold" />
+              <ArrowUpRight size={18} weight="bold" />
               Book Now
-            </motion.a>
-            <motion.a
+            </a>
+            <a
               href="mailto:bookings@flost8.lk"
-              className="inline-flex min-w-[190px] items-center justify-center gap-2 rounded-full border border-cyan bg-navy/35 px-5 py-3 font-body italic text-cyan"
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
-              transition={{ duration: 0.3, ease: EASE }}
+              className="accent-press inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full border border-[var(--accent-line)] bg-transparent px-6 py-3.5 font-grotesk text-ink transition-colors duration-300 hover:bg-[var(--accent-soft)]"
             >
-              <Headphones size={18} weight="bold" />
+              <PaperPlaneTilt size={18} weight="bold" />
               Become an Artist
-            </motion.a>
+            </a>
           </motion.div>
         </motion.div>
       </div>

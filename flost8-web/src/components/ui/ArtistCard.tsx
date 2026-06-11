@@ -71,7 +71,7 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
         <article className="relative overflow-hidden bg-white border-[3px] border-cyan">
           <div className="aspect-[1/1.08] bg-black">
             <img
-              src={`/photos/${artist.slug}.png`}
+              src={`/photos/${artist.slug}.webp`}
               alt={artist.name}
               className="h-full w-full object-cover object-top grayscale transition-all duration-500 hover:grayscale-0"
               loading="lazy"
