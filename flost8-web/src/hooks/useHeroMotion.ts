@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, type RefObject } from 'react'
 import type Lenis from 'lenis'
 import { animate, stagger, createAnimatable } from 'animejs'
-import { splitGraphemes, runScramble, type CharNode } from '../lib/splitText'
+import { splitGraphemes, type CharNode } from '../lib/splitText'
 
 export interface HeroMotionRefs {
   /** The <section> root — bounds for cursor glow + scatter progress. */
@@ -19,9 +19,6 @@ export interface HeroMotionRefs {
   /** From useLenis(); may be null until mounted. */
   lenis: Lenis | null | undefined
 }
-
-const CYCLE_WORDS = ['CULTURE', 'SOUND', 'MOVEMENT', 'LEGEND']
-const CYCLE_MS = 2600
 
 function rand(min: number, max: number) {
   return Math.random() * (max - min) + min
@@ -107,38 +104,6 @@ export function useHeroMotion({
       window.clearInterval(intervalId)
       line1SettleAnim?.revert()
       line2Anim.revert()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldReduce])
-
-  // ---- Cycling accent word ----
-  useLayoutEffect(() => {
-    if (shouldReduce) return
-    const word = wordRef.current
-    if (!word) return
-    let wi = 0
-    let stopScramble: (() => void) | null = null
-
-    const tick = () => {
-      wi = (wi + 1) % CYCLE_WORDS.length
-      const target = CYCLE_WORDS[wi]
-      stopScramble?.()
-      // Scramble the live word text, then re-split so hover binding stays valid.
-      stopScramble = runScramble(word, target, {
-        frames: 16,
-        speedMs: 38,
-        onDone: () => {
-          // Rebuild the word's spans AND seed offsets for the new nodes so
-          // scroll-scatter keeps working after a word swap.
-          const newWordChars = splitGraphemes(word)
-          seedScatter(newWordChars, scatterOffsets.current)
-        },
-      })
-    }
-    const id = window.setInterval(tick, CYCLE_MS)
-    return () => {
-      window.clearInterval(id)
-      stopScramble?.()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldReduce])
