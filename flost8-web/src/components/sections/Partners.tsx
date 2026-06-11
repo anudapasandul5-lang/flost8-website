@@ -1,5 +1,6 @@
-import { motion, useReducedMotion } from 'framer-motion'
-import { staggerParent, fadeUp } from '../../lib/motion'
+import { useReducedMotion, useInView } from 'framer-motion'
+import { useRef, useEffect } from 'react'
+import { animate, stagger } from 'animejs'
 
 const PARTNERS = [
   { slug: 'corso', name: 'Corso' },
@@ -19,6 +20,22 @@ const PARTNERS = [
 
 export default function Partners() {
   const shouldReduce = useReducedMotion()
+  const gridRef = useRef<HTMLDivElement>(null)
+  const inView = useInView(gridRef, { once: true, margin: '-60px' })
+
+  useEffect(() => {
+    if (shouldReduce || !inView || !gridRef.current) return
+    const anim = animate(gridRef.current.querySelectorAll('.partner-tile'), {
+      opacity: [0, 1],
+      scale: [0.6, 1],
+      duration: 650,
+      ease: 'outBack',
+      delay: stagger(55, { from: 'center' }),
+    })
+    return () => {
+      anim.revert()
+    }
+  }, [inView, shouldReduce])
 
   return (
     <section className="relative bg-base py-10 md:py-14">
@@ -29,32 +46,26 @@ export default function Partners() {
 
         <span className="sr-only">{PARTNERS.map((p) => p.name).join(', ')}</span>
 
-        <motion.div
-          className="mt-10 flex flex-wrap justify-center gap-4 md:mt-12 md:gap-6"
-          variants={staggerParent}
-          initial={shouldReduce ? 'visible' : 'hidden'}
-          whileInView="visible"
-          viewport={{ once: true, margin: '-60px' }}
-        >
+        <div ref={gridRef} className="mt-10 flex flex-wrap justify-center gap-4 md:mt-12 md:gap-6">
           {PARTNERS.map((p) => (
-            <motion.div
+            <div
               key={p.slug}
-              variants={fadeUp}
-              className="group relative aspect-square w-20 overflow-hidden rounded-xl bg-base-raise transition-shadow duration-300 hover:shadow-[0_0_26px_rgba(157,20,255,0.45)] sm:w-24 md:w-28"
+              className="group partner-tile relative aspect-square w-20 overflow-hidden rounded-xl bg-base-raise transition-shadow duration-[450ms] will-change-transform hover:shadow-[0_0_26px_rgba(157,20,255,0.45)] sm:w-24 md:w-28"
+              style={{ opacity: shouldReduce ? 1 : 0 }}
             >
               <img
                 src={`/logos/color/${p.slug}.jpg`}
                 alt={p.name}
                 loading="lazy"
-                className="h-full w-full object-cover opacity-55 grayscale transition-all duration-500 will-change-transform group-hover:scale-[1.05] group-hover:opacity-100 group-hover:grayscale-0"
+                className="h-full w-full object-cover opacity-55 grayscale transition-all duration-[750ms] will-change-transform group-hover:scale-[1.05] group-hover:opacity-100 group-hover:grayscale-0"
               />
               <span
                 aria-hidden="true"
-                className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/0 transition-colors duration-300 group-hover:ring-accent/40"
+                className="pointer-events-none absolute inset-0 rounded-2xl ring-1 ring-inset ring-white/0 transition-colors duration-[450ms] group-hover:ring-accent/40"
               />
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   )
