@@ -1,6 +1,5 @@
-import { useReducedMotion, useInView } from 'framer-motion'
+import { useReducedMotion, useScroll, useMotionValueEvent } from 'framer-motion'
 import { useRef, useEffect } from 'react'
-import { animate, stagger } from 'animejs'
 import EyebrowRule from '../ui/EyebrowRule'
 
 const PARTNERS = [
@@ -22,21 +21,40 @@ const PARTNERS = [
 export default function Partners() {
   const shouldReduce = useReducedMotion()
   const gridRef = useRef<HTMLDivElement>(null)
-  const inView = useInView(gridRef, { once: true, margin: '-60px' })
+
+  // Reveal is scrubbed by scroll position: as the grid scrolls up through the
+  // viewport, tiles fade+scale in center-out, matched to scrollYProgress.
+  const { scrollYProgress } = useScroll({
+    target: gridRef,
+    offset: ['start 0.9', 'start 0.4'],
+  })
+
+  // Paint each tile from a 0..1 scroll progress, center-out.
+  const paint = (p: number) => {
+    const grid = gridRef.current
+    if (!grid) return
+    const tiles = grid.querySelectorAll<HTMLElement>('.partner-tile')
+    const c = (tiles.length - 1) / 2
+    tiles.forEach((tile, i) => {
+      const distNorm = c === 0 ? 0 : Math.abs(i - c) / c // 0 center -> 1 edge
+      const start = distNorm * 0.6 // edges start later
+      const local = Math.min(Math.max((p - start) / 0.4, 0), 1)
+      const e = 1 - Math.pow(1 - local, 3) // easeOutCubic
+      tile.style.opacity = String(e)
+      tile.style.transform = `scale(${0.6 + 0.4 * e})`
+    })
+  }
+
+  useMotionValueEvent(scrollYProgress, 'change', (p) => {
+    if (shouldReduce) return
+    paint(p)
+  })
 
   useEffect(() => {
-    if (shouldReduce || !inView || !gridRef.current) return
-    const anim = animate(gridRef.current.querySelectorAll('.partner-tile'), {
-      opacity: [0, 1],
-      scale: [0.6, 1],
-      duration: 780,
-      ease: 'outBack',
-      delay: stagger(140, { from: 'center' }),
-    })
-    return () => {
-      anim.revert()
-    }
-  }, [inView, shouldReduce])
+    if (shouldReduce) return
+    paint(scrollYProgress.get()) // set initial state (handles mid-page loads)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shouldReduce])
 
   return (
     <section className="relative bg-base py-10 md:py-14">
