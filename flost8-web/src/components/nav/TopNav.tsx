@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { AnimatePresence, motion, useScroll, useMotionValueEvent, useReducedMotion } from 'framer-motion'
+import { AnimatePresence, motion, useScroll, useMotionValueEvent } from 'framer-motion'
 import { List, X, ArrowUpRight } from '@phosphor-icons/react'
 import { Link, useLocation } from 'react-router-dom'
 import { useLenis } from 'lenis/react'
 import { NAV_LINKS } from '../../lib/config'
 import { EASE } from '../../lib/motion'
+import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 function useMobileMenu() {
   const [open, setOpen] = useState(false)
@@ -70,7 +71,7 @@ export default function TopNav() {
   const { open, toggle, close } = useMobileMenu()
   const { scrollY } = useScroll()
   const [scrolled, setScrolled] = useState(false)
-  const shouldReduce = useReducedMotion()
+  const { reduce } = useMotionSafe()
   const location = useLocation()
   const lenis = useLenis()
 
@@ -88,7 +89,7 @@ export default function TopNav() {
           ? 'h-[60px] border-b border-white/10 bg-base/80 backdrop-blur-xl'
           : 'h-[68px] border-b border-transparent bg-transparent'
       }`}
-      style={shouldReduce ? { transition: 'none' } : undefined}
+      style={reduce ? { transition: 'none' } : undefined}
     >
       <div className="mx-auto flex h-full max-w-[1400px] items-center justify-between px-6 md:px-10">
         <Link
@@ -134,7 +135,7 @@ export default function TopNav() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: shouldReduce ? 0 : 0.45, ease: EASE }}
+            transition={{ duration: reduce ? 0 : 0.45, ease: EASE }}
             className="fixed inset-x-0 top-0 z-40 h-[100dvh] flex flex-col bg-base px-6 pt-[88px] backdrop-blur-xl md:hidden"
           >
             <Link

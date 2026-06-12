@@ -1,10 +1,11 @@
 import { useEffect, useRef } from 'react'
-import { useReducedMotion, useInView } from 'framer-motion'
+import { useInView } from 'framer-motion'
 import { animate } from 'animejs'
+import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 /** Hairline purple rule that inks itself L->R when scrolled into view. */
 export default function EyebrowRule({ width = 56 }: { width?: number }) {
-  const shouldReduce = useReducedMotion()
+  const { reduce, guard } = useMotionSafe()
   const ref = useRef<SVGSVGElement>(null)
   const lineRef = useRef<SVGLineElement>(null)
   const inView = useInView(ref, { once: true, margin: '-40px' })
@@ -14,17 +15,21 @@ export default function EyebrowRule({ width = 56 }: { width?: number }) {
     if (!line) return
     const len = width
     line.style.strokeDasharray = String(len)
-    line.style.strokeDashoffset = shouldReduce ? '0' : String(len)
-    if (shouldReduce || !inView) return
-    const anim = animate(line, {
-      strokeDashoffset: [len, 0],
-      duration: 700,
-      ease: 'inOutQuad',
+    line.style.strokeDashoffset = reduce ? '0' : String(len)
+
+    return guard(() => {
+      if (!inView) return
+      const anim = animate(line, {
+        strokeDashoffset: [len, 0],
+        duration: 700,
+        ease: 'inOutQuad',
+      })
+      return () => {
+        anim.revert()
+      }
     })
-    return () => {
-      anim.revert()
-    }
-  }, [inView, shouldReduce, width])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [inView, reduce, width])
 
   return (
     <svg

@@ -1,15 +1,16 @@
 import { useRef } from 'react'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import EyebrowRule from '../ui/EyebrowRule'
+import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 export default function SoundEthos() {
-  const shouldReduce = useReducedMotion()
+  const { reduce } = useMotionSafe()
   const ref = useRef<HTMLElement>(null)
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ['start end', 'end start'],
   })
-  const y = useTransform(scrollYProgress, [0, 1], shouldReduce ? ['0%', '0%'] : ['-8%', '8%'])
+  const y = useTransform(scrollYProgress, [0, 1], reduce ? ['0%', '0%'] : ['-8%', '8%'])
 
   return (
     <section ref={ref} className="relative min-h-[70vh] overflow-hidden bg-base md:min-h-[88vh]">

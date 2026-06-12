@@ -1,11 +1,12 @@
 import { useRef } from 'react'
-import { motion, useScroll, useTransform, useReducedMotion } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 export default function LivePhoto() {
   const sectionRef = useRef<HTMLElement>(null)
-  const shouldReduce = useReducedMotion()
+  const { reduce } = useMotionSafe()
   const { scrollYProgress } = useScroll({ target: sectionRef, offset: ['start end', 'end start'] })
-  const imgY = useTransform(scrollYProgress, [0, 1], shouldReduce ? ['0%', '0%'] : ['-8%', '8%'])
+  const imgY = useTransform(scrollYProgress, [0, 1], reduce ? ['0%', '0%'] : ['-8%', '8%'])
 
   return (
     <section ref={sectionRef} className="relative min-h-[60vh] md:min-h-[80vh] overflow-hidden bg-base">

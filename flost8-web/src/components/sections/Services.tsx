@@ -1,13 +1,14 @@
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from '@phosphor-icons/react'
 import { SERVICES } from '../../lib/config'
+import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 // Scene image per service (index-matched to SERVICES)
 const SERVICE_IMAGES = ['/ui2/gen/djbooth.jpg', '/ui2/gen/street.jpg', '/ui2/gen/studio.jpg']
 
 export default function Services() {
-  const shouldReduce = useReducedMotion()
+  const { reduce } = useMotionSafe()
 
   return (
     <section id="services" className="relative bg-base pt-14 md:pt-20 pb-6 md:pb-6">
@@ -27,7 +28,7 @@ export default function Services() {
           {SERVICES.map((service, i) => (
             <motion.div
               key={service.no}
-              whileHover={shouldReduce ? undefined : 'hover'}
+              whileHover={reduce ? undefined : 'hover'}
               initial="rest"
               animate="rest"
               className="group relative grid grid-cols-[auto_1fr] md:grid-cols-[120px_1fr_260px] items-center gap-x-6 md:gap-x-10 gap-y-2 py-6 md:py-12 border-b border-white/10"

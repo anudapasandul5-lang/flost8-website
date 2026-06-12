@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { CheckCircle } from '@phosphor-icons/react'
 import { useUpcomingShows } from '../hooks/useUpcomingShows'
+import { useMotionSafe } from '../hooks/useMotionSafe'
 import { BOOKING_API_URL, CONTACT_EMAIL, TURNSTILE_SITE_KEY } from '../lib/config'
 import { fadeUp, staggerParent } from '../lib/motion'
 import {
@@ -69,7 +70,7 @@ export default function BookingsPage() {
   const [submitted, setSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
-  const shouldReduce = useReducedMotion()
+  const { reduce } = useMotionSafe()
 
   useEffect(() => {
     window.onTurnstileSuccess = setTurnstileToken
@@ -183,16 +184,16 @@ export default function BookingsPage() {
             <form onSubmit={handleSubmit} noValidate>
               <motion.div
                 className="grid grid-cols-1 md:grid-cols-2 gap-6"
-                variants={shouldReduce ? undefined : staggerParent}
-                initial={shouldReduce ? undefined : 'hidden'}
-                whileInView={shouldReduce ? undefined : 'visible'}
-                viewport={shouldReduce ? undefined : { once: true }}
+                variants={reduce ? undefined : staggerParent}
+                initial={reduce ? undefined : 'hidden'}
+                whileInView={reduce ? undefined : 'visible'}
+                viewport={reduce ? undefined : { once: true }}
               >
                 {BOOKING_FIELDS.map(field => (
                   <motion.div
                     key={field.id}
                     className={field.fullWidth ? 'md:col-span-2' : ''}
-                    variants={shouldReduce ? undefined : fadeUp}
+                    variants={reduce ? undefined : fadeUp}
                   >
                     <label
                       htmlFor={field.id}

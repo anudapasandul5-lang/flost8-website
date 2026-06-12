@@ -1,7 +1,8 @@
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { ArrowUpRight } from '@phosphor-icons/react'
 import { useUpcomingShows } from '../../hooks/useUpcomingShows'
+import { useMotionSafe } from '../../hooks/useMotionSafe'
 import { PUBLIC_ARTISTS } from '../../lib/artistRoster'
 import type { UpcomingShow } from '../../lib/bookingContract'
 
@@ -28,7 +29,7 @@ export function showToRow(show: UpcomingShow): ShowRow {
 }
 
 export default function Shows() {
-  const shouldReduce = useReducedMotion()
+  const { reduce } = useMotionSafe()
   const { shows, loading } = useUpcomingShows(5)
 
   return (
@@ -52,7 +53,7 @@ export default function Shows() {
                 key={i}
                 className="relative overflow-hidden rounded-xl md:rounded-2xl min-h-[96px] md:min-h-[128px] bg-base-raise edge-refract"
               >
-                {shouldReduce ? (
+                {reduce ? (
                   <div className="absolute inset-0 bg-base-raise" />
                 ) : (
                   <motion.div
@@ -109,7 +110,7 @@ export default function Shows() {
                     <motion.div
                       className="min-w-0"
                       transition={{ duration: 0.45, ease: 'easeOut' }}
-                      whileHover={shouldReduce ? undefined : { x: 6 }}
+                      whileHover={reduce ? undefined : { x: 6 }}
                     >
                       <p className="font-display text-ink text-3xl md:text-5xl leading-tight truncate">
                         {row.title}
