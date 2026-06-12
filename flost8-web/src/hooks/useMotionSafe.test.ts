@@ -1,4 +1,4 @@
-import { renderHook } from '@testing-library/react'
+import { act, renderHook } from '@testing-library/react'
 import { useMotionSafe } from './useMotionSafe'
 
 describe('useMotionSafe', () => {
@@ -82,6 +82,48 @@ describe('useMotionSafe', () => {
     try {
       const { result } = renderHook(() => useMotionSafe())
       expect(result.current.reduce).toBe(matches)
+    } finally {
+      vi.unstubAllGlobals()
+    }
+  })
+
+  it('responds to live matchMedia change events and cleans up on unmount', () => {
+    const listeners: Array<(e: { matches: boolean }) => void> = []
+    const removeEventListener = vi.fn(
+      (_: string, cb: (e: { matches: boolean }) => void) => {
+        const i = listeners.indexOf(cb)
+        if (i >= 0) listeners.splice(i, 1)
+      },
+    )
+    const addEventListener = vi.fn(
+      (_: string, cb: (e: { matches: boolean }) => void) => {
+        listeners.push(cb)
+      },
+    )
+
+    vi.stubGlobal('matchMedia', (_query: string) => ({
+      matches: false,
+      media: _query,
+      addEventListener,
+      removeEventListener,
+    }))
+
+    try {
+      const { result, rerender, unmount } = renderHook(() => useMotionSafe())
+
+      expect(result.current.reduce).toBe(false)
+      expect(addEventListener).toHaveBeenCalledWith('change', expect.any(Function))
+
+      const handleChange = listeners[0]
+      act(() => {
+        handleChange({ matches: true })
+      })
+      rerender()
+
+      expect(result.current.reduce).toBe(true)
+
+      unmount()
+      expect(removeEventListener).toHaveBeenCalledWith('change', handleChange)
     } finally {
       vi.unstubAllGlobals()
     }

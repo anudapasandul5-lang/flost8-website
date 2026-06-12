@@ -1,5 +1,4 @@
 import { useCallback, useEffect, useState } from 'react'
-import { useReducedMotion } from 'framer-motion'
 import type { Variants } from 'framer-motion'
 
 export interface MotionSafe {
@@ -28,10 +27,6 @@ function initialRead(source?: boolean | null): boolean {
 }
 
 export function useMotionSafe(source?: boolean | null): MotionSafe {
-  // Keep framer-motion's hook in the tree for consistency, though we don't
-  // rely on its (possibly null) first-render value.
-  useReducedMotion()
-
   const [mediaReduce, setMediaReduce] = useState(() => readMatchMedia())
 
   useEffect(() => {
