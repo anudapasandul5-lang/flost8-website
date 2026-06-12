@@ -50,13 +50,13 @@ function useCountUp(target: string, duration: number, inView: boolean): string {
 export function StatCard({ value, label, index }: StatCardProps) {
   const ref = useRef<HTMLDivElement>(null)
   const inView = useInView(ref, { once: true, margin: '-30px' })
-  const count = useCountUp(value, 1400 + index * 200, inView)
+  const count = useCountUp(value, 2100 + index * 300, inView)
 
   return (
     <motion.div
       ref={ref}
       whileHover={{ y: -4 }}
-      transition={{ duration: 0.35, ease: EASE }}
+      transition={{ duration: 0.5, ease: EASE }}
       className="flex min-h-[140px] flex-col items-center justify-center rounded-[16px] border-[3px] border-white bg-[#EA4323] px-3 py-6 text-center shadow-[0_6px_0_rgba(0,0,0,0.45)] sm:min-h-[200px] sm:rounded-[20px] sm:border-[4px] sm:px-6 sm:py-8 lg:min-h-[232px]"
     >
       <span className="font-display text-[56px] leading-none text-white sm:text-[80px] lg:text-[96px]">{count}</span>

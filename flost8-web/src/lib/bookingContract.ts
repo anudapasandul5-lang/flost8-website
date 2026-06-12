@@ -134,11 +134,34 @@ export function normalizeUpcomingShows(data: unknown, limit?: number): UpcomingS
   return typeof limit === 'number' ? shows.slice(0, limit) : shows
 }
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+
 export function validateBookingForm(formData: BookingFormData): Record<string, string> {
   return BOOKING_FIELDS.reduce<Record<string, string>>((errors, field) => {
-    if (field.required && !String(formData[field.id] ?? '').trim()) {
+    const value = String(formData[field.id] ?? '').trim()
+
+    if (field.required && !value) {
       errors[field.id] = 'This field is required'
+      return errors
     }
+
+    if (!value) return errors
+
+    if (field.id === 'organizer_email' && !EMAIL_RE.test(value)) {
+      errors[field.id] = 'Enter a valid email'
+    } else if (field.id === 'direct_number') {
+      const digits = value.replace(/[\s+\-()]/g, '')
+      if (digits.length < 7 || !/^\d+$/.test(digits)) {
+        errors[field.id] = 'Enter a valid phone number'
+      }
+    } else if (field.id === 'event_date') {
+      const today = new Date()
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`
+      if (value < todayStr) {
+        errors[field.id] = 'Pick a future date'
+      }
+    }
+
     return errors
   }, {})
 }

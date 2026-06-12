@@ -15,7 +15,7 @@ export default function AudienceCard({ title, subtitle, href, ctaLabel = 'Call t
       href={href}
       whileHover="hover"
       whileTap={{ scale: 0.98 }}
-      transition={{ duration: 0.35, ease: EASE }}
+      transition={{ duration: 0.5, ease: EASE }}
       variants={{ hover: { y: -6 } }}
       className="group flex flex-col gap-4 rounded-[16px] border border-red/45 bg-[#E36AC0] px-5 py-6 shadow-[0_8px_14px_rgba(0,0,0,0.18)] sm:grid sm:grid-cols-[1fr_auto] sm:items-center sm:px-9 sm:py-7"
     >
@@ -27,7 +27,7 @@ export default function AudienceCard({ title, subtitle, href, ctaLabel = 'Call t
         <motion.span
           className="flex h-9 w-9 items-center justify-center rounded-full border-[3px] border-purple text-purple sm:h-10 sm:w-10"
           variants={{
-            hover: { x: 2, y: -2, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } }
+            hover: { x: 2, y: -2, transition: { duration: 0.45, ease: [0.16, 1, 0.3, 1] } }
           }}
         >
           <ArrowRight size={22} weight="bold" />

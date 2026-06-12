@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react'
-import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
+import { motion, useReducedMotion } from 'framer-motion'
 import { CheckCircle } from '@phosphor-icons/react'
 import { useUpcomingShows } from '../hooks/useUpcomingShows'
 import { BOOKING_API_URL, CONTACT_EMAIL, TURNSTILE_SITE_KEY } from '../lib/config'
+import { fadeUp, staggerParent } from '../lib/motion'
 import {
   BOOKING_FIELDS,
   EMPTY_BOOKING_FORM,
@@ -16,11 +18,12 @@ import {
 declare global {
   interface Window {
     onTurnstileSuccess?: (token: string) => void
+    turnstile?: { reset?: () => void }
   }
 }
 
 const INPUT_CLS =
-  'w-full bg-white/5 border border-white/10 text-white font-body text-sm rounded-lg px-4 py-3 focus:outline-none focus:border-cyan transition-colors placeholder:text-white/30'
+  'w-full bg-raise border border-[var(--bg-line)] text-ink font-grotesk text-sm rounded-xl px-4 py-3.5 focus:outline-none focus:border-[var(--accent-line)] focus:shadow-[inset_0_1px_0_rgba(255,255,255,0.10),inset_0_0_0_1px_var(--accent-line)] transition-colors placeholder:text-[var(--ink-32)]'
 
 function getInitialBookingForm(): BookingFormData {
   const requestedArtist = new URLSearchParams(window.location.search).get('artist')
@@ -33,7 +36,7 @@ function SkeletonRows() {
   return (
     <>
       {[0, 1, 2].map(i => (
-        <div key={i} className="animate-pulse bg-white/5 h-16 rounded my-2" />
+        <div key={i} className="animate-pulse bg-raise h-16 rounded my-2" />
       ))}
     </>
   )
@@ -41,16 +44,16 @@ function SkeletonRows() {
 
 function ShowRow({ show }: { show: UpcomingShow }) {
   return (
-    <div className="border-b border-white/10 py-6">
+    <div className="border-b border-[var(--bg-line)] py-6">
       {/* Desktop grid */}
       <div className="hidden md:grid grid-cols-[140px_1fr_1fr] gap-4 items-center">
-        <span className="font-display text-2xl text-cyan">{show.date}</span>
+        <span className="font-display text-2xl text-accent-ink">{show.date}</span>
         <span className="font-body text-lg font-medium text-white">{show.artist}</span>
         <span className="font-body text-sm text-white/50">{show.venue}, {show.city}</span>
       </div>
       {/* Mobile stack */}
       <div className="flex flex-col gap-1 md:hidden">
-        <span className="font-display text-xl text-cyan">{show.date}</span>
+        <span className="font-display text-xl text-accent-ink">{show.date}</span>
         <span className="font-body text-lg font-medium text-white">{show.artist}</span>
         <span className="font-body text-sm text-white/50">{show.venue}, {show.city}</span>
       </div>
@@ -66,6 +69,7 @@ export default function BookingsPage() {
   const [submitted, setSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
+  const shouldReduce = useReducedMotion()
 
   useEffect(() => {
     window.onTurnstileSuccess = setTurnstileToken
@@ -79,6 +83,13 @@ export default function BookingsPage() {
     if (errors[id]) {
       setErrors(prev => { const next = { ...prev }; delete next[id]; return next })
     }
+  }
+
+  function handleBookAnother() {
+    setSubmitted(false)
+    setFormData(EMPTY_BOOKING_FORM)
+    setErrors({})
+    setTurnstileToken('')
   }
 
   async function handleSubmit(e: React.FormEvent) {
@@ -113,15 +124,20 @@ export default function BookingsPage() {
       }
 
       setSubmitted(true)
-    } catch {
+    } catch (err) {
+      console.error('booking submit failed', err)
       setSubmitError(true)
+      window.turnstile?.reset?.()
+      setTurnstileToken('')
     } finally {
       setSubmitting(false)
     }
   }
 
+  const isSubmitDisabled = submitting || (!!TURNSTILE_SITE_KEY && !turnstileToken)
+
   return (
-    <div className="bg-navy min-h-screen pt-32">
+    <div className="bg-base min-h-[100dvh] pt-32">
       <div className="max-w-6xl mx-auto px-4 md:px-8">
         <motion.div
           initial={{ opacity: 0, y: 40 }}
@@ -130,37 +146,60 @@ export default function BookingsPage() {
           transition={{ duration: 0.75 }}
           className="pb-24"
         >
-          <h1 className="font-display text-5xl md:text-7xl text-white uppercase tracking-tight mb-2">
+          <h1 className="font-display text-6xl md:text-8xl text-ink leading-[0.92] uppercase tracking-tight mb-2">
             MAKE A BOOKING
           </h1>
-          <div className="h-1 bg-red w-24 mb-12" />
+          <div className="h-px w-24 bg-[var(--accent-line)] mb-12" />
 
           {submitted ? (
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               className="text-center py-20"
+              role="status"
             >
-              <CheckCircle size={64} weight="fill" className="text-[#CCFF00] mx-auto mb-6" />
+              <CheckCircle size={64} weight="fill" className="text-accent-ink mx-auto mb-6" />
               <h3 className="font-display text-4xl text-white mb-4">ENQUIRY SENT</h3>
               <p className="font-body text-white/60 max-w-md mx-auto">
-                We'll get back to you within 24 hours. Check your email for confirmation.
+                We'll be in touch within 24 hours.
               </p>
+              <div className="flex flex-wrap gap-4 justify-center mt-8">
+                <button
+                  type="button"
+                  onClick={handleBookAnother}
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-full border border-[var(--accent-line)] px-7 py-4 font-grotesk text-ink hover:bg-[var(--accent-soft)] transition-colors"
+                >
+                  Book another
+                </button>
+                <Link
+                  to="/"
+                  className="inline-flex min-h-[44px] items-center gap-2 rounded-full bg-accent px-7 py-4 font-grotesk text-ink accent-press edge-refract"
+                >
+                  Back home
+                </Link>
+              </div>
             </motion.div>
           ) : (
             <form onSubmit={handleSubmit} noValidate>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <motion.div
+                className="grid grid-cols-1 md:grid-cols-2 gap-6"
+                variants={shouldReduce ? undefined : staggerParent}
+                initial={shouldReduce ? undefined : 'hidden'}
+                whileInView={shouldReduce ? undefined : 'visible'}
+                viewport={shouldReduce ? undefined : { once: true }}
+              >
                 {BOOKING_FIELDS.map(field => (
-                  <div
+                  <motion.div
                     key={field.id}
                     className={field.fullWidth ? 'md:col-span-2' : ''}
+                    variants={shouldReduce ? undefined : fadeUp}
                   >
                     <label
                       htmlFor={field.id}
-                      className="font-body text-sm text-white/70 mb-1 block"
+                      className="font-grotesk text-sm text-[var(--ink-72)] mb-1 block"
                     >
                       {field.label}
-                      {field.required && <span className="text-red ml-1">*</span>}
+                      {field.required && <span className="text-accent2 ml-1">*</span>}
                     </label>
 
                     {field.type === 'select' ? (
@@ -170,10 +209,12 @@ export default function BookingsPage() {
                         onChange={e => handleChange(field.id, e.target.value)}
                         className={`${INPUT_CLS} appearance-none`}
                         style={{ colorScheme: 'dark' }}
+                        aria-invalid={!!errors[field.id]}
+                        aria-describedby={errors[field.id] ? `${field.id}-error` : undefined}
                       >
                         <option value="" disabled>Select...</option>
                         {field.options?.map(opt => (
-                          <option key={opt.value} value={opt.value} className="bg-navy text-white">
+                          <option key={opt.value} value={opt.value} className="bg-base text-white">
                             {opt.label}
                           </option>
                         ))}
@@ -186,6 +227,8 @@ export default function BookingsPage() {
                         value={formData[field.id]}
                         onChange={e => handleChange(field.id, e.target.value)}
                         className={`${INPUT_CLS} resize-none h-32`}
+                        aria-invalid={!!errors[field.id]}
+                        aria-describedby={errors[field.id] ? `${field.id}-error` : undefined}
                       />
                     ) : (
                       <input
@@ -199,13 +242,17 @@ export default function BookingsPage() {
                         onChange={e => handleChange(field.id, e.target.value)}
                         className={INPUT_CLS}
                         style={field.type === 'date' ? { colorScheme: 'dark' } : undefined}
+                        aria-invalid={!!errors[field.id]}
+                        aria-describedby={errors[field.id] ? `${field.id}-error` : undefined}
                       />
                     )}
 
                     {errors[field.id] && (
-                      <p className="font-body text-xs text-red mt-1">{errors[field.id]}</p>
+                      <p id={`${field.id}-error`} className="font-body text-xs text-[var(--error)] mt-1">
+                        {errors[field.id]}
+                      </p>
                     )}
-                  </div>
+                  </motion.div>
                 ))}
 
                 <div className="md:col-span-2">
@@ -216,14 +263,14 @@ export default function BookingsPage() {
                       data-callback="onTurnstileSuccess"
                     />
                   ) : (
-                    <div className="bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white/30 text-sm font-body">
+                    <div className="bg-raise border border-[var(--bg-line)] rounded-xl px-4 py-3 text-[var(--ink-32)] text-sm font-grotesk">
                       Turnstile widget loads here in production
                     </div>
                   )}
                 </div>
 
                 {submitError && (
-                  <p className="font-body text-sm text-red text-center md:col-span-2">
+                  <p role="alert" className="font-body text-sm text-[var(--error)] text-center md:col-span-2">
                     Something went wrong. Please try again or email{' '}
                     <a href={`mailto:${CONTACT_EMAIL}`} className="underline">{CONTACT_EMAIL}</a>
                   </p>
@@ -231,12 +278,12 @@ export default function BookingsPage() {
 
                 <button
                   type="submit"
-                  disabled={submitting}
-                  className="md:col-span-2 w-full bg-red text-white font-body font-medium py-4 rounded-full text-base hover:bg-red/90 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  disabled={isSubmitDisabled}
+                  className="md:col-span-2 w-full inline-flex items-center justify-center bg-accent text-ink font-grotesk font-medium py-4 rounded-full text-base accent-press edge-refract disabled:opacity-50 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
                 >
                   {submitting ? 'Sending...' : 'Submit Booking Enquiry'}
                 </button>
-              </div>
+              </motion.div>
             </form>
           )}
         </motion.div>
@@ -248,10 +295,10 @@ export default function BookingsPage() {
           transition={{ duration: 0.75 }}
           className="pb-24"
         >
-          <h2 className="font-display text-5xl md:text-7xl text-white uppercase tracking-tight mb-2 mt-20">
+          <h2 className="font-display text-6xl md:text-8xl text-ink leading-[0.92] uppercase tracking-tight mb-2 mt-20">
             UPCOMING SHOWS
           </h2>
-          <div className="h-1 bg-red w-24 mb-12" />
+          <div className="h-px w-24 bg-[var(--accent-line)] mb-12" />
 
           {showsLoading && <SkeletonRows />}
 

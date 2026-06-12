@@ -24,7 +24,7 @@ function NavLink({
 
   const content = (
     <span className="group relative inline-block py-1">
-      <span className="font-grotesk text-[15px] text-[var(--ink-72)] transition-colors duration-300 group-hover:text-ink">
+      <span className="font-grotesk text-[15px] text-[var(--ink-72)] transition-colors duration-[450ms] group-hover:text-ink">
         {label}
       </span>
       <motion.span
@@ -32,7 +32,7 @@ function NavLink({
         className="absolute -bottom-0.5 left-0 right-0 h-px origin-left bg-accent"
         initial={{ scaleX: 0 }}
         whileHover={{ scaleX: 1 }}
-        transition={{ duration: 0.3, ease: EASE }}
+        transition={{ duration: 0.45, ease: EASE }}
       />
     </span>
   )
@@ -83,7 +83,7 @@ export default function TopNav() {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-[background-color,backdrop-filter,height,border-color] duration-300 ${
+      className={`fixed inset-x-0 top-0 z-50 transition-[background-color,backdrop-filter,height,border-color] duration-[450ms] ${
         scrolled
           ? 'h-[60px] border-b border-white/10 bg-base/80 backdrop-blur-xl'
           : 'h-[68px] border-b border-transparent bg-transparent'
@@ -134,7 +134,7 @@ export default function TopNav() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: shouldReduce ? 0 : 0.3, ease: EASE }}
+            transition={{ duration: shouldReduce ? 0 : 0.45, ease: EASE }}
             className="fixed inset-x-0 top-0 z-40 h-[100dvh] flex flex-col bg-base px-6 pt-[88px] backdrop-blur-xl md:hidden"
           >
             <Link

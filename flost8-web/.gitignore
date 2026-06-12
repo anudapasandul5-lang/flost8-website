@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Environment variables / secrets
+.dev.vars
+.env*
+!.env.example
+
+# Superpowers brainstorm runtime scratch (specs/plans under docs/ stay tracked)
+/.superpowers/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

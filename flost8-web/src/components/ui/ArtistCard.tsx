@@ -21,8 +21,8 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
   const x = useMotionValue(0)
   const y = useMotionValue(0)
 
-  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [8, -8]), { stiffness: 200, damping: 30 })
-  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-8, 8]), { stiffness: 200, damping: 30 })
+  const rotateX = useSpring(useTransform(y, [-0.5, 0.5], [8, -8]), { stiffness: 130, damping: 36 })
+  const rotateY = useSpring(useTransform(x, [-0.5, 0.5], [-8, 8]), { stiffness: 130, damping: 36 })
 
   const dynamicShadow = useTransform(
     [rotateX, rotateY],
@@ -73,7 +73,7 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
             <img
               src={`/photos/${artist.slug}.webp`}
               alt={artist.name}
-              className="h-full w-full object-cover object-top grayscale transition-all duration-500 hover:grayscale-0"
+              className="h-full w-full object-cover object-top grayscale transition-all duration-[750ms] hover:grayscale-0"
               loading="lazy"
             />
           </div>

@@ -66,6 +66,9 @@
   --accent-soft: rgba(157,20,255,0.14);
   --accent-line: rgba(157,20,255,0.45);
 
+  /* validation error */
+  --error: #FF6B6B;
+
   --font-grotesk: 'Space Grotesk', system-ui, -apple-system, sans-serif;
 }
 
