@@ -48,7 +48,10 @@ export default function Partners() {
       const start = distNorm * 0.6 // edges start later
       const local = Math.min(Math.max((p - start) / 0.4, 0), 1)
       const e = 1 - Math.pow(1 - local, 3) // easeOutCubic
-      tile.style.opacity = String(e * (1 - exit))
+      // Exit ripples center-out too (mirror of entry), so scrolling up re-reveals center-out.
+      const exitLocal = Math.min(Math.max((exit - start) / 0.4, 0), 1)
+      const eo = 1 - Math.pow(1 - exitLocal, 3) // easeOutCubic
+      tile.style.opacity = String(e * (1 - eo))
       tile.style.transform = `scale(${0.6 + 0.4 * e})`
     })
   }
