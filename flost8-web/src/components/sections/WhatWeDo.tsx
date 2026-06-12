@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight } from '@phosphor-icons/react'
-import { staggerParent, fadeUp, SPRING } from '../../lib/motion'
+import { SPRING } from '../../lib/motion'
 import EyebrowRule from '../ui/EyebrowRule'
 
 const panels = [
@@ -61,7 +61,6 @@ function Panel({
     <motion.div
       layout={shouldReduce ? false : true}
       transition={shouldReduce ? { duration: 0 } : SPRING}
-      variants={fadeUp}
       role="button"
       tabIndex={0}
       aria-pressed={isActive}
@@ -153,37 +152,21 @@ export default function WhatWeDo() {
   return (
     <section id="about" className="relative bg-base py-10 md:py-20">
       <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-        <motion.div
-          variants={staggerParent}
-          initial={shouldReduce ? 'visible' : 'hidden'}
-          whileInView="visible"
-          viewport={{ once: true, margin: '-80px' }}
-          className="mb-12 md:mb-16"
-        >
-          <motion.p
-            variants={fadeUp}
-            className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink"
-          >
+        <div className="mb-12 md:mb-16">
+          <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">
             What We Do
-          </motion.p>
+          </p>
           <EyebrowRule />
-          <motion.h2
-            variants={fadeUp}
-            className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl"
-          >
+          <h2 className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl">
             NOT AN{' '}
             <span className="line-through decoration-accent decoration-4 text-[var(--ink-50)]">
               AGENCY
             </span>
             . A MOVEMENT.
-          </motion.h2>
-        </motion.div>
+          </h2>
+        </div>
 
-        <motion.div
-          variants={staggerParent}
-          initial={shouldReduce ? 'visible' : 'hidden'}
-          whileInView="visible"
-          viewport={{ once: true, margin: '-80px' }}
+        <div
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
           onFocusCapture={() => setPaused(true)}
@@ -200,7 +183,7 @@ export default function WhatWeDo() {
               onActivate={() => setActiveIndex(index)}
             />
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   )

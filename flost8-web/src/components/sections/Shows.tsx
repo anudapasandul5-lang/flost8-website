@@ -4,7 +4,6 @@ import { ArrowUpRight } from '@phosphor-icons/react'
 import { useUpcomingShows } from '../../hooks/useUpcomingShows'
 import { PUBLIC_ARTISTS } from '../../lib/artistRoster'
 import type { UpcomingShow } from '../../lib/bookingContract'
-import { staggerParent, fadeUp } from '../../lib/motion'
 
 interface ShowRow {
   slug: string | null
@@ -35,28 +34,16 @@ export default function Shows() {
   return (
     <section id="shows" className="relative bg-base py-10 md:py-20">
       <div className="max-w-[1400px] mx-auto px-6 md:px-10">
-        <motion.div
-          initial={shouldReduce ? undefined : 'hidden'}
-          whileInView={shouldReduce ? undefined : 'visible'}
-          viewport={{ once: true, amount: 0.3 }}
-          variants={shouldReduce ? undefined : staggerParent}
-          className="mb-12 md:mb-16"
-        >
-          <motion.p
-            variants={shouldReduce ? undefined : fadeUp}
-            className="font-grotesk uppercase tracking-[0.25em] text-[13px] text-accent-ink mb-4"
-          >
+        <div className="mb-12 md:mb-16">
+          <p className="font-grotesk uppercase tracking-[0.25em] text-[13px] text-accent-ink mb-4">
             Upcoming
-          </motion.p>
-          <motion.h2
-            variants={shouldReduce ? undefined : fadeUp}
-            className="font-display text-ink text-5xl md:text-7xl leading-[0.9]"
-          >
+          </p>
+          <h2 className="font-display text-ink text-5xl md:text-7xl leading-[0.9]">
             WHERE TO
             <br />
             CATCH US
-          </motion.h2>
-        </motion.div>
+          </h2>
+        </div>
 
         {loading && (
           <div className="flex flex-col gap-3 md:gap-4">
@@ -96,19 +83,12 @@ export default function Shows() {
         )}
 
         {!loading && shows.length > 0 && (
-          <motion.div
-            initial={shouldReduce ? undefined : 'hidden'}
-            whileInView={shouldReduce ? undefined : 'visible'}
-            viewport={{ once: true, amount: 0.2 }}
-            variants={shouldReduce ? undefined : staggerParent}
-            className="flex flex-col gap-3 md:gap-4"
-          >
+          <div className="flex flex-col gap-3 md:gap-4">
             {shows.map((show, index) => {
               const row = showToRow(show)
               return (
-                <motion.div
+                <div
                   key={`${row.title}-${row.dateLabel}-${index}`}
-                  variants={shouldReduce ? undefined : fadeUp}
                   className="group relative overflow-hidden rounded-xl md:rounded-2xl min-h-[96px] md:min-h-[128px] edge-refract"
                 >
                   {row.photo ? (
@@ -141,10 +121,10 @@ export default function Shows() {
                       {row.dateLabel}
                     </div>
                   </div>
-                </motion.div>
+                </div>
               )
             })}
-          </motion.div>
+          </div>
         )}
       </div>
     </section>

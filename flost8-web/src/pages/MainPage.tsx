@@ -12,6 +12,7 @@ import Partners from '../components/sections/Partners'
 import LivePhoto from '../components/sections/LivePhoto'
 import BookingsPreview from '../components/sections/BookingsPreview'
 import Footer from '../components/sections/Footer'
+import ScrollFadeSection from '../components/ui/ScrollFadeSection'
 
 export default function MainPage() {
   const { hash } = useLocation()
@@ -41,15 +42,15 @@ export default function MainPage() {
     <main className="bg-base">
       <Hero />
       <Partners />
-      <Roster />
-      <Shows />
-      <SoundEthos />
-      <WhatWeDo />
-      <Services />
-      <Metrics />
-      <LivePhoto />
-      <BookingsPreview />
-      <Footer />
+      <ScrollFadeSection><Roster /></ScrollFadeSection>
+      <ScrollFadeSection><Shows /></ScrollFadeSection>
+      <ScrollFadeSection><SoundEthos /></ScrollFadeSection>
+      <ScrollFadeSection><WhatWeDo /></ScrollFadeSection>
+      <ScrollFadeSection><Services /></ScrollFadeSection>
+      <ScrollFadeSection><Metrics /></ScrollFadeSection>
+      <ScrollFadeSection><LivePhoto /></ScrollFadeSection>
+      <ScrollFadeSection><BookingsPreview /></ScrollFadeSection>
+      <ScrollFadeSection><Footer /></ScrollFadeSection>
     </main>
   )
 }

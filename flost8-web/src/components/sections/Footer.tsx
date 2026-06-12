@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { InstagramLogo } from '@phosphor-icons/react'
-import { staggerParent, fadeUp } from '../../lib/motion'
 
 const footerCols = [
   {
@@ -28,12 +27,10 @@ const footerCols = [
 
 const linkUnderlineVariants = {
   initial: { scaleX: 0 },
-  hover: { scaleX: 1, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] as const } },
+  hover: { scaleX: 1, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] as const } },
 }
 
 export default function Footer() {
-  const shouldReduce = useReducedMotion()
-
   return (
     <footer className="relative bg-base border-t border-white/10">
       <div className="mx-auto max-w-[1400px] px-6 md:px-10 pt-16 md:pt-24">
@@ -42,15 +39,9 @@ export default function Footer() {
         </h2>
       </div>
 
-      <motion.div
-        className="mx-auto grid max-w-[1400px] grid-cols-2 gap-8 px-6 py-16 md:grid-cols-4 md:px-10"
-        variants={staggerParent}
-        initial={shouldReduce ? 'visible' : 'hidden'}
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.2 }}
-      >
+      <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-8 px-6 py-16 md:grid-cols-4 md:px-10">
         {footerCols.map(col => (
-          <motion.div key={`${col.heading}-${col.links[0]}`} variants={fadeUp}>
+          <div key={`${col.heading}-${col.links[0]}`}>
             <h3 className="mb-4 font-display text-xl uppercase text-ink">{col.heading}</h3>
             <ul>
               {col.links.map((label, index) => {
@@ -84,9 +75,9 @@ export default function Footer() {
                 )
               })}
             </ul>
-          </motion.div>
+          </div>
         ))}
-      </motion.div>
+      </div>
 
       <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-4 border-t border-white/10 px-6 py-10 md:px-10">
         <a

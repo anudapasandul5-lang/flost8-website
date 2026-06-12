@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { PUBLIC_ARTISTS } from '../../lib/artistRoster'
-import { staggerParent, fadeUp, SPRING } from '../../lib/motion'
+import { SPRING } from '../../lib/motion'
 import EyebrowRule from '../ui/EyebrowRule'
 
 const AUTO_CYCLE_MS = 3500
@@ -22,29 +22,17 @@ export default function Roster() {
 
   return (
     <section id="roster" className="relative bg-base py-10 md:py-20">
-      <motion.div
-        className="mx-auto max-w-[1400px] px-6 md:px-10"
-        variants={staggerParent}
-        initial={shouldReduce ? 'visible' : 'hidden'}
-        whileInView="visible"
-        viewport={{ once: true, margin: '-100px' }}
-      >
-        <motion.p
-          variants={fadeUp}
-          className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink"
-        >
+      <div className="mx-auto max-w-[1400px] px-6 md:px-10">
+        <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">
           The Roster
-        </motion.p>
+        </p>
         <EyebrowRule />
-        <motion.h2
-          variants={fadeUp}
-          className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl"
-        >
+        <h2 className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl">
           ARTISTS WHO
           <br />
           MOVE ROOMS
-        </motion.h2>
-      </motion.div>
+        </h2>
+      </div>
 
       {/* Desktop / tablet — horizontal accordion */}
       <div

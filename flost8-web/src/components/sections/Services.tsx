@@ -1,7 +1,6 @@
 import { motion, useReducedMotion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from '@phosphor-icons/react'
-import { staggerParent, fadeUp } from '../../lib/motion'
 import { SERVICES } from '../../lib/config'
 
 // Scene image per service (index-matched to SERVICES)
@@ -13,39 +12,21 @@ export default function Services() {
   return (
     <section id="services" className="relative bg-base pt-14 md:pt-20 pb-6 md:pb-6">
       <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-        <motion.div
-          variants={staggerParent}
-          initial={shouldReduce ? 'visible' : 'hidden'}
-          whileInView="visible"
-          viewport={{ once: true, margin: '-80px' }}
-        >
-          <motion.p
-            variants={fadeUp}
-            className="font-grotesk uppercase tracking-[0.25em] text-[13px] text-accent-ink"
-          >
+        <div>
+          <p className="font-grotesk uppercase tracking-[0.25em] text-[13px] text-accent-ink">
             What We Offer
-          </motion.p>
-          <motion.h2
-            variants={fadeUp}
-            className="mt-4 font-display text-ink text-5xl md:text-7xl leading-[0.9]"
-          >
+          </p>
+          <h2 className="mt-4 font-display text-ink text-5xl md:text-7xl leading-[0.9]">
             THREE WAYS
             <br />
             WE WORK
-          </motion.h2>
-        </motion.div>
+          </h2>
+        </div>
 
-        <motion.div
-          className="mt-10 md:mt-20 border-t border-white/10"
-          variants={staggerParent}
-          initial={shouldReduce ? 'visible' : 'hidden'}
-          whileInView="visible"
-          viewport={{ once: true, margin: '-50px' }}
-        >
+        <div className="mt-10 md:mt-20 border-t border-white/10">
           {SERVICES.map((service, i) => (
             <motion.div
               key={service.no}
-              variants={fadeUp}
               whileHover={shouldReduce ? undefined : 'hover'}
               initial="rest"
               animate="rest"
@@ -89,15 +70,9 @@ export default function Services() {
               </div>
             </motion.div>
           ))}
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="mt-6 md:mt-8"
-          initial={shouldReduce ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.9, ease: 'easeOut' }}
-        >
+        <div className="mt-6 md:mt-8">
           <Link
             to="/bookings"
             className="inline-flex min-h-[44px] items-center font-grotesk text-accent-ink text-base md:text-lg hover:text-accent transition-colors"
@@ -105,7 +80,7 @@ export default function Services() {
             Start a project
             <ArrowRight size={20} weight="bold" className="ml-2" />
           </Link>
-        </motion.div>
+        </div>
       </div>
     </section>
   )

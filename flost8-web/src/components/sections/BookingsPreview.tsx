@@ -1,11 +1,7 @@
-import { motion, useReducedMotion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowUpRight } from '@phosphor-icons/react'
-import { fadeUp, staggerParent } from '../../lib/motion'
 
 export default function BookingsPreview() {
-  const shouldReduce = useReducedMotion()
-
   return (
     <section id="book" className="relative bg-base py-10 md:py-20 overflow-hidden">
       {/* Crowd backdrop */}
@@ -33,30 +29,18 @@ export default function BookingsPreview() {
         BOOK
       </span>
 
-      <motion.div
-        className="relative z-10 mx-auto max-w-[1400px] px-6 md:px-10"
-        variants={staggerParent}
-        initial={shouldReduce ? 'visible' : 'hidden'}
-        whileInView="visible"
-        viewport={{ once: true, amount: 0.3 }}
-      >
-        <motion.h2
-          variants={fadeUp}
-          className="font-display text-ink text-6xl md:text-8xl leading-[0.92]"
-        >
+      <div className="relative z-10 mx-auto max-w-[1400px] px-6 md:px-10">
+        <h2 className="font-display text-ink text-6xl md:text-8xl leading-[0.92]">
           READY WHEN
           <br />
           YOU ARE.
-        </motion.h2>
+        </h2>
 
-        <motion.p
-          variants={fadeUp}
-          className="mt-6 font-grotesk text-[var(--ink-72)] max-w-[52ch] text-lg md:text-xl"
-        >
+        <p className="mt-6 font-grotesk text-[var(--ink-72)] max-w-[52ch] text-lg md:text-xl">
           Lock a FLOST8 artist for your night, brand, or event.
-        </motion.p>
+        </p>
 
-        <motion.div variants={fadeUp} className="mt-10 flex flex-wrap items-center gap-4">
+        <div className="mt-10 flex flex-wrap items-center gap-4">
           <Link
             to="/bookings"
             className="accent-press edge-refract inline-flex min-h-[44px] items-center gap-2 rounded-full bg-accent px-7 py-4 font-grotesk text-ink"
@@ -70,8 +54,8 @@ export default function BookingsPreview() {
           >
             Become an Artist
           </a>
-        </motion.div>
-      </motion.div>
+        </div>
+      </div>
     </section>
   )
 }

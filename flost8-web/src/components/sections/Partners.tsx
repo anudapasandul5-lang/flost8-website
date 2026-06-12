@@ -3,19 +3,19 @@ import { useRef, useEffect } from 'react'
 import EyebrowRule from '../ui/EyebrowRule'
 
 const PARTNERS = [
-  { slug: 'corso', name: 'Corso' },
-  { slug: 'sun_crush', name: 'Sun Crush' },
-  { slug: 'a_logo', name: 'Ascent' },
-  { slug: 'vibe_mount', name: 'Vibe Mount' },
-  { slug: 'pixels_n_pints', name: 'Pixels n Pints' },
-  { slug: 'soul_boner', name: 'Soul Boner' },
-  { slug: 'abstract_mark', name: 'Apex' },
-  { slug: 'speedbay', name: 'Speedbay' },
-  { slug: 'reignite', name: 'Reignite' },
-  { slug: 'hype_bomb', name: 'Hype Bomb' },
-  { slug: 'spinner_energy_drink', name: 'Spinner Energy Drink' },
-  { slug: 'traveling_bruncher', name: 'The Traveling Bruncher' },
-  { slug: 'vocaine', name: 'Vocaine' },
+  { slug: 'corso', name: 'Corso', url: 'https://www.instagram.com/corso.lk/' },
+  { slug: 'sun_crush', name: 'Sun Crush', url: 'https://www.instagram.com/suncrushbeverage/' },
+  { slug: 'a_logo', name: 'Astroid SL', url: 'https://astroidsl.com/' },
+  { slug: 'vibe_mount', name: 'Vibe Mount', url: 'https://www.instagram.com/vibemount_/' },
+  { slug: 'pixels_n_pints', name: 'Pixels n Pints', url: 'https://www.instagram.com/pixelsnpints.cmb/' },
+  { slug: 'soul_boner', name: 'Soul Boner', url: 'https://thirstyforsoulboner.com/' },
+  { slug: 'abstract_mark', name: 'Address.lk', url: 'https://www.addresshop.com/' },
+  { slug: 'speedbay', name: 'Speedbay', url: 'https://www.instagram.com/speedbaylk/' },
+  { slug: 'reignite', name: 'Reignite', url: 'https://www.reignitee.com/' },
+  { slug: 'hype_bomb', name: 'Hype Bomb', url: 'https://www.instagram.com/drinkhypebam/' },
+  { slug: 'spinner_energy_drink', name: 'Spinner Energy Drink', url: 'https://www.instagram.com/spinnerenergydrink/' },
+  { slug: 'traveling_bruncher', name: 'The Traveling Bruncher', url: 'https://www.instagram.com/thetravelingbruncher/' },
+  { slug: 'vocaine', name: 'Vocaine', url: 'https://vocaine.com/' },
 ] as const
 
 export default function Partners() {
@@ -29,10 +29,18 @@ export default function Partners() {
     offset: ['start 0.9', 'start 0.4'],
   })
 
-  // Paint each tile from a 0..1 scroll progress, center-out.
-  const paint = (p: number) => {
+  // Exit window: ramps 0→1 as the grid top crosses and leaves the top edge.
+  const { scrollYProgress: exitProgress } = useScroll({
+    target: gridRef,
+    offset: ['start 0.15', 'start -0.15'],
+  })
+
+  // Paint each tile — reads both entry and exit progress, no argument.
+  const paint = () => {
     const grid = gridRef.current
     if (!grid) return
+    const p = scrollYProgress.get()
+    const exit = Math.min(Math.max(exitProgress.get(), 0), 1)
     const tiles = grid.querySelectorAll<HTMLElement>('.partner-tile')
     const c = (tiles.length - 1) / 2
     tiles.forEach((tile, i) => {
@@ -40,19 +48,24 @@ export default function Partners() {
       const start = distNorm * 0.6 // edges start later
       const local = Math.min(Math.max((p - start) / 0.4, 0), 1)
       const e = 1 - Math.pow(1 - local, 3) // easeOutCubic
-      tile.style.opacity = String(e)
+      tile.style.opacity = String(e * (1 - exit))
       tile.style.transform = `scale(${0.6 + 0.4 * e})`
     })
   }
 
-  useMotionValueEvent(scrollYProgress, 'change', (p) => {
+  useMotionValueEvent(scrollYProgress, 'change', () => {
     if (shouldReduce) return
-    paint(p)
+    paint()
+  })
+
+  useMotionValueEvent(exitProgress, 'change', () => {
+    if (shouldReduce) return
+    paint()
   })
 
   useEffect(() => {
     if (shouldReduce) return
-    paint(scrollYProgress.get()) // set initial state (handles mid-page loads)
+    paint() // set initial state (handles mid-page loads)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [shouldReduce])
 
@@ -67,20 +80,32 @@ export default function Partners() {
         <span className="sr-only">{PARTNERS.map((p) => p.name).join(', ')}</span>
 
         <div ref={gridRef} className="mt-10 flex flex-wrap justify-center gap-4 md:mt-12 md:gap-6">
-          {PARTNERS.map((p) => (
-            <div
-              key={p.slug}
-              className="group partner-tile relative aspect-square w-20 overflow-hidden rounded-full bg-base-raise outline outline-1 outline-offset-0 outline-transparent transition-[box-shadow,outline-color] duration-[450ms] will-change-transform hover:shadow-[0_0_26px_rgba(157,20,255,0.45)] hover:outline-accent/60 sm:w-24 md:w-28"
-              style={{ opacity: shouldReduce ? 1 : 0 }}
-            >
-              <img
-                src={`/logos/color/${p.slug}.jpg`}
-                alt={p.name}
-                loading="lazy"
-                className="h-full w-full object-cover opacity-55 grayscale transition-all duration-[750ms] will-change-transform group-hover:scale-[1.05] group-hover:opacity-100 group-hover:grayscale-0"
-              />
-            </div>
-          ))}
+          {PARTNERS.map((p) => {
+            const Wrapper = p.url ? 'a' : 'div'
+            const wrapperProps = p.url
+              ? {
+                  href: p.url,
+                  target: '_blank',
+                  rel: 'noopener noreferrer',
+                  'aria-label': `${p.name} (opens in new tab)`,
+                }
+              : {}
+            return (
+              <Wrapper
+                key={p.slug}
+                {...wrapperProps}
+                className="group partner-tile relative aspect-square w-20 overflow-hidden rounded-full bg-base-raise outline outline-1 outline-offset-0 outline-transparent transition-[box-shadow,outline-color] duration-[450ms] will-change-transform hover:shadow-[0_0_26px_rgba(157,20,255,0.45)] hover:outline-accent/60 sm:w-24 md:w-28"
+                style={{ opacity: shouldReduce ? 1 : 0 }}
+              >
+                <img
+                  src={`/logos/color/${p.slug}.jpg`}
+                  alt={p.name}
+                  loading="lazy"
+                  className="h-full w-full object-cover opacity-55 grayscale transition-all duration-[750ms] will-change-transform group-hover:scale-[1.05] group-hover:opacity-100 group-hover:grayscale-0"
+                />
+              </Wrapper>
+            )
+          })}
         </div>
       </div>
     </section>

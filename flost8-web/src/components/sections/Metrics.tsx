@@ -1,7 +1,6 @@
 import { useRef } from 'react'
-import { motion, useReducedMotion, useInView } from 'framer-motion'
+import { useReducedMotion, useInView } from 'framer-motion'
 import { METRICS } from '../../lib/config'
-import { staggerParent, fadeUp } from '../../lib/motion'
 import { useCountUp } from '../../hooks/useCountUp'
 
 const stats = [
@@ -35,18 +34,13 @@ export function Metrics() {
       />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-b from-base via-base/85 to-base" />
       <div className="relative z-10 mx-auto max-w-[1400px] px-6 md:px-10">
-        <motion.div
+        <div
           ref={gridRef}
           className="grid grid-cols-2 divide-x divide-y divide-white/10 border border-white/10 md:grid-cols-4 md:divide-y-0"
-          variants={staggerParent}
-          initial={shouldReduce ? 'visible' : 'hidden'}
-          whileInView="visible"
-          viewport={{ once: true, margin: '-80px' }}
         >
           {stats.map((stat) => (
-            <motion.div
+            <div
               key={stat.label}
-              variants={fadeUp}
               className="flex flex-col items-start gap-3 px-6 py-6 md:px-10 md:py-7"
             >
               <span className="font-display text-6xl leading-none text-ink md:text-7xl">
@@ -56,9 +50,9 @@ export function Metrics() {
               <span className="font-grotesk text-xs uppercase tracking-[0.15em] text-[var(--ink-50)] md:text-sm">
                 {stat.label}
               </span>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   )
