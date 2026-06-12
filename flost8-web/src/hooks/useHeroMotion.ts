@@ -40,6 +40,9 @@ export function useHeroMotion({ sectionRef, line1Ref, prefixRef, wordRef, lenis 
   // Per-char scatter offsets keyed by the (outer) .char element, so they
   // survive the cycling word re-splitting its spans.
   const scatterOffsets = useRef(new WeakMap<HTMLElement, { x: number; y: number; r: number }>())
+  // Guards against StrictMode's double-invoke of mount effects re-splitting
+  // (and double-wrapping) already-split DOM.
+  const didSplit = useRef(false)
 
   // ---- Split lines into char/glyph spans (runs exactly once, before paint) ----
   // Must NOT be keyed on `reduce` — splitGraphemes mutates the DOM, and a live
@@ -49,6 +52,8 @@ export function useHeroMotion({ sectionRef, line1Ref, prefixRef, wordRef, lenis 
     const prefix = prefixRef.current
     const word = wordRef.current
     if (!line1 || !prefix || !word) return
+    if (didSplit.current) return
+    didSplit.current = true
 
     line1Chars.current = splitGraphemes(line1)
     const prefixChars = splitGraphemes(prefix)
