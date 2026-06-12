@@ -30,9 +30,11 @@ export default function Partners() {
   })
 
   // Exit window: ramps 0→1 as the grid top crosses and leaves the top edge.
+  // Wide range (0.8vh of scroll) so the center-out ripple eases slowly — most
+  // noticeable on scroll-up, when it re-reveals the logos.
   const { scrollYProgress: exitProgress } = useScroll({
     target: gridRef,
-    offset: ['start 0.15', 'start -0.15'],
+    offset: ['start 0.2', 'start -0.6'],
   })
 
   // Paint each tile — reads both entry and exit progress, no argument.
