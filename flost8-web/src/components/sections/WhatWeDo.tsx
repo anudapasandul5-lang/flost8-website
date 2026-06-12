@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { ArrowUpRight } from '@phosphor-icons/react'
 import { SPRING } from '../../lib/motion'
 import EyebrowRule from '../ui/EyebrowRule'
+import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 const panels = [
   {
@@ -41,13 +42,13 @@ function Panel({
   panel,
   index,
   isActive,
-  shouldReduce,
+  reduce,
   onActivate,
 }: {
   panel: (typeof panels)[number]
   index: number
   isActive: boolean
-  shouldReduce: boolean | null
+  reduce: boolean
   onActivate: () => void
 }) {
   const handleKeyDown = (event: React.KeyboardEvent<HTMLDivElement>) => {
@@ -59,8 +60,8 @@ function Panel({
 
   return (
     <motion.div
-      layout={shouldReduce ? false : true}
-      transition={shouldReduce ? { duration: 0 } : SPRING}
+      layout={reduce ? false : true}
+      transition={reduce ? { duration: 0 } : SPRING}
       role="button"
       tabIndex={0}
       aria-pressed={isActive}
@@ -110,9 +111,9 @@ function Panel({
       {/* Active content */}
       {isActive && (
         <motion.div
-          initial={shouldReduce ? false : { opacity: 0 }}
+          initial={reduce ? false : { opacity: 0 }}
           animate={{ opacity: 1 }}
-          transition={{ duration: 0.6, ease: 'easeOut', delay: shouldReduce ? 0 : 0.15 }}
+          transition={{ duration: 0.6, ease: 'easeOut', delay: reduce ? 0 : 0.15 }}
           className="relative z-10 flex h-full flex-col justify-end gap-3 p-6 md:p-8 lg:p-10"
         >
           <span className="font-display text-xl text-accent">
@@ -135,19 +136,19 @@ function Panel({
 }
 
 export default function WhatWeDo() {
-  const shouldReduce = useReducedMotion()
+  const { reduce } = useMotionSafe()
   const [activeIndex, setActiveIndex] = useState(0)
   const [paused, setPaused] = useState(false)
 
   useEffect(() => {
-    if (shouldReduce || paused) return
+    if (reduce || paused) return
 
     const id = window.setInterval(() => {
       setActiveIndex((current) => (current + 1) % panels.length)
     }, AUTO_CYCLE_MS)
 
     return () => window.clearInterval(id)
-  }, [shouldReduce, paused])
+  }, [reduce, paused])
 
   return (
     <section id="about" className="relative bg-base py-10 md:py-20">
@@ -179,7 +180,7 @@ export default function WhatWeDo() {
               panel={panel}
               index={index}
               isActive={activeIndex === index}
-              shouldReduce={shouldReduce}
+              reduce={reduce}
               onActivate={() => setActiveIndex(index)}
             />
           ))}

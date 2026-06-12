@@ -1,7 +1,8 @@
 import { useRef } from 'react'
 import { Link } from 'react-router-dom'
 import { ArrowUpRight } from '@phosphor-icons/react'
-import { motion, useMotionValue, useTransform, useSpring, useReducedMotion } from 'framer-motion'
+import { motion, useMotionValue, useTransform, useSpring } from 'framer-motion'
+import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 export interface Artist {
   slug: string
@@ -16,7 +17,7 @@ interface ArtistCardProps {
 
 export default function ArtistCard({ artist }: ArtistCardProps) {
   const ref = useRef<HTMLDivElement>(null)
-  const shouldReduce = useReducedMotion()
+  const { reduce } = useMotionSafe()
 
   const x = useMotionValue(0)
   const y = useMotionValue(0)
@@ -27,7 +28,7 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
   const dynamicShadow = useTransform(
     [rotateX, rotateY],
     ([rx, ry]: number[]) =>
-      shouldReduce
+      reduce
         ? '0 4px 14px rgba(0,0,0,0.45)'
         : `${-ry * 0.5}px ${8 + Math.abs(rx)}px ${24 + Math.abs(rx) * 2}px rgba(0,0,0,${0.3 + Math.abs(rx) / 100})`
   )
@@ -35,13 +36,13 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
   const sheenBackground = useTransform(
     [rotateX, rotateY],
     ([rx, ry]: number[]) =>
-      shouldReduce
+      reduce
         ? 'radial-gradient(circle at 50% 50%, rgba(255,255,255,0.12) 0%, transparent 60%)'
         : `radial-gradient(circle at ${50 + (ry as number) * 2}% ${50 - (rx as number) * 2}%, rgba(255,255,255,0.12) 0%, transparent 60%)`
   )
 
   function handleMouseMove(e: React.MouseEvent<HTMLDivElement>) {
-    if (shouldReduce) return
+    if (reduce) return
     const rect = ref.current?.getBoundingClientRect()
     if (!rect) return
     x.set((e.clientX - rect.left) / rect.width - 0.5)
@@ -49,7 +50,7 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
   }
 
   function handleMouseLeave() {
-    if (shouldReduce) return
+    if (reduce) return
     x.set(0)
     y.set(0)
   }
@@ -60,8 +61,8 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
       onMouseMove={handleMouseMove}
       onMouseLeave={handleMouseLeave}
       style={{
-        rotateX: shouldReduce ? 0 : rotateX,
-        rotateY: shouldReduce ? 0 : rotateY,
+        rotateX: reduce ? 0 : rotateX,
+        rotateY: reduce ? 0 : rotateY,
         transformPerspective: 800,
         boxShadow: dynamicShadow,
       }}

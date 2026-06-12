@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
-import { useReducedMotion } from 'framer-motion'
 import { createAnimatable } from 'animejs'
+import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 /**
  * Page-wide purple hue that eases toward the cursor across every section.
@@ -8,30 +8,31 @@ import { createAnimatable } from 'animejs'
  * + non-reduced-motion only (renders nothing / stays invisible otherwise).
  */
 export default function CursorGlow() {
-  const shouldReduce = useReducedMotion()
+  const { reduce, guard } = useMotionSafe()
   const blobRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
-    if (shouldReduce) return
-    if (!window.matchMedia('(pointer: fine)').matches) return
-    const blob = blobRef.current
-    if (!blob) return
+    return guard(() => {
+      if (!window.matchMedia('(pointer: fine)').matches) return
+      const blob = blobRef.current
+      if (!blob) return
 
-    blob.style.opacity = '0.55'
-    const movable = createAnimatable(blob, { x: 0, y: 0, duration: 600, ease: 'out(3)' })
-    const onMove = (e: MouseEvent) => {
-      movable.x(e.clientX)
-      movable.y(e.clientY)
-    }
-    window.addEventListener('mousemove', onMove)
-    return () => {
-      window.removeEventListener('mousemove', onMove)
-      movable.revert()
-      blob.style.opacity = '0'
-    }
-  }, [shouldReduce])
+      blob.style.opacity = '0.55'
+      const movable = createAnimatable(blob, { x: 0, y: 0, duration: 600, ease: 'out(3)' })
+      const onMove = (e: MouseEvent) => {
+        movable.x(e.clientX)
+        movable.y(e.clientY)
+      }
+      window.addEventListener('mousemove', onMove)
+      return () => {
+        window.removeEventListener('mousemove', onMove)
+        movable.revert()
+        blob.style.opacity = '0'
+      }
+    })
+  }, [guard])
 
-  if (shouldReduce) return null
+  if (reduce) return null
 
   return (
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[20] overflow-hidden">

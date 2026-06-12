@@ -1,24 +1,25 @@
 import { useEffect, useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { PUBLIC_ARTISTS } from '../../lib/artistRoster'
 import { SPRING } from '../../lib/motion'
 import EyebrowRule from '../ui/EyebrowRule'
+import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 const AUTO_CYCLE_MS = 3500
 
 export default function Roster() {
-  const shouldReduce = useReducedMotion()
+  const { reduce } = useMotionSafe()
   const [activeIndex, setActiveIndex] = useState(0)
   const [paused, setPaused] = useState(false)
 
   useEffect(() => {
-    if (shouldReduce || paused) return
+    if (reduce || paused) return
     const interval = window.setInterval(() => {
       setActiveIndex((current) => (current + 1) % PUBLIC_ARTISTS.length)
     }, AUTO_CYCLE_MS)
 
     return () => window.clearInterval(interval)
-  }, [shouldReduce, paused])
+  }, [reduce, paused])
 
   return (
     <section id="roster" className="relative bg-base py-10 md:py-20">
@@ -51,10 +52,10 @@ export default function Roster() {
               aria-label={`${artist.name} — ${artist.role}`}
               className="group relative cursor-pointer overflow-hidden rounded-2xl edge-refract"
               layout
-              animate={shouldReduce ? undefined : { flexGrow: isActive ? 6 : 1 }}
+              animate={reduce ? undefined : { flexGrow: isActive ? 6 : 1 }}
               initial={false}
-              transition={shouldReduce ? { duration: 0 } : SPRING}
-              style={{ flexGrow: shouldReduce ? (isActive ? 6 : 1) : undefined, flexBasis: 0 }}
+              transition={reduce ? { duration: 0 } : SPRING}
+              style={{ flexGrow: reduce ? (isActive ? 6 : 1) : undefined, flexBasis: 0 }}
               onMouseEnter={() => {
                 setPaused(true)
                 setActiveIndex(index)
@@ -128,10 +129,10 @@ export default function Roster() {
               aria-label={`${artist.name} — ${artist.role}`}
               className="group relative cursor-pointer overflow-hidden rounded-2xl edge-refract"
               layout
-              animate={shouldReduce ? undefined : { height: isActive ? 360 : 64 }}
+              animate={reduce ? undefined : { height: isActive ? 360 : 64 }}
               initial={false}
-              transition={shouldReduce ? { duration: 0 } : SPRING}
-              style={{ height: shouldReduce ? (isActive ? 360 : 64) : undefined }}
+              transition={reduce ? { duration: 0 } : SPRING}
+              style={{ height: reduce ? (isActive ? 360 : 64) : undefined }}
               onClick={() => setActiveIndex(index)}
               onFocus={() => setActiveIndex(index)}
               onKeyDown={(event) => {

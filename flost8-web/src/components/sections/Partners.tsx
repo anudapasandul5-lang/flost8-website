@@ -1,6 +1,7 @@
-import { useReducedMotion, useScroll, useMotionValueEvent } from 'framer-motion'
+import { useScroll, useMotionValueEvent } from 'framer-motion'
 import { useRef, useEffect } from 'react'
 import EyebrowRule from '../ui/EyebrowRule'
+import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 const PARTNERS = [
   { slug: 'corso', name: 'Corso', url: 'https://www.instagram.com/corso.lk/' },
@@ -22,7 +23,7 @@ const K = 0.06 // lerp factor for reveal — small = slow ease-in on scroll-up
 const SETTLE = 0.004 // snap threshold
 
 export default function Partners() {
-  const shouldReduce = useReducedMotion()
+  const { reduce } = useMotionSafe()
   const gridRef = useRef<HTMLDivElement>(null)
 
   // Per-tile smoothed opacity (what's actually written to the DOM).
@@ -122,20 +123,20 @@ export default function Partners() {
   }
 
   useMotionValueEvent(scrollYProgress, 'change', () => {
-    if (shouldReduce) return
+    if (reduce) return
     paint()
   })
 
   useMotionValueEvent(exitProgress, 'change', () => {
-    if (shouldReduce) return
+    if (reduce) return
     paint()
   })
 
   useEffect(() => {
-    if (shouldReduce) return
+    if (reduce) return
     paint() // set initial state (handles mid-page loads, initializes displayed[])
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldReduce])
+  }, [reduce])
 
   // Cleanup: cancel rAF on unmount.
   useEffect(() => {
@@ -168,7 +169,7 @@ export default function Partners() {
                 key={p.slug}
                 {...wrapperProps}
                 className="group partner-tile relative aspect-square w-20 overflow-hidden rounded-full bg-base-raise outline outline-1 outline-offset-0 outline-transparent transition-[box-shadow,outline-color] duration-[450ms] will-change-transform hover:shadow-[0_0_26px_rgba(157,20,255,0.45)] hover:outline-accent/60 sm:w-24 md:w-28"
-                style={{ opacity: shouldReduce ? 1 : 0 }}
+                style={{ opacity: reduce ? 1 : 0 }}
               >
                 <img
                   src={`/logos/color/${p.slug}.jpg`}

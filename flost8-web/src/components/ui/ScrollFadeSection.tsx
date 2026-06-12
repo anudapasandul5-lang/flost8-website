@@ -1,5 +1,6 @@
 import { useRef, type ReactNode } from 'react'
-import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
+import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 /**
  * Wraps a section; scrubs opacity tied to scroll position.
@@ -16,7 +17,7 @@ export default function ScrollFadeSection({
   noFadeOut?: boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const shouldReduce = useReducedMotion()
+  const { reduce } = useMotionSafe()
   const { scrollYProgress } = useScroll({
     target: ref,
     offset: ['start end', 'end start'],
@@ -29,7 +30,7 @@ export default function ScrollFadeSection({
     noFadeOut ? [0, 1, 1] : [0, 1, 1, 0],
   )
   return (
-    <motion.div ref={ref} style={shouldReduce ? undefined : { opacity, willChange: 'opacity' }}>
+    <motion.div ref={ref} style={reduce ? undefined : { opacity, willChange: 'opacity' }}>
       {children}
     </motion.div>
   )

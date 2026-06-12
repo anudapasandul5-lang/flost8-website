@@ -1,7 +1,8 @@
 import { useRef } from 'react'
-import { useReducedMotion, useInView } from 'framer-motion'
+import { useInView } from 'framer-motion'
 import { METRICS } from '../../lib/config'
 import { useCountUp } from '../../hooks/useCountUp'
+import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 const stats = [
   { value: METRICS.bookingsDriven, label: 'Bookings driven' },
@@ -19,7 +20,7 @@ function Counter({ value, reduce, active }: { value: string; reduce: boolean; ac
 }
 
 export function Metrics() {
-  const shouldReduce = useReducedMotion()
+  const { reduce } = useMotionSafe()
   const gridRef = useRef<HTMLDivElement>(null)
   const inView = useInView(gridRef, { once: true, margin: '-80px' })
 
@@ -44,7 +45,7 @@ export function Metrics() {
               className="flex flex-col items-start gap-3 px-6 py-6 md:px-10 md:py-7"
             >
               <span className="font-display text-6xl leading-none text-ink md:text-7xl">
-                <Counter value={stat.value} reduce={!!shouldReduce} active={inView} />
+                <Counter value={stat.value} reduce={reduce} active={inView} />
                 <span className="text-accent">+</span>
               </span>
               <span className="font-grotesk text-xs uppercase tracking-[0.15em] text-[var(--ink-50)] md:text-sm">
