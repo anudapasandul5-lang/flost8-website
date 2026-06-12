@@ -20,8 +20,8 @@ describe('StatCard', () => {
 
     try {
       render(<StatCard value="200k" label="x" index={0} />)
-      expect(screen.getByText('200k')).toBeInTheDocument()
-      expect(screen.queryByText('0')).not.toBeInTheDocument()
+      expect(screen.getByText('200k')).toBeTruthy()
+      expect(screen.queryByText('0')).toBeNull()
     } finally {
       vi.unstubAllGlobals()
     }
