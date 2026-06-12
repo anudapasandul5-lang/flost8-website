@@ -16,10 +16,12 @@ function NavLink({
   label,
   href,
   onClick,
+  reduce,
 }: {
   label: string
   href: string
   onClick?: () => void
+  reduce: boolean
 }) {
   const isRoute = href.startsWith('/') && !href.startsWith('/#')
 
@@ -31,9 +33,9 @@ function NavLink({
       <motion.span
         aria-hidden="true"
         className="absolute -bottom-0.5 left-0 right-0 h-px origin-left bg-accent"
-        initial={{ scaleX: 0 }}
-        whileHover={{ scaleX: 1 }}
-        transition={{ duration: 0.45, ease: EASE }}
+        initial={{ scaleX: reduce ? 1 : 0 }}
+        whileHover={reduce ? undefined : { scaleX: 1 }}
+        transition={reduce ? { duration: 0 } : { duration: 0.45, ease: EASE }}
       />
     </span>
   )
@@ -108,7 +110,7 @@ export default function TopNav() {
 
         <nav className="hidden items-center gap-9 md:flex" aria-label="Primary">
           {textLinks.map(link => (
-            <NavLink key={link.label} {...link} />
+            <NavLink key={link.label} {...link} reduce={reduce} />
           ))}
         </nav>
 
