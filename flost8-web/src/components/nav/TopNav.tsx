@@ -33,8 +33,8 @@ function NavLink({
       <motion.span
         aria-hidden="true"
         className="absolute -bottom-0.5 left-0 right-0 h-px origin-left bg-accent"
-        initial={{ scaleX: reduce ? 1 : 0 }}
-        whileHover={reduce ? undefined : { scaleX: 1 }}
+        initial={{ scaleX: 0 }}
+        whileHover={{ scaleX: 1 }}
         transition={reduce ? { duration: 0 } : { duration: 0.45, ease: EASE }}
       />
     </span>
