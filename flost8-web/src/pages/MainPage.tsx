@@ -50,7 +50,7 @@ export default function MainPage() {
       <ScrollFadeSection><Metrics /></ScrollFadeSection>
       <ScrollFadeSection><LivePhoto /></ScrollFadeSection>
       <ScrollFadeSection><BookingsPreview /></ScrollFadeSection>
-      <ScrollFadeSection><Footer /></ScrollFadeSection>
+      <ScrollFadeSection noFadeOut><Footer /></ScrollFadeSection>
     </main>
   )
 }
