@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react'
-import { motion, useReducedMotion } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { useLenis } from 'lenis/react'
 import { ArrowUpRight, PaperPlaneTilt } from '@phosphor-icons/react'
 import { useHeroMotion } from '../../hooks/useHeroMotion'
+import { useMotionSafe } from '../../hooks/useMotionSafe'
 import { staggerParentSlow, fadeUp } from '../../lib/motion'
 
 export default function Hero() {
-  const shouldReduce = useReducedMotion()
+  const { reduce } = useMotionSafe()
   const lenis = useLenis()
 
   const sectionRef = useRef<HTMLElement>(null)
@@ -22,13 +23,12 @@ export default function Hero() {
     line1Ref,
     prefixRef,
     wordRef,
-    shouldReduce: !!shouldReduce,
     lenis,
   })
 
   // Pause/resume the loop based on viewport visibility
   useEffect(() => {
-    if (shouldReduce || videoFailed) return
+    if (reduce || videoFailed) return
     const video = videoRef.current
     const section = sectionRef.current
     if (!video || !section) return
@@ -45,9 +45,9 @@ export default function Hero() {
     )
     observer.observe(section)
     return () => observer.disconnect()
-  }, [shouldReduce, videoFailed])
+  }, [reduce, videoFailed])
 
-  const showVideo = !shouldReduce && !videoFailed
+  const showVideo = !reduce && !videoFailed
 
   return (
     <section
@@ -104,7 +104,7 @@ export default function Hero() {
         <motion.div
           className="max-w-full md:max-w-[72%]"
           variants={staggerParentSlow}
-          initial={shouldReduce ? 'visible' : 'hidden'}
+          initial={reduce ? 'visible' : 'hidden'}
           animate="visible"
         >
           <motion.p

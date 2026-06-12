@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, type RefObject } from 'react'
 import type Lenis from 'lenis'
 import { animate } from 'animejs'
 import { splitGraphemes, type CharNode } from '../lib/splitText'
+import { useMotionSafe } from './useMotionSafe'
 
 export interface HeroMotionRefs {
   /** The <section> root — bounds for cursor glow + scatter progress. */
@@ -12,8 +13,6 @@ export interface HeroMotionRefs {
   prefixRef: RefObject<HTMLSpanElement | null>
   /** The accent word that cycles ("CULTURE" → …). */
   wordRef: RefObject<HTMLSpanElement | null>
-  /** From useReducedMotion(). */
-  shouldReduce: boolean
   /** From useLenis(); may be null until mounted. */
   lenis: Lenis | null | undefined
 }
@@ -31,21 +30,20 @@ function seedScatter(
   }
 }
 
-export function useHeroMotion({
-  sectionRef,
-  line1Ref,
-  prefixRef,
-  wordRef,
-  shouldReduce,
-  lenis,
-}: HeroMotionRefs) {
+export function useHeroMotion({ sectionRef, line1Ref, prefixRef, wordRef, lenis }: HeroMotionRefs) {
+  const { reduce, guard } = useMotionSafe()
+
   // Char nodes shared across effects. Filled in the layout effect below.
   const line1Chars = useRef<CharNode[]>([])
+  // All split char nodes (line1 + prefix + word), used by the scramble effect.
+  const allChars = useRef<CharNode[]>([])
   // Per-char scatter offsets keyed by the (outer) .char element, so they
   // survive the cycling word re-splitting its spans.
   const scatterOffsets = useRef(new WeakMap<HTMLElement, { x: number; y: number; r: number }>())
 
-  // ---- Split lines + scramble-in intro (runs once, before paint) ----
+  // ---- Split lines into char/glyph spans (runs exactly once, before paint) ----
+  // Must NOT be keyed on `reduce` — splitGraphemes mutates the DOM, and a live
+  // reduced-motion toggle re-running it would double-wrap and garble the text.
   useLayoutEffect(() => {
     const line1 = line1Ref.current
     const prefix = prefixRef.current
@@ -58,38 +56,49 @@ export function useHeroMotion({
     const all = [...line1Chars.current, ...prefixChars, ...wordChars]
     seedScatter(all, scatterOffsets.current)
     for (const n of all) n.glyph.style.opacity = '1'
+    allChars.current = all
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
-    if (shouldReduce) {
+  // ---- Scramble-in intro (snap to final text when reduced) ----
+  useLayoutEffect(() => {
+    const all = allChars.current
+    if (all.length === 0) return
+
+    if (reduce) {
+      // eslint-disable-next-line react-hooks/immutability -- DOM node mutation, not React state
       for (const n of all) n.glyph.textContent = n.final === ' ' ? ' ' : n.final
       return
     }
 
-    const GLY = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#%&/'
-    let frame = 0
-    const frames = 22
-    const intervalId = window.setInterval(() => {
-      const revealCount = Math.floor((frame / frames) * all.length)
-      all.forEach((n, i) => {
-        if (n.final === ' ') {
-          n.glyph.textContent = ' '
-          return
+    return guard(() => {
+      const GLY = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ#%&/'
+      let frame = 0
+      const frames = 22
+      const intervalId = window.setInterval(() => {
+        const revealCount = Math.floor((frame / frames) * all.length)
+        all.forEach((n, i) => {
+          if (n.final === ' ') {
+            n.glyph.textContent = ' '
+            return
+          }
+          n.glyph.textContent =
+            i < revealCount ? n.final : GLY[Math.floor(Math.random() * GLY.length)]
+        })
+        if (frame++ >= frames) {
+          window.clearInterval(intervalId)
+          all.forEach((n) => (n.glyph.textContent = n.final === ' ' ? ' ' : n.final))
         }
-        n.glyph.textContent =
-          i < revealCount ? n.final : GLY[Math.floor(Math.random() * GLY.length)]
-      })
-      if (frame++ >= frames) {
-        window.clearInterval(intervalId)
-        all.forEach((n) => (n.glyph.textContent = n.final === ' ' ? ' ' : n.final))
-      }
-    }, 42)
+      }, 42)
 
-    return () => window.clearInterval(intervalId)
+      return () => window.clearInterval(intervalId)
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldReduce])
+  }, [reduce])
 
   // ---- Scroll-scatter exit (Lenis-driven) ----
   useLayoutEffect(() => {
-    if (shouldReduce || !lenis) return
+    if (reduce || !lenis) return
     const hero = sectionRef.current
     if (!hero) return
 
@@ -118,21 +127,23 @@ export function useHeroMotion({
       cancelAnimationFrame(rafId)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldReduce, lenis])
+  }, [reduce, lenis])
 
   // ---- Per-letter hover spring (delegated so it survives word rebuilds) ----
   useLayoutEffect(() => {
-    if (shouldReduce) return
     if (!window.matchMedia('(pointer: fine)').matches) return
     const hero = sectionRef.current
     if (!hero) return
-    const onOver = (e: Event) => {
-      const t = e.target as HTMLElement
-      if (!t.classList?.contains('glyph')) return
-      animate(t, { y: [-12, 0], scale: [1.35, 1], duration: 600, ease: 'outElastic(1, .4)' })
-    }
-    hero.addEventListener('mouseover', onOver)
-    return () => hero.removeEventListener('mouseover', onOver)
+
+    return guard(() => {
+      const onOver = (e: Event) => {
+        const t = e.target as HTMLElement
+        if (!t.classList?.contains('glyph')) return
+        animate(t, { y: [-12, 0], scale: [1.35, 1], duration: 600, ease: 'outElastic(1, .4)' })
+      }
+      hero.addEventListener('mouseover', onOver)
+      return () => hero.removeEventListener('mouseover', onOver)
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [shouldReduce])
+  }, [reduce])
 }
