@@ -1,5 +1,5 @@
 // FLOST8 branded motion — import these everywhere instead of inline spring stiffness/damping.
-// All animations gated via framer-motion's useReducedMotion() in consuming components.
+// All animations gated via the useMotionSafe() seam (src/hooks/useMotionSafe.ts) in consuming components.
 
 import type { Variants } from 'framer-motion';
 
@@ -17,8 +17,8 @@ export const fadeUp: Variants = {
 
 export const fadeUpBlur: Variants = {
   // IMPORTANT: filter animation is NOT suppressed by the CSS reduced-motion safety net.
-  // Consuming components MUST check useReducedMotion() and skip this variant if true.
-  // Desktop only — gate behind: const shouldReduce = useReducedMotion(); const variant = shouldReduce ? fadeUp : fadeUpBlur;
+  // Consuming components MUST use the useMotionSafe() seam and skip this variant if reduce is true.
+  // Desktop only — gate via: const { variant } = useMotionSafe(); const v = variant(fadeUpBlur, fadeUp);
   hidden: { opacity: 0, y: 20, filter: "blur(8px)" },
   visible: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 1.7, ease: EASE } },
 };
