@@ -4,6 +4,7 @@ import { useLenis } from 'lenis/react'
 import Hero from '../components/sections/Hero'
 import Roster from '../components/sections/Roster'
 import Shows from '../components/sections/Shows'
+import JoinRoster from '../components/sections/JoinRoster'
 import Services from '../components/sections/Services'
 import { Metrics } from '../components/sections/Metrics'
 import Partners from '../components/sections/Partners'
@@ -42,6 +43,7 @@ export default function MainPage() {
       <ScrollFadeSection><Services /></ScrollFadeSection>
       <ScrollFadeSection><Metrics /></ScrollFadeSection>
       <ScrollFadeSection><Shows /></ScrollFadeSection>
+      <ScrollFadeSection><JoinRoster /></ScrollFadeSection>
       <ScrollFadeSection noFadeOut><Footer /></ScrollFadeSection>
     </main>
   )
