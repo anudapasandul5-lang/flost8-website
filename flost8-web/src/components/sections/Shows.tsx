@@ -3,7 +3,13 @@ import { motion } from 'framer-motion'
 import { ArrowUpRight } from '@phosphor-icons/react'
 import { useUpcomingShows } from '../../hooks/useUpcomingShows'
 import { useMotionSafe } from '../../hooks/useMotionSafe'
+import { fadeUp, staggerParent, SPRING } from '../../lib/motion'
 import { PUBLIC_ARTISTS } from '../../lib/artistRoster'
+
+const chipVariants = {
+  hidden: { scale: 0.85, opacity: 0 },
+  visible: { scale: 1, opacity: 1, transition: SPRING },
+}
 import type { UpcomingShow } from '../../lib/bookingContract'
 
 interface ShowRow {
@@ -82,13 +88,20 @@ export default function Shows() {
         )}
 
         {!loading && shows.length > 0 && (
-          <div className="flex flex-col gap-3 md:gap-4">
+          <motion.div
+            className="flex flex-col gap-3 md:gap-4"
+            variants={reduce ? undefined : staggerParent}
+            initial={reduce ? undefined : 'hidden'}
+            whileInView={reduce ? undefined : 'visible'}
+            viewport={{ once: true }}
+          >
             {shows.map((show, index) => {
               const row = showToRow(show)
               return (
-                <div
+                <motion.div
                   key={`${row.title}-${row.dateLabel}-${index}`}
                   className="group relative overflow-hidden rounded-xl md:rounded-2xl min-h-[96px] md:min-h-[128px] edge-refract"
+                  variants={reduce ? undefined : fadeUp}
                 >
                   {row.photo ? (
                     <img
@@ -116,14 +129,17 @@ export default function Shows() {
                       <p className="font-grotesk text-[var(--ink-50)] text-sm mt-1 truncate">{row.place}</p>
                     </motion.div>
 
-                    <div className="bg-accent text-ink font-grotesk font-semibold px-4 py-2 rounded-lg text-sm md:text-[1rem] whitespace-nowrap shrink-0">
+                    <motion.div
+                      className="bg-accent text-ink font-grotesk font-semibold px-4 py-2 rounded-lg text-sm md:text-[1rem] whitespace-nowrap shrink-0"
+                      variants={reduce ? undefined : chipVariants}
+                    >
                       {row.dateLabel}
-                    </div>
+                    </motion.div>
                   </div>
-                </div>
+                </motion.div>
               )
             })}
-          </div>
+          </motion.div>
         )}
       </div>
     </section>

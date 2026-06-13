@@ -2,6 +2,7 @@ import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from '@phosphor-icons/react'
 import { SERVICES } from '../../lib/config'
+import RevealLines from '../ui/RevealLines'
 import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 // Scene image per service (index-matched to SERVICES)
@@ -17,9 +18,7 @@ export default function Services() {
           <p className="font-grotesk uppercase tracking-[0.25em] text-[13px] text-accent-ink">
             Three ways we work
           </p>
-          <h2 className="mt-4 font-display text-ink text-5xl md:text-7xl leading-[0.9]">
-            WHAT WE DO
-          </h2>
+          <RevealLines lines={['WHAT WE DO']} className="mt-4 font-display text-ink text-5xl md:text-7xl leading-[0.9]" />
         </div>
 
         <div className="mt-10 md:mt-20 border-t border-white/10">

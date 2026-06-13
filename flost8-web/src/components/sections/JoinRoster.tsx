@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ArrowUpRight } from '@phosphor-icons/react'
 import EyebrowRule from '../ui/EyebrowRule'
+import RevealLines from '../ui/RevealLines'
 
 export default function JoinRoster() {
   return (
@@ -26,7 +27,7 @@ export default function JoinRoster() {
       <div className="relative z-10 mx-auto max-w-[1400px] px-6 md:px-10">
         <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">Become an artist</p>
         <EyebrowRule />
-        <h2 className="mt-3 font-display text-6xl md:text-8xl leading-[0.92] text-ink">JOIN THE ROSTER</h2>
+        <RevealLines lines={['JOIN THE ROSTER']} className="mt-3 font-display text-6xl md:text-8xl leading-[0.92] text-ink" />
         <p className="mt-6 font-grotesk text-[var(--ink-72)] text-lg md:text-xl max-w-[52ch]">
           An entry point into the movement.
         </p>

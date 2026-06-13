@@ -4,6 +4,7 @@ import { motion } from 'framer-motion'
 import { PUBLIC_ARTISTS } from '../../lib/artistRoster'
 import { SPRING } from '../../lib/motion'
 import EyebrowRule from '../ui/EyebrowRule'
+import RevealLines from '../ui/RevealLines'
 import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 const AUTO_CYCLE_MS = 3500
@@ -29,9 +30,7 @@ export default function Roster() {
           Names that move rooms
         </p>
         <EyebrowRule />
-        <h2 className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl">
-          THE ROSTER
-        </h2>
+        <RevealLines lines={['THE ROSTER']} className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl" />
         <p className="mt-4 max-w-[60ch] font-grotesk text-[1rem] text-[var(--ink-72)] md:text-lg">
           We build the people, the sound, and the rooms they take over — not a roster we rent out by the hour.
         </p>

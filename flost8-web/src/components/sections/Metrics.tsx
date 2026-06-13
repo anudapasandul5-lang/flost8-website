@@ -4,6 +4,9 @@ import { METRICS } from '../../lib/config'
 import { useCountUp } from '../../hooks/useCountUp'
 import { useMotionSafe } from '../../hooks/useMotionSafe'
 import EyebrowRule from '../ui/EyebrowRule'
+import RevealLines from '../ui/RevealLines'
+import { motion } from 'framer-motion'
+import { EASE } from '../../lib/motion'
 
 const stats = [
   { value: METRICS.bookingsDriven, label: 'Bookings driven' },
@@ -41,11 +44,10 @@ export function Metrics() {
             By the numbers
           </p>
           <EyebrowRule />
-          <h2 className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl">
-            IMPACT THAT
-            <br />
-            MOVES FORWARD
-          </h2>
+          <RevealLines
+            lines={['IMPACT THAT', 'MOVES FORWARD']}
+            className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl"
+          />
         </div>
         <div
           ref={gridRef}
@@ -63,6 +65,16 @@ export function Metrics() {
               <span className="font-grotesk text-xs uppercase tracking-[0.15em] text-[var(--ink-50)] md:text-sm">
                 {stat.label}
               </span>
+              {reduce ? (
+                <div className="h-[2px] w-full origin-left bg-accent" style={{ transform: 'scaleX(1)' }} />
+              ) : (
+                <motion.div
+                  className="h-[2px] w-full origin-left bg-accent"
+                  initial={{ scaleX: 0 }}
+                  animate={{ scaleX: inView ? 1 : 0 }}
+                  transition={{ duration: 0.7, ease: EASE, delay: 0.15 }}
+                />
+              )}
             </div>
           ))}
         </div>

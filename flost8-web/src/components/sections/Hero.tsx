@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { useLenis } from 'lenis/react'
 import { ArrowUpRight, PaperPlaneTilt } from '@phosphor-icons/react'
 import { useHeroMotion } from '../../hooks/useHeroMotion'
@@ -25,6 +25,13 @@ export default function Hero() {
     wordRef,
     lenis,
   })
+
+  const { scrollYProgress } = useScroll({
+    target: sectionRef,
+    offset: ['start start', 'end start'],
+  })
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.12])
+  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '8%'])
 
   // Pause/resume the loop based on viewport visibility
   useEffect(() => {
@@ -55,7 +62,11 @@ export default function Hero() {
       className="relative min-h-[100dvh] overflow-hidden bg-base"
       aria-label="Hero"
     >
-      <div className="absolute inset-0" aria-hidden="true">
+      <motion.div
+        className="absolute inset-0"
+        aria-hidden="true"
+        style={reduce ? undefined : { scale: bgScale, y: bgY }}
+      >
         <img
           src="/ui2/hero-bg.jpeg"
           alt=""
@@ -94,7 +105,7 @@ export default function Hero() {
             <source src="/ui2/hero-loop.mp4" type="video/mp4" />
           </video>
         )}
-      </div>
+      </motion.div>
 
       {/* Dark grade for legibility */}
       <div className="absolute inset-0 bg-gradient-to-b from-base/40 via-base/55 to-base" aria-hidden="true" />
