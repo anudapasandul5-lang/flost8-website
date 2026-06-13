@@ -1,27 +1,11 @@
 import { useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { ArrowUpRight } from '@phosphor-icons/react'
 import { useUpcomingShows } from '../../hooks/useUpcomingShows'
 import { useMotionSafe } from '../../hooks/useMotionSafe'
-import { staggerParent, SPRING, EASE } from '../../lib/motion'
 import { PUBLIC_ARTISTS } from '../../lib/artistRoster'
 import type { UpcomingShow } from '../../lib/bookingContract'
-
-const chipVariants = {
-  hidden: { scale: 0.85, opacity: 0 },
-  visible: { scale: 1, opacity: 1, transition: SPRING },
-}
-
-// Rows reveal from alternating sides for a more kinetic entrance.
-const slideFromLeft = {
-  hidden: { opacity: 0, x: -48 },
-  visible: { opacity: 1, x: 0, transition: { duration: 1.15, ease: EASE } },
-}
-const slideFromRight = {
-  hidden: { opacity: 0, x: 48 },
-  visible: { opacity: 1, x: 0, transition: { duration: 1.15, ease: EASE } },
-}
 
 interface ShowRow {
   slug: string | null
@@ -45,18 +29,23 @@ export function showToRow(show: UpcomingShow): ShowRow {
   }
 }
 
-function ShowRowCard({ row, index, reduce }: { row: ShowRow; index: number; reduce: boolean }) {
+function ShowRowCard({ row, reduce }: { row: ShowRow; reduce: boolean }) {
   const rowRef = useRef<HTMLDivElement>(null)
-  // Per-row scroll parallax: the photo drifts vertically as the row passes through view.
-  const { scrollYProgress } = useScroll({ target: rowRef, offset: ['start end', 'end start'] })
-  const imgY = useTransform(scrollYProgress, [0, 1], ['-12%', '12%'])
-  const variant = index % 2 === 0 ? slideFromLeft : slideFromRight
+  // Reveal is SCROLL-LINKED: the row rises + fades as it travels from the bottom of
+  // the viewport up to centre — so it "comes up" at the pace of the scroll.
+  const { scrollYProgress } = useScroll({ target: rowRef, offset: ['start end', 'center center'] })
+  const smooth = useSpring(scrollYProgress, { stiffness: 70, damping: 22, restDelta: 0.0005 })
+  const y = useTransform(smooth, [0, 1], [130, 0])
+  const opacity = useTransform(smooth, [0, 0.85], [0, 1])
+  // photo drifts across the full pass for depth
+  const { scrollYProgress: pass } = useScroll({ target: rowRef, offset: ['start end', 'end start'] })
+  const imgY = useTransform(pass, [0, 1], ['-12%', '12%'])
 
   return (
     <motion.div
       ref={rowRef}
       className="group relative overflow-hidden rounded-xl md:rounded-2xl min-h-[96px] md:min-h-[128px] edge-refract"
-      variants={reduce ? undefined : variant}
+      style={reduce ? undefined : { y, opacity, willChange: 'transform, opacity' }}
     >
       {row.photo ? (
         <motion.div
@@ -90,12 +79,9 @@ function ShowRowCard({ row, index, reduce }: { row: ShowRow; index: number; redu
           <p className="font-grotesk text-[var(--ink-50)] text-sm mt-1 truncate">{row.place}</p>
         </motion.div>
 
-        <motion.div
-          className="bg-accent text-ink font-grotesk font-semibold px-4 py-2 rounded-lg text-sm md:text-[1rem] whitespace-nowrap shrink-0"
-          variants={reduce ? undefined : chipVariants}
-        >
+        <div className="bg-accent text-ink font-grotesk font-semibold px-4 py-2 rounded-lg text-sm md:text-[1rem] whitespace-nowrap shrink-0">
           {row.dateLabel}
-        </motion.div>
+        </div>
       </div>
     </motion.div>
   )
@@ -155,22 +141,15 @@ export default function Shows() {
         )}
 
         {!loading && shows.length > 0 && (
-          <motion.div
-            className="flex flex-col gap-3 md:gap-4"
-            variants={reduce ? undefined : staggerParent}
-            initial={reduce ? undefined : 'hidden'}
-            whileInView={reduce ? undefined : 'visible'}
-            viewport={{ once: true }}
-          >
+          <div className="flex flex-col gap-3 md:gap-4">
             {shows.map((show, index) => (
               <ShowRowCard
                 key={`${show.artist}-${show.date}-${index}`}
                 row={showToRow(show)}
-                index={index}
                 reduce={reduce}
               />
             ))}
-          </motion.div>
+          </div>
         )}
       </div>
     </section>
