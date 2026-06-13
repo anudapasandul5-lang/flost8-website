@@ -20,7 +20,7 @@ export const SERVICES = [
   {
     no: '01',
     title: 'Artist Development',
-    line: 'Identity, sound, and stage presence shaped into a career — not a calendar of gigs.',
+    line: 'Identity, sound, and stage presence shaped into a career.',
   },
   {
     no: '02',
@@ -30,7 +30,7 @@ export const SERVICES = [
   {
     no: '03',
     title: 'Content Engine',
-    line: 'Sets, reels, and visuals produced in-house so the work travels further than the room.',
+    line: 'Sets, visuals, and campaign content produced in-house so the work travels further than the room.',
   },
 ] as const;
 
