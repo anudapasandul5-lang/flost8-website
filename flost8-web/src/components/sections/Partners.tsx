@@ -104,7 +104,10 @@ export default function Partners() {
       const e = 1 - Math.pow(1 - local, 3) // easeOutCubic
       // Exit ripples center-out too (mirror of entry), so scrolling up re-reveals center-out.
       const exitLocal = Math.min(Math.max((exit - start) / 0.4, 0), 1)
-      const eo = 1 - Math.pow(1 - exitLocal, 3) // easeOutCubic
+      // On mobile the grid wraps into several tall rows; fading tiles out on exit leaves
+      // a large empty void before the next section. Keep tiles visible on mobile —
+      // only desktop (one short row) does the center-out exit fade.
+      const eo = window.innerWidth < 768 ? 0 : 1 - Math.pow(1 - exitLocal, 3) // easeOutCubic
       const target = e * (1 - eo)
       targets.current[i] = target
       // Scale is entry-only, written directly (not eased).

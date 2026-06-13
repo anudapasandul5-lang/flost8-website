@@ -139,11 +139,11 @@ export default function Services() {
   // Pinned stage — header stays fixed, cards rise + stack beneath. All viewports.
   return (
     <section id="about" className="relative bg-base">
-      <div ref={trackRef} className="relative h-[320vh] md:h-[340vh]">
+      <div ref={trackRef} className="relative h-[360vh] md:h-[340vh]">
         <div className="sticky top-0 h-[100dvh] overflow-hidden">
-          <div className="mx-auto flex h-full max-w-[1400px] flex-col px-6 pb-8 pt-24 md:px-10 md:pb-10 md:pt-28">
+          <div className="mx-auto flex h-full max-w-[1400px] flex-col px-6 pb-10 pt-24 md:px-10 md:pb-10 md:pt-28">
             <Header />
-            <div className="relative mt-6 min-h-0 flex-1 md:mt-12">
+            <div className="relative mt-12 min-h-0 flex-1 md:mt-12">
               {SERVICES.map((service, i) => (
                 <StackCard
                   key={service.no}
