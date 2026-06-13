@@ -39,7 +39,7 @@ export default function MainPage() {
     <main className="bg-base">
       <Hero />
       <Partners />
-      <ScrollFadeSection><Roster /></ScrollFadeSection>
+      <Roster />
       <Services />
       <ScrollFadeSection><Metrics /></ScrollFadeSection>
       <ScrollFadeSection><Shows /></ScrollFadeSection>
