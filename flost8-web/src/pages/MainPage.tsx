@@ -10,7 +10,6 @@ import { Metrics } from '../components/sections/Metrics'
 import Partners from '../components/sections/Partners'
 import Footer from '../components/sections/Footer'
 import ScrollFadeSection from '../components/ui/ScrollFadeSection'
-import PerspectiveSeam from '../components/ui/PerspectiveSeam'
 
 export default function MainPage() {
   const { hash } = useLocation()
@@ -43,8 +42,8 @@ export default function MainPage() {
       <Roster />
       <Services />
       <ScrollFadeSection><Metrics /></ScrollFadeSection>
-      <PerspectiveSeam><Shows /></PerspectiveSeam>
-      <JoinRoster />
+      <ScrollFadeSection><Shows /></ScrollFadeSection>
+      <ScrollFadeSection><JoinRoster /></ScrollFadeSection>
       <ScrollFadeSection noFadeOut><Footer /></ScrollFadeSection>
     </main>
   )
