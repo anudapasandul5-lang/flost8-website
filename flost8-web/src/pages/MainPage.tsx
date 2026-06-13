@@ -40,7 +40,7 @@ export default function MainPage() {
       <Hero />
       <Partners />
       <ScrollFadeSection><Roster /></ScrollFadeSection>
-      <ScrollFadeSection><Services /></ScrollFadeSection>
+      <Services />
       <ScrollFadeSection><Metrics /></ScrollFadeSection>
       <ScrollFadeSection><Shows /></ScrollFadeSection>
       <ScrollFadeSection><JoinRoster /></ScrollFadeSection>
