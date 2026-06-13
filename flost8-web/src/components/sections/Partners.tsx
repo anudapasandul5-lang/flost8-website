@@ -40,12 +40,11 @@ export default function Partners() {
     offset: ['start 0.9', 'start 0.4'],
   })
 
-  // Exit window: ramps 0→1 as the grid top crosses and leaves the top edge.
-  // Narrow/responsive — the down-fade tracks scroll directly; scroll-up slowness
-  // comes from the rAF lerp (K), not from stretching this window.
-  const { scrollYProgress: exitProgress } = useScroll({
+  // Drives repaints throughout the section's exit so each tile can fade by its OWN
+  // viewport position (smooth top-down fade-out, no empty void on tall mobile grids).
+  const { scrollYProgress: leaveProgress } = useScroll({
     target: gridRef,
-    offset: ['start 0.15', 'start -0.15'],
+    offset: ['start 0.5', 'end start'],
   })
 
   // tick: called each animation frame while running.
@@ -91,7 +90,7 @@ export default function Partners() {
     const grid = gridRef.current
     if (!grid) return
     const p = scrollYProgress.get()
-    const exit = Math.min(Math.max(exitProgress.get(), 0), 1)
+    const vh = window.innerHeight || 1
     const tiles = grid.querySelectorAll<HTMLElement>('.partner-tile')
     const c = (tiles.length - 1) / 2
 
@@ -101,14 +100,15 @@ export default function Partners() {
       const distNorm = c === 0 ? 0 : Math.abs(i - c) / c // 0 center -> 1 edge
       const start = distNorm * 0.6 // edges start later
       const local = Math.min(Math.max((p - start) / 0.4, 0), 1)
-      const e = 1 - Math.pow(1 - local, 3) // easeOutCubic
-      // Exit ripples center-out too (mirror of entry), so scrolling up re-reveals center-out.
-      const exitLocal = Math.min(Math.max((exit - start) / 0.4, 0), 1)
-      // On mobile the grid wraps into several tall rows; fading tiles out on exit leaves
-      // a large empty void before the next section. Keep tiles visible on mobile —
-      // only desktop (one short row) does the center-out exit fade.
-      const eo = window.innerWidth < 768 ? 0 : 1 - Math.pow(1 - exitLocal, 3) // easeOutCubic
-      const target = e * (1 - eo)
+      const e = 1 - Math.pow(1 - local, 3) // easeOutCubic (reveal-in, center-out)
+      // Exit: each tile fades by its own viewport position as it scrolls off the top,
+      // so the grid empties top-down — no faded-but-space-occupying void (tall mobile grids).
+      const rect = tile.getBoundingClientRect()
+      const center = rect.top + rect.height / 2
+      const fadeEnd = vh * -0.02 // fully gone just past the top edge
+      const fadeStart = vh * 0.2 // begins fading in the top fifth of the viewport
+      const exitVis = Math.min(Math.max((center - fadeEnd) / (fadeStart - fadeEnd), 0), 1)
+      const target = Math.min(e, exitVis)
       targets.current[i] = target
       // Scale is entry-only, written directly (not eased).
       tile.style.transform = `scale(${0.6 + 0.4 * e})`
@@ -130,7 +130,7 @@ export default function Partners() {
     paint()
   })
 
-  useMotionValueEvent(exitProgress, 'change', () => {
+  useMotionValueEvent(leaveProgress, 'change', () => {
     if (reduce) return
     paint()
   })
