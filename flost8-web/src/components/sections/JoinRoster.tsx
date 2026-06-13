@@ -24,7 +24,7 @@ export default function JoinRoster() {
       </span>
 
       <div className="relative z-10 mx-auto max-w-[1400px] px-6 md:px-10">
-        <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">Join</p>
+        <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">Become an artist</p>
         <EyebrowRule />
         <h2 className="mt-3 font-display text-6xl md:text-8xl leading-[0.92] text-ink">JOIN THE ROSTER</h2>
         <p className="mt-6 font-grotesk text-[var(--ink-72)] text-lg md:text-xl max-w-[52ch]">

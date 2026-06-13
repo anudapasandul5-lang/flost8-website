@@ -15,7 +15,7 @@ export default function Services() {
       <div className="mx-auto max-w-[1400px] px-6 md:px-10">
         <div>
           <p className="font-grotesk uppercase tracking-[0.25em] text-[13px] text-accent-ink">
-            What We Do
+            Three ways we work
           </p>
           <h2 className="mt-4 font-display text-ink text-5xl md:text-7xl leading-[0.9]">
             WHAT WE DO

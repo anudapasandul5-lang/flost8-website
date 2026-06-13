@@ -37,7 +37,7 @@ export default function Shows() {
       <div className="max-w-[1400px] mx-auto px-6 md:px-10">
         <div className="mb-12 md:mb-16">
           <p className="font-grotesk uppercase tracking-[0.25em] text-[13px] text-accent-ink mb-4">
-            Upcoming
+            Next up
           </p>
           <h2 className="font-display text-ink text-5xl md:text-7xl leading-[0.9]">
             UPCOMING SHOWS

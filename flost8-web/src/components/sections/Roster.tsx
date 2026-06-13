@@ -26,7 +26,7 @@ export default function Roster() {
     <section id="roster" className="relative bg-base py-10 md:py-20">
       <div className="mx-auto max-w-[1400px] px-6 md:px-10">
         <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">
-          The Roster
+          Names that move rooms
         </p>
         <EyebrowRule />
         <h2 className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl">

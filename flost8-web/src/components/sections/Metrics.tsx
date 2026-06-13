@@ -38,7 +38,7 @@ export function Metrics() {
       <div className="relative z-10 mx-auto max-w-[1400px] px-6 md:px-10">
         <div className="mb-12 md:mb-16">
           <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">
-            Impact
+            By the numbers
           </p>
           <EyebrowRule />
           <h2 className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl">
