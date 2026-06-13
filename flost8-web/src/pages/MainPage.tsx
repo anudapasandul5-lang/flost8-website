@@ -4,13 +4,9 @@ import { useLenis } from 'lenis/react'
 import Hero from '../components/sections/Hero'
 import Roster from '../components/sections/Roster'
 import Shows from '../components/sections/Shows'
-import SoundEthos from '../components/sections/SoundEthos'
-import WhatWeDo from '../components/sections/WhatWeDo'
 import Services from '../components/sections/Services'
 import { Metrics } from '../components/sections/Metrics'
 import Partners from '../components/sections/Partners'
-import LivePhoto from '../components/sections/LivePhoto'
-import BookingsPreview from '../components/sections/BookingsPreview'
 import Footer from '../components/sections/Footer'
 import ScrollFadeSection from '../components/ui/ScrollFadeSection'
 
@@ -43,13 +39,9 @@ export default function MainPage() {
       <Hero />
       <Partners />
       <ScrollFadeSection><Roster /></ScrollFadeSection>
-      <ScrollFadeSection><Shows /></ScrollFadeSection>
-      <ScrollFadeSection><SoundEthos /></ScrollFadeSection>
-      <ScrollFadeSection><WhatWeDo /></ScrollFadeSection>
       <ScrollFadeSection><Services /></ScrollFadeSection>
       <ScrollFadeSection><Metrics /></ScrollFadeSection>
-      <ScrollFadeSection><LivePhoto /></ScrollFadeSection>
-      <ScrollFadeSection><BookingsPreview /></ScrollFadeSection>
+      <ScrollFadeSection><Shows /></ScrollFadeSection>
       <ScrollFadeSection noFadeOut><Footer /></ScrollFadeSection>
     </main>
   )

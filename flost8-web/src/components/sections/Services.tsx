@@ -11,16 +11,14 @@ export default function Services() {
   const { reduce } = useMotionSafe()
 
   return (
-    <section id="services" className="relative bg-base pt-14 md:pt-20 pb-6 md:pb-6">
+    <section id="about" className="relative bg-base pt-14 md:pt-20 pb-6 md:pb-6">
       <div className="mx-auto max-w-[1400px] px-6 md:px-10">
         <div>
           <p className="font-grotesk uppercase tracking-[0.25em] text-[13px] text-accent-ink">
-            What We Offer
+            What We Do
           </p>
           <h2 className="mt-4 font-display text-ink text-5xl md:text-7xl leading-[0.9]">
-            THREE WAYS
-            <br />
-            WE WORK
+            WHAT WE DO
           </h2>
         </div>
 
