@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { PUBLIC_ARTISTS } from '../../lib/artistRoster'
@@ -16,10 +16,23 @@ export default function Roster() {
 
   // Refs and scroll hooks declared unconditionally (Rules of Hooks)
   const trackOuter = useRef<HTMLDivElement>(null)
+  const trackRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: trackOuter, offset: ['start start', 'end end'] })
-  const count = PUBLIC_ARTISTS.length
-  // Pan so the last card ends flush at the right edge
-  const x = useTransform(scrollYProgress, [0, 1], ['0%', `-${((count - 1) / count) * 100}%`])
+
+  // Measured pixel distance so last card ends flush at the right edge
+  const [endX, setEndX] = useState(0)
+  useLayoutEffect(() => {
+    const calc = () => {
+      const track = trackRef.current
+      if (!track) return
+      setEndX(Math.min(0, window.innerWidth - track.scrollWidth))
+    }
+    calc()
+    window.addEventListener('resize', calc)
+    return () => window.removeEventListener('resize', calc)
+  }, [])
+
+  const x = useTransform(scrollYProgress, [0, 1], [0, endX])
 
   useEffect(() => {
     if (reduce || paused) return
@@ -48,6 +61,7 @@ export default function Roster() {
         <div ref={trackOuter} className="relative hidden h-[300vh] md:block">
           <div className="sticky top-0 flex h-[100dvh] items-center overflow-hidden">
             <motion.div
+              ref={trackRef}
               style={{ x, willChange: 'transform' }}
               className="flex gap-4 px-6 md:px-10"
             >
