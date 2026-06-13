@@ -16,11 +16,11 @@ const chipVariants = {
 // Rows reveal from alternating sides for a more kinetic entrance.
 const slideFromLeft = {
   hidden: { opacity: 0, x: -48 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: EASE } },
+  visible: { opacity: 1, x: 0, transition: { duration: 1.15, ease: EASE } },
 }
 const slideFromRight = {
   hidden: { opacity: 0, x: 48 },
-  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: EASE } },
+  visible: { opacity: 1, x: 0, transition: { duration: 1.15, ease: EASE } },
 }
 
 interface ShowRow {
