@@ -64,8 +64,8 @@ function StackCard({ service, index, image, reduce }: StackCardProps) {
     )
   }
 
-  // Animated sticky-stacking path
-  const topOffset = `calc(6vh + ${index * 28}px)`
+  // Animated sticky-stacking path — pin BELOW the sticky header (clear its height)
+  const topOffset = `calc(215px + ${index * 26}px)`
 
   return (
     // cardContainer: h-[100dvh] scroll region that pins
@@ -114,10 +114,10 @@ export default function Services() {
   const { reduce } = useMotionSafe()
 
   return (
-    <section id="about" className="relative bg-base pt-14 md:pt-20 pb-6 md:pb-6">
+    <section id="about" className="relative bg-base pb-6 md:pb-6">
       <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-        {/* Header */}
-        <div>
+        {/* Sticky header — stays pinned while the cards scroll/stack beneath it */}
+        <div className="sticky top-[64px] z-30 bg-base pt-14 md:pt-20 pb-6">
           <p className="font-grotesk uppercase tracking-[0.25em] text-[13px] text-accent-ink">
             Three ways we work
           </p>
@@ -128,7 +128,7 @@ export default function Services() {
         </div>
 
         {/* Stacking cards */}
-        <div className={reduce ? 'mt-10 md:mt-14' : 'mt-4 md:mt-6'}>
+        <div className={reduce ? 'mt-10 md:mt-14' : 'mt-0'}>
           {SERVICES.map((service, i) => (
             <StackCard
               key={service.no}
