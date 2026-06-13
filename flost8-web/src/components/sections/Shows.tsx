@@ -1,16 +1,27 @@
+import { useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { ArrowUpRight } from '@phosphor-icons/react'
 import { useUpcomingShows } from '../../hooks/useUpcomingShows'
 import { useMotionSafe } from '../../hooks/useMotionSafe'
-import { fadeUp, staggerParent, SPRING } from '../../lib/motion'
+import { staggerParent, SPRING, EASE } from '../../lib/motion'
 import { PUBLIC_ARTISTS } from '../../lib/artistRoster'
+import type { UpcomingShow } from '../../lib/bookingContract'
 
 const chipVariants = {
   hidden: { scale: 0.85, opacity: 0 },
   visible: { scale: 1, opacity: 1, transition: SPRING },
 }
-import type { UpcomingShow } from '../../lib/bookingContract'
+
+// Rows reveal from alternating sides for a more kinetic entrance.
+const slideFromLeft = {
+  hidden: { opacity: 0, x: -48 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: EASE } },
+}
+const slideFromRight = {
+  hidden: { opacity: 0, x: 48 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.7, ease: EASE } },
+}
 
 interface ShowRow {
   slug: string | null
@@ -32,6 +43,62 @@ export function showToRow(show: UpcomingShow): ShowRow {
     title: show.artist,
     place: `${show.venue} · ${show.city}`,
   }
+}
+
+function ShowRowCard({ row, index, reduce }: { row: ShowRow; index: number; reduce: boolean }) {
+  const rowRef = useRef<HTMLDivElement>(null)
+  // Per-row scroll parallax: the photo drifts vertically as the row passes through view.
+  const { scrollYProgress } = useScroll({ target: rowRef, offset: ['start end', 'end start'] })
+  const imgY = useTransform(scrollYProgress, [0, 1], ['-12%', '12%'])
+  const variant = index % 2 === 0 ? slideFromLeft : slideFromRight
+
+  return (
+    <motion.div
+      ref={rowRef}
+      className="group relative overflow-hidden rounded-xl md:rounded-2xl min-h-[96px] md:min-h-[128px] edge-refract"
+      variants={reduce ? undefined : variant}
+    >
+      {row.photo ? (
+        <motion.div
+          className="absolute inset-0"
+          style={reduce ? undefined : { y: imgY, willChange: 'transform' }}
+        >
+          {/* taller than the row so the parallax drift never reveals an edge */}
+          <img
+            src={row.photo}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            className="duotone-purple absolute left-0 top-[-18%] h-[136%] w-full object-cover opacity-60 transition-transform duration-[750ms] ease-out group-hover:scale-105"
+          />
+        </motion.div>
+      ) : (
+        <div className="absolute inset-0 bg-base-raise" />
+      )}
+
+      <div className="absolute inset-0 bg-gradient-to-r from-base via-base/70 to-transparent" />
+
+      <div className="relative z-10 grid h-full grid-cols-[1fr_auto] items-center gap-4 px-5 py-5 md:px-8 md:py-6">
+        <motion.div
+          className="min-w-0"
+          transition={{ duration: 0.45, ease: 'easeOut' }}
+          whileHover={reduce ? undefined : { x: 6 }}
+        >
+          <p className="font-display text-ink text-3xl md:text-5xl leading-tight truncate">
+            {row.title}
+          </p>
+          <p className="font-grotesk text-[var(--ink-50)] text-sm mt-1 truncate">{row.place}</p>
+        </motion.div>
+
+        <motion.div
+          className="bg-accent text-ink font-grotesk font-semibold px-4 py-2 rounded-lg text-sm md:text-[1rem] whitespace-nowrap shrink-0"
+          variants={reduce ? undefined : chipVariants}
+        >
+          {row.dateLabel}
+        </motion.div>
+      </div>
+    </motion.div>
+  )
 }
 
 export default function Shows() {
@@ -95,50 +162,14 @@ export default function Shows() {
             whileInView={reduce ? undefined : 'visible'}
             viewport={{ once: true }}
           >
-            {shows.map((show, index) => {
-              const row = showToRow(show)
-              return (
-                <motion.div
-                  key={`${row.title}-${row.dateLabel}-${index}`}
-                  className="group relative overflow-hidden rounded-xl md:rounded-2xl min-h-[96px] md:min-h-[128px] edge-refract"
-                  variants={reduce ? undefined : fadeUp}
-                >
-                  {row.photo ? (
-                    <img
-                      src={row.photo}
-                      alt=""
-                      aria-hidden="true"
-                      loading="lazy"
-                      className="duotone-purple absolute inset-0 h-full w-full object-cover opacity-60 transition-transform duration-[750ms] ease-out group-hover:scale-105"
-                    />
-                  ) : (
-                    <div className="absolute inset-0 bg-base-raise" />
-                  )}
-
-                  <div className="absolute inset-0 bg-gradient-to-r from-base via-base/70 to-transparent" />
-
-                  <div className="relative z-10 grid h-full grid-cols-[1fr_auto] items-center gap-4 px-5 py-5 md:px-8 md:py-6">
-                    <motion.div
-                      className="min-w-0"
-                      transition={{ duration: 0.45, ease: 'easeOut' }}
-                      whileHover={reduce ? undefined : { x: 6 }}
-                    >
-                      <p className="font-display text-ink text-3xl md:text-5xl leading-tight truncate">
-                        {row.title}
-                      </p>
-                      <p className="font-grotesk text-[var(--ink-50)] text-sm mt-1 truncate">{row.place}</p>
-                    </motion.div>
-
-                    <motion.div
-                      className="bg-accent text-ink font-grotesk font-semibold px-4 py-2 rounded-lg text-sm md:text-[1rem] whitespace-nowrap shrink-0"
-                      variants={reduce ? undefined : chipVariants}
-                    >
-                      {row.dateLabel}
-                    </motion.div>
-                  </div>
-                </motion.div>
-              )
-            })}
+            {shows.map((show, index) => (
+              <ShowRowCard
+                key={`${show.artist}-${show.date}-${index}`}
+                row={showToRow(show)}
+                index={index}
+                reduce={reduce}
+              />
+            ))}
           </motion.div>
         )}
       </div>
