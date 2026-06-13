@@ -40,9 +40,7 @@ export default function Shows() {
             Upcoming
           </p>
           <h2 className="font-display text-ink text-5xl md:text-7xl leading-[0.9]">
-            WHERE TO
-            <br />
-            CATCH US
+            UPCOMING SHOWS
           </h2>
         </div>
 

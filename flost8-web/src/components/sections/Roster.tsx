@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { PUBLIC_ARTISTS } from '../../lib/artistRoster'
 import { SPRING } from '../../lib/motion'
@@ -29,10 +30,11 @@ export default function Roster() {
         </p>
         <EyebrowRule />
         <h2 className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl">
-          ARTISTS WHO
-          <br />
-          MOVE ROOMS
+          THE ROSTER
         </h2>
+        <p className="mt-4 max-w-[60ch] font-grotesk text-base text-[var(--ink-72)] md:text-lg">
+          We build the people, the sound, and the rooms they take over — not a roster we rent out by the hour.
+        </p>
       </div>
 
       {/* Desktop / tablet — horizontal accordion */}
@@ -95,6 +97,22 @@ export default function Roster() {
                     <p className="mt-2 font-grotesk text-xs uppercase tracking-wide text-[var(--ink-50)] md:text-sm">
                       {artist.role}
                     </p>
+                    <div className="mt-4 flex flex-wrap gap-2.5">
+                      <Link
+                        to={`/bookings?artist=${artist.slug}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="accent-press edge-refract inline-flex min-h-[44px] items-center gap-2 rounded-full bg-accent px-5 py-2.5 font-grotesk text-sm text-ink"
+                      >
+                        Book Now
+                      </Link>
+                      <Link
+                        to={`/bookings?artist=${artist.slug}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--accent-line)] px-5 py-2.5 font-grotesk text-sm text-ink transition-colors hover:bg-[var(--accent-soft)]"
+                      >
+                        View Artist
+                      </Link>
+                    </div>
                   </div>
                 </>
               )}
@@ -164,6 +182,22 @@ export default function Roster() {
                     <p className="mt-2 font-grotesk text-xs uppercase tracking-wide text-[var(--ink-50)]">
                       {artist.role}
                     </p>
+                    <div className="mt-4 flex flex-wrap gap-2.5">
+                      <Link
+                        to={`/bookings?artist=${artist.slug}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="accent-press edge-refract inline-flex min-h-[44px] items-center gap-2 rounded-full bg-accent px-5 py-2.5 font-grotesk text-sm text-ink"
+                      >
+                        Book Now
+                      </Link>
+                      <Link
+                        to={`/bookings?artist=${artist.slug}`}
+                        onClick={(e) => e.stopPropagation()}
+                        className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--accent-line)] px-5 py-2.5 font-grotesk text-sm text-ink transition-colors hover:bg-[var(--accent-soft)]"
+                      >
+                        View Artist
+                      </Link>
+                    </div>
                   </div>
                 </>
               ) : (

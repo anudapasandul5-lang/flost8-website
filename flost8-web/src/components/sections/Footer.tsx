@@ -5,23 +5,23 @@ import { InstagramLogo } from '@phosphor-icons/react'
 const footerCols = [
   {
     heading: 'PLATFORM',
-    links: ['The Roster', 'Upcoming Shows', 'Book an Artist', 'Brand Deals'],
-    hrefs: ['#roster', '#shows', '/bookings', 'mailto:bookings@flost8.lk'],
+    links: ['The Roster', 'Upcoming Shows', 'Book an Artist', 'Collaborations'],
+    hrefs: ['/#roster', '/#shows', '/bookings', '/collaborate'],
   },
   {
     heading: 'FOR ARTISTS',
-    links: ['Join the Roster', 'Content Engine', 'Brand Partnerships', 'Booking Support'],
-    hrefs: ['mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk', '/bookings'],
+    links: ['Join the Roster', 'Content Engine', 'Booking Support'],
+    hrefs: ['/join', '/#about', '/bookings'],
   },
   {
     heading: 'FOR VENUES & EVENTS',
-    links: ['Curated Lineups', 'B2B / B3B Sets', 'Content Coverage', 'Promotion Support'],
-    hrefs: ['/bookings', '/bookings', 'mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk'],
+    links: ['Curated Lineups', 'B2B / B3B Sets', 'Content Coverage'],
+    hrefs: ['/bookings', '/bookings', '/partner'],
   },
   {
-    heading: 'FOR BRANDS',
-    links: ['Direct Access to DJs', 'Product Placement', 'Lifestyle Integration', 'Content With Reach'],
-    hrefs: ['mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk', 'mailto:bookings@flost8.lk'],
+    heading: 'FOR BRANDS & PARTNERS',
+    links: ['Direct Access', 'Product Placement', 'Lifestyle Integration'],
+    hrefs: ['/partner', '/partner', '/partner'],
   },
 ] as const
 
