@@ -63,7 +63,7 @@ function ShowRow({ show }: { show: UpcomingShow }) {
 }
 
 export default function BookingsPage() {
-  const { shows, loading: showsLoading, error: showsError } = useUpcomingShows()
+  const { shows, loading: showsLoading } = useUpcomingShows()
   const [formData, setFormData] = useState<BookingFormData>(getInitialBookingForm)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
@@ -303,19 +303,13 @@ export default function BookingsPage() {
 
           {showsLoading && <SkeletonRows />}
 
-          {!showsLoading && showsError && (
-            <div className="text-center py-12">
-              <p className="font-body text-white/50">Could not load shows. Check back later.</p>
-            </div>
-          )}
-
-          {!showsLoading && !showsError && shows.length === 0 && (
+          {!showsLoading && shows.length === 0 && (
             <div className="text-center py-12">
               <p className="font-body text-white/50">No upcoming shows scheduled. Check back soon.</p>
             </div>
           )}
 
-          {!showsLoading && !showsError && shows.map((show, i) => (
+          {!showsLoading && shows.map((show, i) => (
             <ShowRow key={`${show.artist}-${i}`} show={show} />
           ))}
         </motion.div>
