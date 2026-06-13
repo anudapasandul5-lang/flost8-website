@@ -280,7 +280,7 @@ export default function BookingsPage() {
                 <button
                   type="submit"
                   disabled={isSubmitDisabled}
-                  className="md:col-span-2 w-full inline-flex items-center justify-center bg-accent text-ink font-grotesk font-medium py-4 rounded-full text-base accent-press edge-refract disabled:opacity-50 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
+                  className="md:col-span-2 w-full inline-flex items-center justify-center bg-accent text-ink font-grotesk font-medium py-4 rounded-full text-[1rem] accent-press edge-refract disabled:opacity-50 disabled:cursor-not-allowed transition-opacity hover:opacity-90"
                 >
                   {submitting ? 'Sending...' : 'Submit Booking Enquiry'}
                 </button>

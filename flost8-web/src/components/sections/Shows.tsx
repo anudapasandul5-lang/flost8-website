@@ -116,7 +116,7 @@ export default function Shows() {
                       <p className="font-grotesk text-[var(--ink-50)] text-sm mt-1 truncate">{row.place}</p>
                     </motion.div>
 
-                    <div className="bg-accent text-ink font-grotesk font-semibold px-4 py-2 rounded-lg text-sm md:text-base whitespace-nowrap shrink-0">
+                    <div className="bg-accent text-ink font-grotesk font-semibold px-4 py-2 rounded-lg text-sm md:text-[1rem] whitespace-nowrap shrink-0">
                       {row.dateLabel}
                     </div>
                   </div>

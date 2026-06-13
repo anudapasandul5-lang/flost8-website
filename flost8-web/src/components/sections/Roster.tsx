@@ -32,7 +32,7 @@ export default function Roster() {
         <h2 className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl">
           THE ROSTER
         </h2>
-        <p className="mt-4 max-w-[60ch] font-grotesk text-base text-[var(--ink-72)] md:text-lg">
+        <p className="mt-4 max-w-[60ch] font-grotesk text-[1rem] text-[var(--ink-72)] md:text-lg">
           We build the people, the sound, and the rooms they take over — not a roster we rent out by the hour.
         </p>
       </div>

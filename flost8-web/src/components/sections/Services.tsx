@@ -53,7 +53,7 @@ export default function Services() {
                 >
                   {service.title}
                 </motion.h3>
-                <p className="mt-3 font-grotesk text-[var(--ink-50)] text-base md:text-lg max-w-[46ch]">
+                <p className="mt-3 font-grotesk text-[var(--ink-50)] text-[1rem] md:text-lg max-w-[46ch]">
                   {service.line}
                 </p>
               </div>
@@ -74,7 +74,7 @@ export default function Services() {
         <div className="mt-6 md:mt-8">
           <Link
             to="/bookings"
-            className="inline-flex min-h-[44px] items-center font-grotesk text-accent-ink text-base md:text-lg hover:text-accent transition-colors"
+            className="inline-flex min-h-[44px] items-center font-grotesk text-accent-ink text-[1rem] md:text-lg hover:text-accent transition-colors"
           >
             Start a project
             <ArrowRight size={20} weight="bold" className="ml-2" />
