@@ -12,42 +12,77 @@ const TOTAL = SERVICES.length
 
 type Service = (typeof SERVICES)[number]
 
-/** The card visual — shared by the animated and reduced-motion paths. */
-function CardInner({ service, image }: { service: Service; image: string }) {
+/**
+ * The card visual. `compact` = mobile / reduced-motion: auto height, image on top,
+ * normal document flow. Otherwise = desktop pinned-stage: fixed tall height, side image.
+ */
+function CardInner({
+  service,
+  image,
+  compact = false,
+}: {
+  service: Service
+  image: string
+  compact?: boolean
+}) {
   return (
-    <div className="relative mx-auto w-full max-w-[1100px] overflow-hidden rounded-[2rem] bg-base-raise edge-refract h-[56vh] md:h-[58vh] shadow-[0_40px_80px_-30px_rgba(0,0,0,0.7)]">
-      <div className="relative z-10 flex h-full flex-col md:flex-row">
-        <div className="flex flex-1 flex-col justify-center px-8 py-8 md:px-12 md:py-12">
-          <span className="mb-3 font-display text-6xl leading-none text-accent md:text-8xl">
+    <div
+      className={`relative mx-auto w-full max-w-[1100px] overflow-hidden rounded-[1.75rem] bg-base-raise edge-refract shadow-[0_40px_80px_-30px_rgba(0,0,0,0.7)] md:rounded-[2rem] ${
+        compact ? '' : 'h-[56vh] md:h-[58vh]'
+      }`}
+    >
+      <div className={`relative z-10 flex ${compact ? 'flex-col' : 'h-full flex-col md:flex-row'}`}>
+        {compact && (
+          <div className="relative h-40 overflow-hidden">
+            <img
+              src={image}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              className="grade-portrait h-full w-full object-cover"
+            />
+          </div>
+        )}
+        <div
+          className={`flex flex-col justify-center ${
+            compact ? 'px-6 py-7' : 'flex-1 px-8 py-8 md:px-12 md:py-12'
+          }`}
+        >
+          <span
+            className={`mb-3 font-display leading-none text-accent ${
+              compact ? 'text-5xl' : 'text-6xl md:text-8xl'
+            }`}
+          >
             {service.no}
           </span>
-          <h3 className="mb-4 font-display text-4xl leading-[0.95] text-ink md:text-6xl">
+          <h3
+            className={`mb-4 font-display leading-[0.95] text-ink ${
+              compact ? 'text-3xl' : 'text-4xl md:text-6xl'
+            }`}
+          >
             {service.title}
           </h3>
           <p className="max-w-[52ch] font-grotesk text-[1rem] text-[var(--ink-72)] md:text-lg">
             {service.line}
           </p>
         </div>
-        <div className="relative overflow-hidden md:w-[42%]">
-          <img
-            src={image}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            className="grade-portrait h-40 w-full object-cover md:h-full"
-          />
-        </div>
+        {!compact && (
+          <div className="relative overflow-hidden md:w-[42%]">
+            <img
+              src={image}
+              alt=""
+              aria-hidden="true"
+              loading="lazy"
+              className="grade-portrait h-40 w-full object-cover md:h-full"
+            />
+          </div>
+        )}
       </div>
     </div>
   )
 }
 
-/**
- * One card in the pinned stage. Enters from the bottom as scroll progress crosses
- * its segment, then stays — earlier cards scale down a touch so they peek behind
- * (a true stack, not a swap). Cards never travel above the stage, so they are never
- * clipped by the pinned header.
- */
+/** Desktop pinned-stage card — rises from below and stacks under the fixed header. */
 function StackCard({
   service,
   image,
@@ -61,17 +96,14 @@ function StackCard({
 }) {
   const seg = 1 / TOTAL
   const enterAt = index * seg
-  // first card is already in place; later cards slide up from below
   const y = useTransform(
     progress,
     [Math.max(0, enterAt - seg), enterAt],
     index === 0 ? ['0%', '0%'] : ['115%', '0%'],
   )
-  // shrink + lift slightly once the NEXT card begins covering this one
   const isLast = index === TOTAL - 1
   const scale = useTransform(progress, [enterAt, isLast ? 1 : enterAt + seg], [1, isLast ? 1 : 0.92])
   const lift = useTransform(progress, [enterAt, isLast ? 1 : enterAt + seg], ['0%', isLast ? '0%' : '-7%'])
-  // soft fade-in as a later card rises (first card always visible)
   const opacity = useTransform(
     progress,
     [Math.max(0, enterAt - seg * 0.8), Math.max(0, enterAt - seg * 0.35)],
@@ -79,10 +111,7 @@ function StackCard({
   )
 
   return (
-    <motion.div
-      style={{ y, opacity, zIndex: index }}
-      className="absolute inset-x-0 top-0"
-    >
+    <motion.div style={{ y, opacity, zIndex: index }} className="absolute inset-x-0 top-0">
       <motion.div style={{ scale, y: lift, willChange: 'transform' }} className="origin-top">
         <CardInner service={service} image={image} />
       </motion.div>
@@ -116,6 +145,23 @@ function StartLink() {
   )
 }
 
+/** Simple stacked layout — used for mobile and reduced-motion. */
+function PlainStack() {
+  return (
+    <div className="mx-auto max-w-[1400px] px-6 pb-6 pt-14 md:px-10 md:pt-20">
+      <Header />
+      <div className="mt-10 flex flex-col gap-5">
+        {SERVICES.map((service, i) => (
+          <CardInner key={service.no} service={service} image={SERVICE_IMAGES[i]} compact />
+        ))}
+      </div>
+      <div className="mt-8">
+        <StartLink />
+      </div>
+    </div>
+  )
+}
+
 export default function Services() {
   const { reduce } = useMotionSafe()
   const trackRef = useRef<HTMLDivElement>(null)
@@ -123,7 +169,6 @@ export default function Services() {
     target: trackRef,
     offset: ['start start', 'end end'],
   })
-  // Spring-smooth the scrub so card motion glides instead of tracking scroll 1:1.
   const smoothProgress = useSpring(scrollYProgress, {
     stiffness: 90,
     damping: 26,
@@ -131,48 +176,43 @@ export default function Services() {
   })
 
   if (reduce) {
-    // Plain vertical stack — header in normal flow, cards static.
     return (
-      <section id="about" className="relative bg-base pt-14 pb-6 md:pt-20">
-        <div className="mx-auto max-w-[1400px] px-6 md:px-10">
-          <Header />
-          <div className="mt-10 flex flex-col gap-6">
-            {SERVICES.map((service, i) => (
-              <CardInner key={service.no} service={service} image={SERVICE_IMAGES[i]} />
-            ))}
-          </div>
-          <div className="mt-8">
-            <StartLink />
-          </div>
-        </div>
+      <section id="about" className="relative bg-base">
+        <PlainStack />
       </section>
     )
   }
 
   return (
     <section id="about" className="relative bg-base">
-      {/* tall scroll track drives the pinned stage */}
-      <div ref={trackRef} className="relative h-[340vh]">
-        <div className="sticky top-0 h-[100dvh] overflow-hidden">
-          <div className="mx-auto flex h-full max-w-[1400px] flex-col px-6 pt-24 pb-10 md:px-10 md:pt-28">
-            <Header />
-            {/* card stage — cards stack here, below the pinned header */}
-            <div className="relative mt-8 min-h-0 flex-1 md:mt-12">
-              {SERVICES.map((service, i) => (
-                <StackCard
-                  key={service.no}
-                  service={service}
-                  image={SERVICE_IMAGES[i]}
-                  index={i}
-                  progress={smoothProgress}
-                />
-              ))}
+      {/* Mobile: plain stack (the pinned scrollytelling is cramped on small screens) */}
+      <div className="md:hidden">
+        <PlainStack />
+      </div>
+
+      {/* Desktop: pinned stage — header fixed, cards rise + stack beneath */}
+      <div className="hidden md:block">
+        <div ref={trackRef} className="relative h-[340vh]">
+          <div className="sticky top-0 h-[100dvh] overflow-hidden">
+            <div className="mx-auto flex h-full max-w-[1400px] flex-col px-10 pb-10 pt-28">
+              <Header />
+              <div className="relative mt-12 min-h-0 flex-1">
+                {SERVICES.map((service, i) => (
+                  <StackCard
+                    key={service.no}
+                    service={service}
+                    image={SERVICE_IMAGES[i]}
+                    index={i}
+                    progress={smoothProgress}
+                  />
+                ))}
+              </div>
             </div>
           </div>
         </div>
-      </div>
-      <div className="mx-auto max-w-[1400px] px-6 pb-6 md:px-10">
-        <StartLink />
+        <div className="mx-auto max-w-[1400px] px-10 pb-6">
+          <StartLink />
+        </div>
       </div>
     </section>
   )
