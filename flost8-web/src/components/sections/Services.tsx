@@ -69,7 +69,7 @@ function StackCard({ service, index, image, reduce }: StackCardProps) {
 
   return (
     // cardContainer: h-[100dvh] scroll region that pins
-    <div className="relative h-[100dvh] flex items-center justify-center sticky top-0">
+    <div className="relative h-[100dvh] flex items-start justify-center sticky top-0">
       {/* card: sticky with staggered offset, non-static (sticky) so useScroll target is valid */}
       <div
         ref={cardRef}
@@ -128,7 +128,7 @@ export default function Services() {
         </div>
 
         {/* Stacking cards */}
-        <div className={reduce ? 'mt-10 md:mt-14' : 'mt-10 md:mt-16'}>
+        <div className={reduce ? 'mt-10 md:mt-14' : 'mt-4 md:mt-6'}>
           {SERVICES.map((service, i) => (
             <StackCard
               key={service.no}
