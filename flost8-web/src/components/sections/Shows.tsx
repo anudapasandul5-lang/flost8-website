@@ -4,6 +4,7 @@ import { motion, useScroll, useSpring, useTransform } from 'framer-motion'
 import { ArrowUpRight } from '@phosphor-icons/react'
 import { useUpcomingShows } from '../../hooks/useUpcomingShows'
 import { useMotionSafe } from '../../hooks/useMotionSafe'
+import EyebrowRule from '../ui/EyebrowRule'
 import { PUBLIC_ARTISTS } from '../../lib/artistRoster'
 import type { UpcomingShow } from '../../lib/bookingContract'
 
@@ -95,10 +96,11 @@ export default function Shows() {
     <section id="shows" className="relative bg-base py-10 md:py-20">
       <div className="max-w-[1400px] mx-auto px-6 md:px-10">
         <div className="mb-12 md:mb-16">
-          <p className="font-grotesk uppercase tracking-[0.25em] text-[13px] text-accent-ink mb-4">
+          <p className="font-grotesk uppercase tracking-[0.25em] text-[13px] text-accent-ink">
             Next up
           </p>
-          <h2 className="font-display text-ink text-5xl md:text-7xl leading-[0.9]">
+          <EyebrowRule />
+          <h2 className="mt-3 font-display text-ink text-5xl md:text-7xl leading-[0.9]">
             UPCOMING SHOWS
           </h2>
         </div>

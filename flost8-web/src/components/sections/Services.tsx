@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom'
 import { ArrowRight } from '@phosphor-icons/react'
 import { SERVICES } from '../../lib/config'
 import RevealLines from '../ui/RevealLines'
+import EyebrowRule from '../ui/EyebrowRule'
 import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 // Scene image per service (index-matched to SERVICES)
@@ -84,6 +85,7 @@ function Header() {
       <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">
         Three ways we work
       </p>
+      <EyebrowRule />
       <RevealLines
         lines={['WHAT WE DO']}
         className="mt-3 font-display text-4xl leading-[0.9] text-ink sm:text-5xl md:text-7xl"
