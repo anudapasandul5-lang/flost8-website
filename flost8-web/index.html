@@ -25,7 +25,14 @@
 
     <!-- Canonical -->
     <link rel="canonical" href="https://flost8.lk" />
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+    <script>
+      window.__turnstileReady = false;
+      window.onloadTurnstileCallback = function () {
+        window.__turnstileReady = true;
+        window.dispatchEvent(new Event('turnstile-ready'));
+      };
+    </script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?onload=onloadTurnstileCallback&render=explicit" async defer></script>
   </head>
   <body>
     <div id="root"></div>

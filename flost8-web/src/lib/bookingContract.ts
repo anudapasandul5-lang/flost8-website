@@ -34,6 +34,7 @@ export interface BookingFormData {
 }
 
 export interface BookingPayload extends BookingFormData {
+  type: 'booking'
   token: string
 }
 
@@ -168,6 +169,7 @@ export function validateBookingForm(formData: BookingFormData): Record<string, s
 
 export function buildBookingPayload(formData: BookingFormData, token: string): BookingPayload {
   return {
+    type: 'booking',
     ...formData,
     artist: formData.artist || 'any',
     set_duration_h: String(formData.set_duration_h || '').trim(),

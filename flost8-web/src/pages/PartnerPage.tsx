@@ -1,11 +1,13 @@
 import IntakeForm from '../components/IntakeForm'
 import { PARTNER_FIELDS } from '../lib/intakeContract'
+import { ADMIN_EMAIL } from '../lib/config'
 
 export default function PartnerPage() {
   return (
     <IntakeForm
       type="partner"
       fields={PARTNER_FIELDS}
+      contactEmail={ADMIN_EMAIL}
       title="WORK WITH US"
       intro="Partnerships, content engine, and long-term collaboration with FLOST8."
       successTitle="REQUEST SENT"

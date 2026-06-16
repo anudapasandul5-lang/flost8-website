@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CheckCircle } from '@phosphor-icons/react'
@@ -6,6 +6,7 @@ import { useUpcomingShows } from '../hooks/useUpcomingShows'
 import { useMotionSafe } from '../hooks/useMotionSafe'
 import { BOOKING_API_URL, CONTACT_EMAIL, TURNSTILE_SITE_KEY } from '../lib/config'
 import { fadeUp, staggerParent } from '../lib/motion'
+import Turnstile from '../components/Turnstile'
 import {
   BOOKING_FIELDS,
   EMPTY_BOOKING_FORM,
@@ -15,13 +16,6 @@ import {
   type BookingFormData,
   type UpcomingShow,
 } from '../lib/bookingContract'
-
-declare global {
-  interface Window {
-    onTurnstileSuccess?: (token: string) => void
-    turnstile?: { reset?: () => void }
-  }
-}
 
 const INPUT_CLS =
   'w-full bg-raise border border-[var(--bg-line)] text-ink font-grotesk text-sm rounded-xl px-4 py-3.5 focus:outline-none focus:border-[var(--accent-line)] focus:shadow-[inset_0_1px_0_rgba(255,255,255,0.10),inset_0_0_0_1px_var(--accent-line)] transition-colors placeholder:text-[var(--ink-32)]'
@@ -71,13 +65,6 @@ export default function BookingsPage() {
   const [submitError, setSubmitError] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
   const { reduce } = useMotionSafe()
-
-  useEffect(() => {
-    window.onTurnstileSuccess = setTurnstileToken
-    return () => {
-      delete window.onTurnstileSuccess
-    }
-  }, [])
 
   function handleChange(id: keyof BookingFormData, value: string) {
     setFormData(prev => ({ ...prev, [id]: value }))
@@ -258,11 +245,7 @@ export default function BookingsPage() {
 
                 <div className="md:col-span-2">
                   {TURNSTILE_SITE_KEY ? (
-                    <div
-                      className="cf-turnstile"
-                      data-sitekey={TURNSTILE_SITE_KEY}
-                      data-callback="onTurnstileSuccess"
-                    />
+                    <Turnstile siteKey={TURNSTILE_SITE_KEY} onToken={setTurnstileToken} />
                   ) : (
                     <div className="bg-raise border border-[var(--bg-line)] rounded-xl px-4 py-3 text-[var(--ink-32)] text-sm font-grotesk">
                       Turnstile widget loads here in production

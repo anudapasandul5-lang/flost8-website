@@ -40,33 +40,32 @@ export const onRequest = async (context: { request: Request; env: Env }): Promis
     // POST
     const body = await request.text()
 
-    // TODO: enable once TURNSTILE_SECRET is configured and confirmed
-    // if (env.TURNSTILE_SECRET) {
-    //   let token: string | undefined
-    //   try {
-    //     const parsed = JSON.parse(body)
-    //     token = parsed?.token
-    //   } catch {
-    //     // ignore parse errors; treated as missing token below
-    //   }
-    //
-    //   const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
-    //     method: 'POST',
-    //     headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    //     body: new URLSearchParams({
-    //       secret: env.TURNSTILE_SECRET,
-    //       response: token ?? '',
-    //     }),
-    //   })
-    //   const verifyData = await verifyRes.json() as { success: boolean }
-    //
-    //   if (!verifyData.success) {
-    //     return new Response(
-    //       JSON.stringify({ ok: false, errors: [{ message: 'Turnstile verification failed' }] }),
-    //       { status: 403, headers: { 'content-type': 'application/json' } }
-    //     )
-    //   }
-    // }
+    if (env.TURNSTILE_SECRET) {
+      let token: string | undefined
+      try {
+        const parsed = JSON.parse(body)
+        token = parsed?.token
+      } catch {
+        // ignore parse errors; treated as missing token below
+      }
+
+      const verifyRes = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
+        method: 'POST',
+        headers: { 'content-type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          secret: env.TURNSTILE_SECRET,
+          response: token ?? '',
+        }),
+      })
+      const verifyData = await verifyRes.json() as { success: boolean }
+
+      if (!verifyData.success) {
+        return new Response(
+          JSON.stringify({ ok: false, errors: [{ message: 'Turnstile verification failed' }] }),
+          { status: 403, headers: { 'content-type': 'application/json' } }
+        )
+      }
+    }
 
     const upstream = await fetch(env.APPS_SCRIPT_URL, {
       method: 'POST',

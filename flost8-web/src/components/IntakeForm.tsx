@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { CheckCircle } from '@phosphor-icons/react'
@@ -6,6 +6,7 @@ import { useMotionSafe } from '../hooks/useMotionSafe'
 import { BOOKING_API_URL, CONTACT_EMAIL, TURNSTILE_SITE_KEY } from '../lib/config'
 import { fadeUp, staggerParent } from '../lib/motion'
 import { errorsFromApi } from '../lib/bookingContract'
+import Turnstile from './Turnstile'
 import {
   emptyIntakeForm,
   validateIntake,
@@ -14,13 +15,6 @@ import {
   type IntakeFormData,
   type IntakeType,
 } from '../lib/intakeContract'
-
-declare global {
-  interface Window {
-    onTurnstileSuccess?: (token: string) => void
-    turnstile?: { reset?: () => void }
-  }
-}
 
 const INPUT_CLS =
   'w-full bg-raise border border-[var(--bg-line)] text-ink font-grotesk text-sm rounded-xl px-4 py-3.5 focus:outline-none focus:border-[var(--accent-line)] focus:shadow-[inset_0_1px_0_rgba(255,255,255,0.10),inset_0_0_0_1px_var(--accent-line)] transition-colors placeholder:text-[var(--ink-32)]'
@@ -32,9 +26,10 @@ export interface IntakeFormProps {
   intro: string
   successTitle: string
   successMsg: string
+  contactEmail?: string
 }
 
-export default function IntakeForm({ type, fields, title, intro, successTitle, successMsg }: IntakeFormProps) {
+export default function IntakeForm({ type, fields, title, intro, successTitle, successMsg, contactEmail = CONTACT_EMAIL }: IntakeFormProps) {
   const [formData, setFormData] = useState<IntakeFormData>(() => emptyIntakeForm(fields))
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [submitting, setSubmitting] = useState(false)
@@ -42,13 +37,6 @@ export default function IntakeForm({ type, fields, title, intro, successTitle, s
   const [submitError, setSubmitError] = useState(false)
   const [turnstileToken, setTurnstileToken] = useState('')
   const { reduce } = useMotionSafe()
-
-  useEffect(() => {
-    window.onTurnstileSuccess = setTurnstileToken
-    return () => {
-      delete window.onTurnstileSuccess
-    }
-  }, [])
 
   function handleChange(id: string, value: string) {
     setFormData(prev => ({ ...prev, [id]: value }))
@@ -224,11 +212,7 @@ export default function IntakeForm({ type, fields, title, intro, successTitle, s
 
                 <div className="md:col-span-2">
                   {TURNSTILE_SITE_KEY ? (
-                    <div
-                      className="cf-turnstile"
-                      data-sitekey={TURNSTILE_SITE_KEY}
-                      data-callback="onTurnstileSuccess"
-                    />
+                    <Turnstile siteKey={TURNSTILE_SITE_KEY} onToken={setTurnstileToken} />
                   ) : (
                     <div className="bg-raise border border-[var(--bg-line)] rounded-xl px-4 py-3 text-[var(--ink-32)] text-sm font-grotesk">
                       Turnstile widget loads here in production
@@ -239,7 +223,7 @@ export default function IntakeForm({ type, fields, title, intro, successTitle, s
                 {submitError && (
                   <p role="alert" className="font-body text-sm text-[var(--error)] text-center md:col-span-2">
                     Something went wrong. Please try again or email{' '}
-                    <a href={`mailto:${CONTACT_EMAIL}`} className="underline">{CONTACT_EMAIL}</a>
+                    <a href={`mailto:${contactEmail}`} className="underline">{contactEmail}</a>
                   </p>
                 )}
 

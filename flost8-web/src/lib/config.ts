@@ -3,6 +3,7 @@ import { PUBLIC_ARTISTS } from './artistRoster'
 export const BOOKING_API_URL = '/api/script';
 export const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? '';
 export const CONTACT_EMAIL = 'bookings@flost8.lk';
+export const ADMIN_EMAIL = 'admin@flost8.lk';
 export const DOMAIN = 'flost8.lk';
 
 // Impact metrics shown in the Stats section
