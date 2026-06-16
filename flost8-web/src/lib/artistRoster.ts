@@ -74,6 +74,7 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
       },
     ],
     gigs: ['AudioSolo', 'Balance Festival Day2', 'Ocean Drive'],
+    bio: 'Imthxd is a Sri Lanka-born DJ specializing in Progressive House and Dark Progressive. Known for crafting deep, atmospheric journeys through sound, he draws inspiration from artists like Guy J, Kebin Van Reeken, Mike Rish, Kyotto, Fran Garay, and Tonaco. His sets blend hypnotic grooves, layered melodies, and emotionally driven rhythms that resonate deeply with underground music lovers. Rooted in the raw emotion and tension of dark progressive, Imthxd\'s music bridges intensity and serenity — delivering powerful, transformative experiences every time he steps behind the decks. Now making waves in Sri Lanka\'s electronic music scene, Imthxd is quickly emerging as a rising talent for those who crave depth, energy, and sonic storytelling.',
   },
   {
     slug: 'the-professor',
