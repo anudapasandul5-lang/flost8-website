@@ -62,12 +62,12 @@ export default function Footer() {
                   <li key={label}>
                     {href.startsWith('/') ? (
                       <motion.div whileHover="hover" className="inline-block">
-                        <Link to={href} className={`${baseClassName} relative inline-block`}>
+                        <Link to={href} className={`${baseClassName} relative inline-flex min-h-[44px] items-center`}>
                           {innerContent}
                         </Link>
                       </motion.div>
                     ) : (
-                      <motion.a href={href} className={`${baseClassName} relative inline-block`} whileHover="hover">
+                      <motion.a href={href} className={`${baseClassName} relative inline-flex min-h-[44px] items-center`} whileHover="hover">
                         {innerContent}
                       </motion.a>
                     )}
@@ -85,7 +85,7 @@ export default function Footer() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="FLOST8 on Instagram"
-          className="text-[var(--ink-72)] transition-colors hover:text-accent-ink"
+          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-[var(--ink-72)] transition-colors hover:text-accent-ink"
         >
           <InstagramLogo size={28} weight="bold" />
         </a>

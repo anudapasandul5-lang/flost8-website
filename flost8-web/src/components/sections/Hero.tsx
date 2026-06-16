@@ -71,6 +71,9 @@ export default function Hero() {
           src="/ui2/hero-bg.jpeg"
           alt=""
           aria-hidden="true"
+          width={2048}
+          height={1365}
+          fetchPriority="high"
           className="h-full w-full object-cover transition-opacity duration-[1050ms]"
           style={{
             height: '120%',

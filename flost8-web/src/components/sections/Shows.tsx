@@ -119,6 +119,7 @@ function ShowRowCard({ row, reduce }: { row: ShowRow; reduce: boolean }) {
             alt=""
             aria-hidden="true"
             loading="lazy"
+            decoding="async"
             className="duotone-purple absolute left-0 top-[-18%] h-[136%] w-full object-cover opacity-60 transition-transform duration-[750ms] ease-out group-hover:scale-105"
           />
         </motion.div>

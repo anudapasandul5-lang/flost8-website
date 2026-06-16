@@ -17,7 +17,7 @@ import {
 } from '../lib/intakeContract'
 
 const INPUT_CLS =
-  'w-full bg-raise border border-[var(--bg-line)] text-ink font-grotesk text-sm rounded-xl px-4 py-3.5 focus:outline-none focus:border-[var(--accent-line)] focus:shadow-[inset_0_1px_0_rgba(255,255,255,0.10),inset_0_0_0_1px_var(--accent-line)] transition-colors placeholder:text-[var(--ink-32)]'
+  'w-full bg-raise border border-[var(--bg-line)] text-ink font-grotesk text-[16px] md:text-sm rounded-xl px-4 py-3.5 focus:outline-none focus:border-[var(--accent-line)] focus:shadow-[inset_0_1px_0_rgba(255,255,255,0.10),inset_0_0_0_1px_var(--accent-line)] transition-colors placeholder:text-[var(--ink-32)]'
 
 export interface IntakeFormProps {
   type: IntakeType

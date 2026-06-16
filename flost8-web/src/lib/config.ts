@@ -37,7 +37,7 @@ export const SERVICES = [
 
 export const NAV_LINKS = [
   { label: 'Roster',  href: '/#roster' },
+  { label: 'What We Do',   href: '/#about' },
   { label: 'Shows',   href: '/#shows' },
   { label: 'Book',    href: '/bookings' },
-  { label: 'What We Do',   href: '/#about' },
 ] as const;

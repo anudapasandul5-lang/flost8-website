@@ -23,7 +23,10 @@ function CardInner({ service, image }: { service: Service; image: string }) {
           src={image}
           alt=""
           aria-hidden="true"
+          width={1920}
+          height={1080}
           loading="lazy"
+          decoding="async"
           className="grade-portrait h-full w-full object-cover"
         />
       </div>

@@ -111,7 +111,7 @@ export default function TopNav() {
       const el = document.getElementById(id)
       if (el && lenis) {
         lenis.scrollTo(el, reduce ? { immediate: true } : { offset: -70, duration: 1.6, easing: lenisEase })
-        history.replaceState(null, '', '/#' + id)
+        navigate('/#' + id, { replace: true })
       } else {
         navigate('/#' + id)
       }
@@ -146,7 +146,7 @@ export default function TopNav() {
         <Link
           to="/"
           aria-label="FLOST8 home"
-          className="shrink-0"
+          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center shrink-0"
           onClick={(e) => {
             if (location.pathname === '/') {
               e.preventDefault()

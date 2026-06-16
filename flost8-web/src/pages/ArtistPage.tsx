@@ -44,7 +44,7 @@ export default function ArtistPage() {
         {/* BACK ROW */}
         <Link
           to="/#roster"
-          className="inline-flex items-center gap-2 font-grotesk text-sm text-[var(--ink-72)] transition-colors hover:text-ink"
+          className="inline-flex min-h-[44px] items-center gap-2 font-grotesk text-sm text-[var(--ink-72)] transition-colors hover:text-ink"
         >
           <CaretLeft size={16} weight="bold" />
           Back to roster

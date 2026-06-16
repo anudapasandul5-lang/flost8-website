@@ -14,7 +14,6 @@ const GAP = 16 // px between cards
 export default function Roster() {
   const { reduce } = useMotionSafe()
   const [activeIndex, setActiveIndex] = useState(0)
-  const sectionRef = useRef<HTMLElement>(null)
   const viewportRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
 
@@ -24,6 +23,12 @@ export default function Roster() {
   const [centerOffset, setCenterOffset] = useState(0)
   // Viewport width (for end-anchoring so no dead space past first/last card)
   const [viewportW, setViewportW] = useState(0)
+
+  // true when the viewport is mobile-width (<640px)
+  const isMobile = viewportW > 0 && viewportW < 640
+
+  // RAF guard for scroll → activeIndex sync
+  const rafPendingRef = useRef(false)
 
   // Framer motion x value for the track
   const x = useMotionValue(0)
@@ -35,7 +40,7 @@ export default function Roster() {
     if (!viewport || !track) return
     const firstCard = track.firstElementChild as HTMLElement | null
     if (!firstCard) return
-    const cardW = firstCard.getBoundingClientRect().width
+    const cardW = firstCard.offsetWidth
     const viewportW = viewport.getBoundingClientRect().width
     const step = cardW + GAP
     const offset = (viewportW - cardW) / 2
@@ -51,39 +56,35 @@ export default function Roster() {
     return () => observer.disconnect()
   }, [measure])
 
-  // ── Sync x to activeIndex ────────────────────────────────────────────────────
+  // ── Resting track-x for a given card index (centered, with end anchoring) ────
+  const getTargetX = useCallback(
+    (index: number) => {
+      // Edge inset so the first/last card sits a touch off the viewport edge,
+      // roughly aligned with the section's horizontal padding.
+      const PAD = viewportW >= 768 ? 40 : viewportW >= 640 ? 24 : 0
+      const trackW = PUBLIC_ARTISTS.length * cardStep - GAP
+      const raw = centerOffset - index * cardStep
+      // Anchor the ends: never reveal dead space left of the first card or
+      // right of the last. Middle cards still center normally.
+      const maxX = PAD
+      const minX = Math.min(PAD, viewportW - PAD - trackW)
+      return Math.max(minX, Math.min(maxX, raw))
+    },
+    [viewportW, cardStep, centerOffset],
+  )
+
+  // ── Sync x to activeIndex (programmatic: arrows / dots / keyboard) ───────────
   useEffect(() => {
     if (cardStep === 0) return
-    // Edge inset so the first/last card sits a touch off the viewport edge,
-    // roughly aligned with the section's horizontal padding.
-    const PAD = viewportW >= 768 ? 40 : 24
-    const trackW = PUBLIC_ARTISTS.length * cardStep - GAP
-    const raw = centerOffset - activeIndex * cardStep
-    // Anchor the ends: never reveal dead space left of the first card or
-    // right of the last. Middle cards still center normally.
-    const maxX = PAD
-    const minX = Math.min(PAD, viewportW - PAD - trackW)
-    const targetX = Math.max(minX, Math.min(maxX, raw))
+    if (isMobile) return
+    const targetX = getTargetX(activeIndex)
     if (reduce) {
       x.set(targetX)
     } else {
       animate(x, targetX, { ...SPRING })
     }
-  }, [activeIndex, cardStep, centerOffset, viewportW, reduce, x])
+  }, [activeIndex, cardStep, centerOffset, viewportW, isMobile, reduce, x, getTargetX])
 
-  // ── Reset to DR. GREEN on section enter ─────────────────────────────────────
-  useEffect(() => {
-    const el = sectionRef.current
-    if (!el) return
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) setActiveIndex(0)
-      },
-      { threshold: 0.3 },
-    )
-    observer.observe(el)
-    return () => observer.disconnect()
-  }, [])
 
   // ── Keyboard navigation ──────────────────────────────────────────────────────
   const handleKeyDown = useCallback(
@@ -99,34 +100,38 @@ export default function Roster() {
     [],
   )
 
-  // ── Drag snap ───────────────────────────────────────────────────────────────
+  // ── Drag snap: one card per swipe, always re-snap to the resting position ────
   const handleDragEnd = useCallback(
     (_e: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
       if (cardStep === 0) return
-      const threshold = cardStep * 0.25
-      const velocity = info.velocity.x
-      const offset = info.offset.x
-
+      // One card per swipe: advance ±1 if dragged past ~20% of a card OR flicked
+      // decisively, else snap back. Always animate to the resting position so the
+      // track never parks off-grid (the sync effect won't fire if the index is unchanged).
+      const last = PUBLIC_ARTISTS.length - 1
+      const distance = cardStep * 0.2
+      const flick = 500 // px/s
+      const { offset, velocity } = info
       let next = activeIndex
-      if (Math.abs(velocity) > 300) {
-        next = velocity < 0
-          ? Math.min(PUBLIC_ARTISTS.length - 1, activeIndex + 1)
-          : Math.max(0, activeIndex - 1)
-      } else if (offset < -threshold) {
-        next = Math.min(PUBLIC_ARTISTS.length - 1, activeIndex + 1)
-      } else if (offset > threshold) {
+      if (offset.x < -distance || velocity.x < -flick) {
+        next = Math.min(last, activeIndex + 1)
+      } else if (offset.x > distance || velocity.x > flick) {
         next = Math.max(0, activeIndex - 1)
       }
       setActiveIndex(next)
+      if (reduce) {
+        x.set(getTargetX(next))
+      } else {
+        animate(x, getTargetX(next), { ...SPRING })
+      }
     },
-    [activeIndex, cardStep],
+    [activeIndex, cardStep, x, reduce, getTargetX],
   )
 
   const atStart = activeIndex === 0
   const atEnd = activeIndex === PUBLIC_ARTISTS.length - 1
 
   return (
-    <section id="roster" ref={sectionRef} className="relative bg-base py-10 md:py-20">
+    <section id="roster" className="relative bg-base py-10 md:py-20">
       {/* ── Header ── */}
       <div className="mx-auto max-w-[1400px] px-6 md:px-10">
         <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">
@@ -151,20 +156,34 @@ export default function Roster() {
         onKeyDown={handleKeyDown}
         className="mt-12 outline-none md:mt-16 focus-visible:ring-0"
       >
-        {/* Viewport: clips the overflowing track */}
+        {/* Viewport: clips the overflowing track (desktop) / native scroll container (mobile) */}
         <div
           ref={viewportRef}
-          className="relative overflow-hidden"
-          style={{ cursor: reduce ? 'default' : 'grab' }}
+          className={`relative ${isMobile ? 'overflow-x-auto snap-x snap-mandatory no-scrollbar' : 'overflow-hidden'}`}
+          style={isMobile ? undefined : { cursor: reduce ? 'default' : 'grab' }}
+          onScroll={() => {
+            if (!isMobile || cardStep === 0) return
+            if (rafPendingRef.current) return
+            rafPendingRef.current = true
+            requestAnimationFrame(() => {
+              rafPendingRef.current = false
+              const el = viewportRef.current
+              if (!el) return
+              const raw = Math.round(el.scrollLeft / cardStep)
+              const idx = Math.max(0, Math.min(PUBLIC_ARTISTS.length - 1, raw))
+              setActiveIndex((prev) => (prev !== idx ? idx : prev))
+            })
+          }}
         >
           {/* Track */}
           <motion.div
             ref={trackRef}
-            drag={reduce ? false : 'x'}
+            drag={!isMobile && !reduce ? 'x' : false}
             dragConstraints={viewportRef}
             dragElastic={0.12}
             onDragEnd={handleDragEnd}
-            style={{ x, willChange: 'transform', touchAction: 'pan-y' }}
+            dragMomentum={false}
+            style={{ x, willChange: 'transform', touchAction: isMobile ? 'auto' : 'pan-y' }}
             className="flex"
             // gap via inline style so the JS gap constant matches
           >
@@ -175,18 +194,19 @@ export default function Roster() {
                 <motion.div
                   key={artist.slug}
                   aria-current={isActive ? 'true' : undefined}
-                  // Card sizing: center card fills ~78vw on mobile, ~52vw on desktop, capped at 560px
+                  // Card sizing: full-bleed (container width) on mobile, peek layout on desktop
+                  // snap-center activates inside the mobile snap container; harmless on desktop
                   className="
-                    relative flex-shrink-0 overflow-hidden rounded-2xl edge-refract photo-treat
-                    w-[78vw] sm:w-[62vw] lg:w-[46vw] xl:w-[560px]
+                    relative flex-shrink-0 overflow-hidden rounded-none sm:rounded-2xl edge-refract photo-treat snap-center
+                    w-full sm:w-[62vw] lg:w-[46vw] xl:w-[560px]
                     h-[60vh] max-h-[560px] min-h-[360px]
                   "
                   animate={
                     reduce
                       ? {}
                       : {
-                          scale: isActive ? 1 : 0.9,
-                          opacity: isActive ? 1 : 0.5,
+                          scale: isActive || isMobile ? 1 : 0.9,
+                          opacity: isActive || isMobile ? 1 : 0.5,
                         }
                   }
                   transition={reduce ? { duration: 0 } : { ...SPRING }}
@@ -202,7 +222,7 @@ export default function Roster() {
                     src={`/photos/${artist.slug}.webp`}
                     alt={artist.name}
                     loading="lazy"
-                    className={`grade-portrait absolute inset-0 h-full w-full object-cover ${isActive ? 'is-active' : ''}`}
+                    className={`grade-portrait absolute inset-0 h-full w-full object-cover ${isActive || isMobile ? 'is-active' : ''}`}
                     onError={(e) => {
                       const el = e.currentTarget;
                       el.style.display = 'none';
@@ -266,14 +286,15 @@ export default function Roster() {
 
         {/* ── Controls row: arrows + dots ── */}
         <div className="mt-6 flex items-center justify-center gap-6 px-6 md:mt-8">
-          {/* Prev arrow */}
+          {/* Prev arrow — hidden on mobile, shown ≥sm */}
           <button
+            type="button"
             aria-label="Previous artist"
             aria-disabled={atStart}
             onClick={() => !atStart && setActiveIndex((i) => i - 1)}
             className={`
               accent-press edge-refract
-              flex h-11 w-11 shrink-0 items-center justify-center rounded-full
+              hidden sm:flex h-11 w-11 shrink-0 items-center justify-center rounded-full
               border border-[var(--accent-line)] transition-opacity
               ${atStart ? 'cursor-not-allowed opacity-30' : 'hover:bg-[var(--accent-soft)] opacity-100'}
             `}
@@ -288,10 +309,18 @@ export default function Roster() {
               return (
                 <button
                   key={artist.slug}
+                  type="button"
                   role="tab"
                   aria-selected={isDotActive}
                   aria-label={`Go to ${artist.name}`}
-                  onClick={() => setActiveIndex(index)}
+                  onClick={() => {
+                    if (isMobile) {
+                      setActiveIndex(index)
+                      viewportRef.current?.scrollTo({ left: index * cardStep, behavior: 'smooth' })
+                    } else {
+                      setActiveIndex(index)
+                    }
+                  }}
                   style={{
                     display: 'flex',
                     alignItems: 'center',
@@ -319,14 +348,15 @@ export default function Roster() {
             })}
           </div>
 
-          {/* Next arrow */}
+          {/* Next arrow — hidden on mobile, shown ≥sm */}
           <button
+            type="button"
             aria-label="Next artist"
             aria-disabled={atEnd}
             onClick={() => !atEnd && setActiveIndex((i) => i + 1)}
             className={`
               accent-press edge-refract
-              flex h-11 w-11 shrink-0 items-center justify-center rounded-full
+              hidden sm:flex h-11 w-11 shrink-0 items-center justify-center rounded-full
               border border-[var(--accent-line)] transition-opacity
               ${atEnd ? 'cursor-not-allowed opacity-30' : 'hover:bg-[var(--accent-soft)] opacity-100'}
             `}
