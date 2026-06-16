@@ -177,7 +177,7 @@ export default function Roster() {
                   aria-current={isActive ? 'true' : undefined}
                   // Card sizing: center card fills ~78vw on mobile, ~52vw on desktop, capped at 560px
                   className="
-                    relative flex-shrink-0 overflow-hidden rounded-2xl edge-refract
+                    relative flex-shrink-0 overflow-hidden rounded-2xl edge-refract photo-treat
                     w-[78vw] sm:w-[62vw] lg:w-[46vw] xl:w-[560px]
                     h-[60vh] max-h-[560px] min-h-[360px]
                   "
@@ -203,6 +203,12 @@ export default function Roster() {
                     alt={artist.name}
                     loading="lazy"
                     className={`grade-portrait absolute inset-0 h-full w-full object-cover ${isActive ? 'is-active' : ''}`}
+                    onError={(e) => {
+                      const el = e.currentTarget;
+                      el.style.display = 'none';
+                      const card = el.closest('.photo-treat') as HTMLElement | null;
+                      if (card) card.style.backgroundColor = '#1B0F24';
+                    }}
                   />
 
                   {/* Legibility scrim */}

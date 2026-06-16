@@ -4,6 +4,7 @@ import { motion, useScroll, useTransform } from 'framer-motion'
 import { CaretLeft, InstagramLogo } from '@phosphor-icons/react'
 import { getPublicArtistBySlug } from '../lib/artistRoster'
 import MusicEmbed from '../components/artist/MusicEmbed'
+import PlatformIcon from '../components/ui/PlatformIcon'
 import { fadeUp, staggerParent } from '../lib/motion'
 import { useMotionSafe } from '../hooks/useMotionSafe'
 
@@ -33,7 +34,9 @@ export default function ArtistPage() {
     )
   }
 
-  const hasSingleTrack = artist.music?.length === 1
+  // Listen section shows YouTube videos only (SoundCloud/other embeds excluded)
+  const youtubeMusic = artist.music?.filter((m) => m.type === 'youtube') ?? []
+  const hasSingleTrack = youtubeMusic.length === 1
 
   return (
     <main className="bg-base min-h-[100dvh]">
@@ -53,7 +56,7 @@ export default function ArtistPage() {
           className="mt-8 grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-12"
         >
           {/* PORTRAIT — first in DOM, stacks on top on mobile */}
-          <div className="relative overflow-hidden rounded-2xl edge-refract aspect-[3/4] w-full max-w-[480px]">
+          <div className="relative overflow-hidden rounded-2xl edge-refract aspect-[3/4] w-full max-w-[480px] photo-treat">
             <motion.div
               className="h-full w-full"
               style={reduce ? undefined : { scale, y }}
@@ -66,9 +69,24 @@ export default function ArtistPage() {
                   loading="lazy"
                   decoding="async"
                   className="grade-portrait is-active h-full w-full object-cover"
+                  onError={(e) => {
+                    const el = e.currentTarget;
+                    el.style.display = 'none';
+                    const wrapper = el.closest('.photo-treat') as HTMLElement | null;
+                    if (wrapper) wrapper.style.backgroundColor = '#1B0F24';
+                  }}
                 />
               </picture>
             </motion.div>
+            {/* Hero scrim: stronger bottom gradient to anchor low-res photos compositionally */}
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-x-0 bottom-0 h-1/3"
+              style={{
+                background: 'linear-gradient(to top, rgba(18,9,23,0.55) 0%, transparent 100%)',
+                zIndex: 3,
+              }}
+            />
           </div>
 
           {/* IDENTITY */}
@@ -105,24 +123,25 @@ export default function ArtistPage() {
               </motion.p>
             )}
 
-            {/* Stats + IG row */}
-            {(artist.instagram?.followers || artist.instagram?.handle) && (
+            {/* Bio — moved inline beside portrait */}
+            {artist.bio && (
+              <motion.div variants={fadeUp} className="mt-5">
+                <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">
+                  About
+                </p>
+                <p className="mt-3 max-w-[60ch] font-grotesk text-[1rem] leading-relaxed text-[var(--ink-72)]">
+                  {artist.bio}
+                </p>
+              </motion.div>
+            )}
+
+            {/* Social row: IG handle + streaming platforms */}
+            {(artist.instagram?.handle || artist.platforms?.length) && (
               <motion.div
                 variants={fadeUp}
-                className="mt-6 flex flex-wrap items-center gap-6"
+                className="mt-6 flex flex-wrap items-center gap-3"
               >
-                {artist.instagram.followers && (
-                  <div className="flex flex-col">
-                    <span className="font-display text-4xl text-ink">
-                      {artist.instagram.followers}
-                    </span>
-                    <span className="font-grotesk text-xs uppercase tracking-wide text-[var(--ink-50)]">
-                      Instagram
-                    </span>
-                  </div>
-                )}
-
-                {artist.instagram.handle && (
+                {artist.instagram?.handle && (
                   <a
                     href={`https://instagram.com/${artist.instagram.handle}`}
                     target="_blank"
@@ -133,6 +152,19 @@ export default function ArtistPage() {
                     @{artist.instagram.handle}
                   </a>
                 )}
+
+                {artist.platforms?.map((platform) => (
+                  <a
+                    key={platform.name}
+                    href={platform.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    aria-label={platform.name}
+                    className="accent-press inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-full border border-[var(--accent-line)] p-2.5 text-[var(--ink-72)] transition-colors hover:bg-[var(--accent-soft)] hover:text-[var(--accent)]"
+                  >
+                    <PlatformIcon name={platform.name} size={18} />
+                  </a>
+                ))}
               </motion.div>
             )}
 
@@ -148,26 +180,8 @@ export default function ArtistPage() {
           </motion.div>
         </section>
 
-        {/* BIO */}
-        {artist.bio && (
-          <motion.section
-            variants={fadeUp}
-            initial={reduce ? 'visible' : 'hidden'}
-            whileInView="visible"
-            viewport={{ once: true, margin: '-80px' }}
-            className="mt-20 md:mt-28"
-          >
-            <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">
-              About
-            </p>
-            <p className="mt-4 max-w-[65ch] font-grotesk text-lg leading-relaxed text-[var(--ink-72)]">
-              {artist.bio}
-            </p>
-          </motion.section>
-        )}
-
         {/* MUSIC */}
-        {artist.music && artist.music.length > 0 && (
+        {youtubeMusic.length > 0 && (
           <section className="mt-20 md:mt-28">
             <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">
               Listen
@@ -175,7 +189,7 @@ export default function ArtistPage() {
             <div
               className={`mt-6 grid grid-cols-1 gap-5 ${hasSingleTrack ? 'max-w-[720px]' : 'md:grid-cols-2'}`}
             >
-              {artist.music.map((link, i) => (
+              {youtubeMusic.map((link, i) => (
                 <MusicEmbed key={i} link={link} />
               ))}
             </div>

@@ -18,8 +18,7 @@ const stats = [
 function Counter({ value, reduce, active }: { value: string; reduce: boolean; active: boolean }) {
   const target = parseInt(value, 10) || 0
   const n = useCountUp(target, active, reduce)
-  // keep the leading-zero look for '00'-style placeholders until real data lands
-  const text = value.length >= 2 && target < 10 ? String(n).padStart(value.length, '0') : String(n)
+  const text = String(n)
   return <>{text}</>
 }
 

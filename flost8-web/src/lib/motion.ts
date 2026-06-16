@@ -37,4 +37,7 @@ export const staggerParent: Variants = {
 export const staggerParentSlow: Variants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.3, delayChildren: 0.22 } },
-};
+}
+
+// easeInOutCubic — cinematic accelerate/decelerate for Lenis scrollTo
+export const lenisEase = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);

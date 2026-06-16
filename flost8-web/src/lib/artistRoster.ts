@@ -2,6 +2,11 @@ export type MusicLink =
   | { type: 'youtube'; url: string; title?: string }
   | { type: 'soundcloud'; url: string; title?: string }
 
+export interface PlatformLink {
+  name: string
+  url: string
+}
+
 export interface PublicArtist {
   slug: string
   name: string
@@ -10,6 +15,7 @@ export interface PublicArtist {
   tagline?: string
   genre?: string
   instagram?: { handle?: string; followers?: string }
+  platforms?: PlatformLink[]
   music?: MusicLink[]
   gigs?: string[]
   bio?: string
@@ -24,6 +30,13 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
     tagline: 'Groove Engineer',
     genre: 'Progressive House',
     instagram: { handle: 'dr_green_sl', followers: '12K' },
+    platforms: [
+      { name: 'Mixcloud', url: 'https://www.mixcloud.com/DrGreenSL/' },
+      { name: 'SoundCloud', url: 'https://soundcloud.com/dr_green_lk' },
+      { name: 'Traxsource', url: 'https://www.traxsource.com/artist/578267/dr-green' },
+      { name: 'Spotify', url: 'https://open.spotify.com/artist/7iwl8mIIMxzYFmWvMft2tE' },
+      { name: 'Beatport', url: 'https://www.beatport.com/artist/dr-green/925957' },
+    ],
     music: [
       { type: 'youtube', url: 'https://www.youtube.com/watch?v=mIzxpKdVS7g' },
       { type: 'youtube', url: 'https://www.youtube.com/watch?v=jPFlSMzOJEI&t=789s' },
@@ -40,6 +53,9 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
     tagline: 'CrowdHyper',
     genre: 'Progressive House',
     instagram: { handle: 'maalin.ofc', followers: '1K' },
+    platforms: [
+      { name: 'SoundCloud', url: 'https://soundcloud.com/user-25002526' },
+    ],
     music: [
       {
         type: 'soundcloud',
@@ -56,6 +72,9 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
     tagline: 'Powerhouse',
     genre: 'Progressive House',
     instagram: { handle: 'sonal.musicc', followers: '2K' },
+    platforms: [
+      { name: 'SoundCloud', url: 'https://soundcloud.com/user-461176365' },
+    ],
     music: [{ type: 'youtube', url: 'https://www.youtube.com/watch?v=Bou6t7w7SXE&t=12s' }],
     gigs: ['Pirates', 'AGRA Festival', 'Ilovebrunch', 'ORIX'],
   },
@@ -67,6 +86,9 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
     tagline: 'AllRounder',
     genre: 'Progressive House',
     instagram: { handle: 'imthxdtf', followers: '1K' },
+    platforms: [
+      { name: 'SoundCloud', url: 'https://soundcloud.com/imthad-intikab' },
+    ],
     music: [
       {
         type: 'soundcloud',
@@ -84,6 +106,13 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
     tagline: 'Groovinator',
     genre: 'Progressive House',
     instagram: { handle: 'professor_music._', followers: '1K' },
+    platforms: [
+      { name: 'SoundCloud', url: 'https://soundcloud.com/the-professor-781456705' },
+    ],
+    music: [
+      { type: 'youtube', url: 'https://www.youtube.com/watch?v=gahOpfpJZkQ' },
+      { type: 'youtube', url: 'https://www.youtube.com/watch?v=ecAFSbPQ-rk' },
+    ],
     gigs: ['ILoveBrunch', 'Soundgarden AfterParty'],
   },
   {
@@ -94,6 +123,12 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
     tagline: 'Vinyl Master',
     genre: 'Progressive House',
     instagram: { handle: 'anush.music_', followers: '1.3K' },
+    platforms: [
+      { name: 'SoundCloud', url: 'https://soundcloud.com/deejanush' },
+      { name: 'Spotify', url: 'https://open.spotify.com/artist/0OJbT8gHKDiEFXXwkYrtnl' },
+      { name: 'Beatport', url: 'https://www.beatport.com/artist/anush/1191714' },
+      { name: 'Facebook', url: 'https://web.facebook.com/anushonline' },
+    ],
     music: [
       { type: 'youtube', url: 'https://www.youtube.com/watch?v=gahOpfpJZkQ' },
       { type: 'youtube', url: 'https://www.youtube.com/watch?v=ecAFSbPQ-rk' },

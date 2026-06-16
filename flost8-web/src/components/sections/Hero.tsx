@@ -30,7 +30,7 @@ export default function Hero() {
     target: sectionRef,
     offset: ['start start', 'end start'],
   })
-  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.12])
+  const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.08])
   const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '8%'])
 
   // Pause/resume the loop based on viewport visibility

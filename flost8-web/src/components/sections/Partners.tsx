@@ -105,8 +105,8 @@ export default function Partners() {
       // so the grid empties top-down — no faded-but-space-occupying void (tall mobile grids).
       const rect = tile.getBoundingClientRect()
       const center = rect.top + rect.height / 2
-      const fadeEnd = vh * -0.02 // fully gone just past the top edge
-      const fadeStart = vh * 0.2 // begins fading in the top fifth of the viewport
+      const fadeEnd = vh * -0.05 // fully gone once center is 5% above the top edge
+      const fadeStart = vh * 0.08 // begins fading only when center is within top 8% of viewport
       const exitVis = Math.min(Math.max((center - fadeEnd) / (fadeStart - fadeEnd), 0), 1)
       const target = Math.min(e, exitVis)
       targets.current[i] = target
@@ -171,14 +171,14 @@ export default function Partners() {
               <Wrapper
                 key={p.slug}
                 {...wrapperProps}
-                className="group partner-tile relative aspect-square w-20 overflow-hidden rounded-full bg-base-raise outline outline-1 outline-offset-0 outline-transparent transition-[box-shadow,outline-color] duration-[450ms] will-change-transform hover:shadow-[0_0_26px_rgba(157,20,255,0.45)] hover:outline-accent/60 sm:w-24 md:w-28"
+                className="group partner-tile relative aspect-square w-20 overflow-hidden rounded-full bg-base-raise outline outline-1 outline-offset-0 outline-transparent transition-[box-shadow,outline-color] duration-100 will-change-transform hover:shadow-[0_0_26px_rgba(157,20,255,0.45)] hover:outline-accent/60 sm:w-24 md:w-28"
                 style={{ opacity: reduce ? 1 : 0 }}
               >
                 <img
                   src={`/logos/color/${p.slug}.jpg`}
                   alt={p.name}
                   loading="lazy"
-                  className="h-full w-full object-cover opacity-55 grayscale transition-all duration-[750ms] will-change-transform group-hover:scale-[1.05] group-hover:opacity-100 group-hover:grayscale-0"
+                  className="h-full w-full object-cover opacity-55 grayscale transition-all duration-100 will-change-transform group-hover:scale-[1.05] group-hover:opacity-100 group-hover:grayscale-0"
                 />
               </Wrapper>
             )

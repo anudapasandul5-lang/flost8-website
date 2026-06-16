@@ -1,10 +1,10 @@
 import { useState } from 'react'
 import { AnimatePresence, motion, useScroll, useMotionValueEvent } from 'framer-motion'
 import { List, X, ArrowUpRight } from '@phosphor-icons/react'
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useLenis } from 'lenis/react'
 import { NAV_LINKS } from '../../lib/config'
-import { EASE } from '../../lib/motion'
+import { EASE, lenisEase } from '../../lib/motion'
 import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 function useMobileMenu() {
@@ -12,30 +12,53 @@ function useMobileMenu() {
   return { open, toggle: () => setOpen(v => !v), close: () => setOpen(false) }
 }
 
+// Stagger variants for mobile menu items
+const menuContainerVariants = {
+  hidden: {},
+  visible: { transition: { staggerChildren: 0.07, delayChildren: 0.05 } },
+  exit: { transition: { staggerChildren: 0.04, staggerDirection: -1 } },
+}
+
+const menuItemVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: EASE } },
+  exit: { opacity: 0, y: 8, transition: { duration: 0.2, ease: EASE } },
+}
+
 function NavLink({
   label,
   href,
   onClick,
   reduce,
+  active,
+  onHashNav,
 }: {
   label: string
   href: string
   onClick?: () => void
   reduce: boolean
+  active?: boolean
+  onHashNav?: (e: React.MouseEvent<HTMLAnchorElement>, href: string, afterClick?: () => void) => void
 }) {
   const isRoute = href.startsWith('/') && !href.startsWith('/#')
 
   const content = (
     <span className="group relative inline-block py-1">
-      <span className="font-grotesk text-[15px] text-[var(--ink-72)] transition-colors duration-[450ms] group-hover:text-ink">
+      <span
+        className={`font-grotesk text-[14px] font-medium tracking-wide transition-colors duration-[200ms] ${
+          active ? 'text-ink' : 'text-[var(--ink-72)] group-hover:text-ink'
+        }`}
+      >
         {label}
       </span>
+      {/* Underline — persistent when active, hover-reveal otherwise */}
       <motion.span
         aria-hidden="true"
         className="absolute -bottom-0.5 left-0 right-0 h-px origin-left bg-accent"
-        initial={{ scaleX: 0 }}
+        initial={false}
+        animate={{ scaleX: active ? 1 : 0 }}
         whileHover={{ scaleX: 1 }}
-        transition={reduce ? { duration: 0 } : { duration: 0.45, ease: EASE }}
+        transition={reduce ? { duration: 0 } : { duration: 0.3, ease: EASE }}
       />
     </span>
   )
@@ -45,25 +68,23 @@ function NavLink({
       {content}
     </Link>
   ) : (
-    <a href={href} onClick={onClick} aria-label={label}>
+    <a href={href} onClick={onHashNav ? (e) => onHashNav(e, href, onClick) : onClick} aria-label={label}>
       {content}
     </a>
   )
 }
 
-function BookPill({ onClick, large = false }: { onClick?: () => void; large?: boolean }) {
+function BookPill({ onClick }: { onClick?: () => void }) {
   return (
     <Link
       to="/bookings"
       onClick={onClick}
-      className={`edge-refract accent-press inline-flex items-center gap-2 rounded-full bg-accent font-grotesk text-ink transition-transform ${
-        large ? 'px-7 py-4 text-lg' : 'px-5 py-2.5 text-[15px]'
-      }`}
+      className="edge-refract accent-press inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 font-grotesk text-[13px] font-semibold tracking-wide text-ink"
       aria-label="Book"
     >
       Book
-      <span className="inline-flex items-center justify-center rounded-full bg-ink/15 p-1">
-        <ArrowUpRight size={large ? 18 : 14} weight="bold" />
+      <span className="inline-flex items-center justify-center rounded-full bg-ink/15 p-0.5">
+        <ArrowUpRight size={12} weight="bold" />
       </span>
     </Link>
   )
@@ -75,25 +96,53 @@ export default function TopNav() {
   const [scrolled, setScrolled] = useState(false)
   const { reduce } = useMotionSafe()
   const location = useLocation()
+  const navigate = useNavigate()
   const lenis = useLenis()
 
   useMotionValueEvent(scrollY, 'change', (latest) => {
     setScrolled(latest > 20)
   })
 
-  // Render only the text-link items (skip the Book link — it becomes the pill)
+  function handleHashNav(e: React.MouseEvent<HTMLAnchorElement>, href: string, afterClick?: () => void) {
+    e.preventDefault()
+    const id = href.split('#')[1]
+    afterClick?.()
+    if (location.pathname === '/') {
+      const el = document.getElementById(id)
+      if (el && lenis) {
+        lenis.scrollTo(el, reduce ? { immediate: true } : { offset: -70, duration: 1.6, easing: lenisEase })
+        history.replaceState(null, '', '/#' + id)
+      } else {
+        navigate('/#' + id)
+      }
+    } else {
+      navigate('/#' + id)
+    }
+  }
+
+  // Determine active link: match on hash (home) or full pathname (routes)
+  function isActive(href: string) {
+    if (href.startsWith('/#')) {
+      return location.pathname === '/' && location.hash === href.slice(1)
+    }
+    return location.pathname === href
+  }
+
+  // Only text links — Book becomes the pill
   const textLinks = NAV_LINKS.filter(link => link.href !== '/bookings')
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 transition-[background-color,backdrop-filter,height,border-color] duration-[450ms] ${
-        scrolled
-          ? 'h-[60px] border-b border-white/10 bg-base/80 backdrop-blur-xl'
-          : 'h-[68px] border-b border-transparent bg-transparent'
-      }`}
-      style={reduce ? { transition: 'none' } : undefined}
+      className="fixed inset-x-0 top-0 z-50 h-[68px] transition-[background-color,backdrop-filter,border-color] duration-[250ms]"
+      style={{
+        ...(scrolled
+          ? { borderBottom: '1px solid rgba(255,255,255,0.08)', backgroundColor: 'rgba(18,9,23,0.82)', backdropFilter: 'blur(20px)' }
+          : { borderBottom: '1px solid transparent', backgroundColor: 'transparent' }),
+        ...(reduce ? { transition: 'none' } : {}),
+      }}
     >
       <div className="mx-auto flex h-full max-w-[1400px] items-center justify-between px-6 md:px-10">
+        {/* Logo — subtle scale on scroll (GPU-only transform) */}
         <Link
           to="/"
           aria-label="FLOST8 home"
@@ -105,19 +154,35 @@ export default function TopNav() {
             }
           }}
         >
-          <img src="/logo-transparent.png" alt="FLOST8" className="h-[34px] w-auto" />
+          <motion.img
+            src="/logo-transparent.png"
+            alt="FLOST8"
+            className="h-[34px] w-auto"
+            animate={reduce ? {} : { scale: scrolled ? 0.92 : 1 }}
+            transition={{ duration: 0.25, ease: EASE }}
+          />
         </Link>
 
-        <nav className="hidden items-center gap-9 md:flex" aria-label="Primary">
+        {/* Desktop nav */}
+        <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">
           {textLinks.map(link => (
-            <NavLink key={link.label} {...link} reduce={reduce} />
+            <NavLink
+              key={link.label}
+              {...link}
+              reduce={reduce}
+              active={isActive(link.href)}
+              onHashNav={handleHashNav}
+            />
           ))}
         </nav>
 
         <div className="flex items-center gap-3">
+          {/* Desktop Book pill */}
           <div className="hidden md:block">
             <BookPill />
           </div>
+
+          {/* Mobile hamburger — single close affordance (no duplicate X in menu) */}
           <button
             type="button"
             className="accent-press inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-ink md:hidden"
@@ -125,11 +190,34 @@ export default function TopNav() {
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
           >
-            {open ? <X size={24} /> : <List size={24} />}
+            <AnimatePresence mode="wait" initial={false}>
+              {open ? (
+                <motion.span
+                  key="close"
+                  initial={{ rotate: -45, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: 45, opacity: 0 }}
+                  transition={reduce ? { duration: 0 } : { duration: 0.18, ease: EASE }}
+                >
+                  <X size={22} />
+                </motion.span>
+              ) : (
+                <motion.span
+                  key="open"
+                  initial={{ rotate: 45, opacity: 0 }}
+                  animate={{ rotate: 0, opacity: 1 }}
+                  exit={{ rotate: -45, opacity: 0 }}
+                  transition={reduce ? { duration: 0 } : { duration: 0.18, ease: EASE }}
+                >
+                  <List size={22} />
+                </motion.span>
+              )}
+            </AnimatePresence>
           </button>
         </div>
       </div>
 
+      {/* Mobile menu — fixed overlay, NOT a child of any backdrop-filter ancestor */}
       <AnimatePresence>
         {open && (
           <motion.div
@@ -137,35 +225,59 @@ export default function TopNav() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: reduce ? 0 : 0.45, ease: EASE }}
-            className="fixed inset-x-0 top-0 z-40 h-[100dvh] flex flex-col bg-base px-6 pt-[88px] backdrop-blur-xl md:hidden"
+            transition={{ duration: reduce ? 0 : 0.3, ease: EASE }}
+            className="fixed inset-x-0 top-0 z-40 flex h-[100dvh] flex-col bg-[var(--bg)] px-6 pt-[80px] md:hidden"
+            style={{ backgroundColor: 'var(--bg)' }}
           >
-            <Link
-              to="/"
-              onClick={close}
-              aria-label="Close menu and go to home"
-              className="accent-press absolute right-6 top-4 inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-ink"
+            <motion.nav
+              className="flex flex-col gap-5 pt-4"
+              variants={reduce ? {} : menuContainerVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              aria-label="Mobile"
             >
-              <X size={26} />
-            </Link>
-            <nav className="flex flex-col gap-6" aria-label="Mobile">
               {textLinks.map(link => {
                 const isRoute = link.href.startsWith('/') && !link.href.startsWith('/#')
-                const className = 'font-display text-5xl uppercase leading-[0.92] text-ink transition-colors hover:text-accent'
-                return isRoute ? (
-                  <Link key={link.label} to={link.href} onClick={close} className={className}>
-                    {link.label}
-                  </Link>
-                ) : (
-                  <a key={link.label} href={link.href} onClick={close} className={className}>
-                    {link.label}
-                  </a>
+                const linkClass =
+                  'font-display text-[clamp(2rem,10vw,3.25rem)] uppercase leading-[0.9] tracking-wide text-ink transition-colors duration-150 hover:text-accent'
+                return (
+                  <motion.div key={link.label} variants={reduce ? {} : menuItemVariants}>
+                    {isRoute ? (
+                      <Link to={link.href} onClick={close} className={linkClass}>
+                        {link.label}
+                      </Link>
+                    ) : (
+                      <a href={link.href} onClick={(e) => handleHashNav(e, link.href, close)} className={linkClass}>
+                        {link.label}
+                      </a>
+                    )}
+                  </motion.div>
                 )
               })}
-            </nav>
-            <div className="mt-10">
-              <BookPill onClick={close} large />
-            </div>
+            </motion.nav>
+
+            <motion.div
+              className="mt-8"
+              variants={reduce ? {} : menuItemVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              transition={reduce ? {} : { delay: textLinks.length * 0.07 + 0.08 }}
+            >
+              {/* Mobile pill — same compact size as desktop, not oversized */}
+              <Link
+                to="/bookings"
+                onClick={close}
+                className="edge-refract accent-press inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 font-grotesk text-[15px] font-semibold tracking-wide text-ink"
+                aria-label="Book"
+              >
+                Book a show
+                <span className="inline-flex items-center justify-center rounded-full bg-ink/15 p-1">
+                  <ArrowUpRight size={14} weight="bold" />
+                </span>
+              </Link>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -66,7 +66,7 @@ function StackCard({
   const lift = useTransform(progress, [enterAt, isLast ? 1 : enterAt + seg], ['0%', isLast ? '0%' : '-6%'])
   const opacity = useTransform(
     progress,
-    [Math.max(0, enterAt - seg * 0.8), Math.max(0, enterAt - seg * 0.35)],
+    [Math.max(0, enterAt - seg * 0.45), Math.max(0, enterAt - seg * 0.05)],
     index === 0 ? [1, 1] : [0, 1],
   )
 

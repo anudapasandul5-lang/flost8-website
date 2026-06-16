@@ -70,12 +70,18 @@ export default function ArtistCard({ artist }: ArtistCardProps) {
     >
       <Link to={`/bookings?artist=${encodeURIComponent(artist.slug)}`} className="block">
         <article className="relative overflow-hidden bg-white border-[3px] border-cyan">
-          <div className="aspect-[1/1.08] bg-black">
+          <div className="aspect-[1/1.08] bg-black photo-treat">
             <img
               src={`/photos/${artist.slug}.webp`}
               alt={artist.name}
-              className="h-full w-full object-cover object-top grayscale transition-all duration-[750ms] hover:grayscale-0"
+              className="h-full w-full object-cover object-top grade-portrait"
               loading="lazy"
+              onError={(e) => {
+                const el = e.currentTarget;
+                el.style.display = 'none';
+                const placeholder = el.parentElement;
+                if (placeholder) placeholder.style.backgroundColor = '#1B0F24';
+              }}
             />
           </div>
 

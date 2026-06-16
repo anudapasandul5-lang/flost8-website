@@ -38,5 +38,5 @@ export const NAV_LINKS = [
   { label: 'Roster',  href: '/#roster' },
   { label: 'Shows',   href: '/#shows' },
   { label: 'Book',    href: '/bookings' },
-  { label: 'About',   href: '/#about' },
+  { label: 'What We Do',   href: '/#about' },
 ] as const;
