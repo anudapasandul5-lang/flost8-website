@@ -39,7 +39,7 @@ export default function MainPage() {
   }, [hash, lenis, reduce])
 
   return (
-    <main className="bg-base">
+    <main id="main-content" tabIndex={-1} className="bg-base outline-none">
       <Hero />
       <Partners />
       <Roster />

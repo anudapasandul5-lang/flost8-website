@@ -115,6 +115,7 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
       { type: 'youtube', url: 'https://www.youtube.com/watch?v=ecAFSbPQ-rk' },
     ],
     gigs: ['ILoveBrunch', 'Soundgarden AfterParty'],
+    bio: 'Professor is a Sri Lanka-based Electronic Music DJ and Producer whose journey in music began in 2016. In 2025, he stepped into music production, focusing primarily on Progressive House. Known for his passion for energetic and uplifting progressive sounds, Professor enjoys delivering hype-driven sets that captivate audiences and create unforgettable moments on the dance floor. With a deep love for electronic music and a commitment to continuously evolving his craft, he is steadily shaping a unique sound through powerful melodies, driving grooves, and immersive musical experiences as both a DJ and producer.',
   },
   {
     slug: 'anush',

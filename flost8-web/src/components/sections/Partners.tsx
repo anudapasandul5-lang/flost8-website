@@ -154,8 +154,6 @@ export default function Partners() {
         </p>
         <EyebrowRule />
 
-        <span className="sr-only">{PARTNERS.map((p) => p.name).join(', ')}</span>
-
         <div ref={gridRef} className="relative mt-10 flex flex-wrap justify-center gap-4 md:mt-12 md:gap-6">
           {PARTNERS.map((p) => {
             const Wrapper = p.url ? 'a' : 'div'

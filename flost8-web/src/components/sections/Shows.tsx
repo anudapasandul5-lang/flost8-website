@@ -1,6 +1,5 @@
-import { useRef } from 'react'
 import { Link } from 'react-router-dom'
-import { motion, useScroll, useTransform, type Variants } from 'framer-motion'
+import { motion, type Variants } from 'framer-motion'
 import { ArrowUpRight } from '@phosphor-icons/react'
 import { useUpcomingShows } from '../../hooks/useUpcomingShows'
 import { useMotionSafe } from '../../hooks/useMotionSafe'
@@ -90,68 +89,48 @@ const chipPop: Variants = {
 }
 
 function ShowRowCard({ row, reduce }: { row: ShowRow; reduce: boolean }) {
-  const rowRef = useRef<HTMLDivElement>(null)
-  // Photo parallax drift across the full scroll pass for depth.
-  // rowRef container is position:relative (set on motion.div below) — required antipattern guard.
-  const { scrollYProgress: pass } = useScroll({ target: rowRef, offset: ['start end', 'end start'] })
-  const imgY = useTransform(pass, [0, 1], ['-12%', '12%'])
-
   return (
     <motion.div
-      ref={rowRef}
       // Item F: whileInView slide — child of the staggerParent list wrapper.
-      // reduce=true → render final static state immediately (no slide, chip present).
       variants={reduce ? undefined : rowSlide}
       initial={reduce ? undefined : 'hidden'}
       whileInView={reduce ? undefined : 'visible'}
       viewport={{ once: true, margin: '0px 0px -48px 0px' }}
-      className="group relative overflow-hidden rounded-xl md:rounded-2xl min-h-[96px] md:min-h-[128px] edge-refract"
-      style={{ willChange: reduce ? undefined : 'transform, opacity' }}
+      className="group relative flex min-h-[116px] items-stretch overflow-hidden rounded-xl edge-refract bg-base-raise md:min-h-[140px] md:rounded-2xl"
     >
-      {row.photo ? (
-        <motion.div
-          className="absolute inset-0"
-          style={reduce ? undefined : { y: imgY, willChange: 'transform' }}
+      {/* Text block */}
+      <div className="flex flex-1 flex-col justify-center gap-1.5 px-5 py-5 md:px-8">
+        {/* date chip spring-pops in — gated via reduce */}
+        <motion.span
+          variants={reduce ? undefined : chipPop}
+          initial={reduce ? undefined : 'hidden'}
+          whileInView={reduce ? undefined : 'visible'}
+          viewport={{ once: true }}
+          className="mb-1 self-start whitespace-nowrap rounded-md bg-accent px-3 py-1 font-grotesk text-xs font-semibold text-ink md:text-sm"
         >
-          {/* taller than the row so the parallax drift never reveals an edge */}
+          {row.dateLabel}
+        </motion.span>
+        <p className="truncate font-display text-2xl leading-tight text-ink md:text-4xl">
+          {row.title}
+        </p>
+        <p className="truncate font-grotesk text-sm text-[var(--ink-50)]">{row.place}</p>
+      </div>
+
+      {/* Portrait — tall narrow right column matches portrait orientation, so the face reads */}
+      {row.photo && (
+        <div className="relative w-24 shrink-0 overflow-hidden md:w-40">
           <img
             src={row.photo}
             alt=""
             aria-hidden="true"
             loading="lazy"
             decoding="async"
-            className="duotone-purple absolute left-0 top-[-18%] h-[136%] w-full object-cover opacity-60 transition-transform duration-[750ms] ease-out group-hover:scale-105"
+            className="h-full w-full object-cover object-top grayscale transition duration-500 group-hover:scale-105 group-hover:grayscale-0"
           />
-        </motion.div>
-      ) : (
-        <div className="absolute inset-0 bg-base-raise" />
+          {/* blend the photo's left edge into the card */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-base-raise to-transparent" />
+        </div>
       )}
-
-      <div className="absolute inset-0 bg-gradient-to-r from-base via-base/70 to-transparent" />
-
-      <div className="relative z-10 grid h-full grid-cols-[1fr_auto] items-center gap-4 px-5 py-5 md:px-8 md:py-6">
-        <motion.div
-          className="min-w-0"
-          transition={{ duration: 0.45, ease: 'easeOut' }}
-          whileHover={reduce ? undefined : { x: 6 }}
-        >
-          <p className="font-display text-ink text-3xl md:text-5xl leading-tight truncate">
-            {row.title}
-          </p>
-          <p className="font-grotesk text-[var(--ink-50)] text-sm mt-1 truncate">{row.place}</p>
-        </motion.div>
-
-        {/* Item F: date chip spring-pops in — gated via reduce */}
-        <motion.div
-          variants={reduce ? undefined : chipPop}
-          initial={reduce ? undefined : 'hidden'}
-          whileInView={reduce ? undefined : 'visible'}
-          viewport={{ once: true }}
-          className="bg-accent text-ink font-grotesk font-semibold px-4 py-2 rounded-lg text-sm md:text-[1rem] whitespace-nowrap shrink-0"
-        >
-          {row.dateLabel}
-        </motion.div>
-      </div>
     </motion.div>
   )
 }

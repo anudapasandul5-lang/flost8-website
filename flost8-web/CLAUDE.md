@@ -21,7 +21,7 @@ Decline others unless user explicit.
 
 - `wrangler` bare commands mangled by RTK hook → use `npm run` scripts
 - `backdrop-filter` ancestor = containing block for `fixed` children → broke mobile menu
-- Bookings POST to `/api/script` — only works via Vite dev proxy. Cloudflare Pages needs a Function forwarding to Apps Script web-app URL (URL unknown — ask user)
+- Bookings POST to `/api/script` → handled by `functions/api/script.ts` (Pages Function forwards to Apps Script). Needs Cloudflare Pages env vars `APPS_SCRIPT_URL` + `TURNSTILE_SECRET` set in Production. Turnstile server-side verify is SKIPPED if `TURNSTILE_SECRET` unset → forms unprotected. No rate limiting yet (see vault `flost8-traffic-defense-moc`)
 - Hero text split must be word-atomic (`.word` inline-block + `white-space: nowrap`), not glyph-atomic, or browser breaks mid-word
 - `text-base` is a COLOR utility here (palette defines color `base` #120917), NOT font-size — it silently overrides text color to near-black (invisible on dark). For body size use `text-[1rem]`/`text-lg`, never `text-base`
 - Always update `Projects/FLOST8/STATUS.md` after any work

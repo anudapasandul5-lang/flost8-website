@@ -4,7 +4,7 @@
 /* ── Local Fonts ── */
 @font-face {
   font-family: 'Hyperwave';
-  src: url('/fonts/Hyperwave.otf') format('opentype');
+  src: url('/fonts/Hyperwave.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -12,7 +12,7 @@
 
 @font-face {
   font-family: 'Circe';
-  src: url('/fonts/Circe-Regular.otf') format('opentype');
+  src: url('/fonts/Circe-Regular.woff2') format('woff2');
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -20,7 +20,7 @@
 
 @font-face {
   font-family: 'Circe';
-  src: url('/fonts/Circe-Italic.otf') format('opentype');
+  src: url('/fonts/Circe-Italic.woff2') format('woff2');
   font-weight: 400;
   font-style: italic;
   font-display: swap;
@@ -30,18 +30,8 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ── Legacy Brand Tokens (KEPT — bookings page depends on these; do not remove) ── */
+/* ── Font tokens ── */
 :root {
-  --navy:      #302A66;
-  --purple:    #AE43F7;
-  --cyan:      #70F0F2;
-  --red:       #F20D0D;
-  --lime:      #CCFF00;
-  --hot-pink:  #FF6FAA;
-  --orange:    #E07040;
-  --cream:     #F5F0E8;
-  --off-black: #111118;
-
   --font-display: 'Bebas Neue', sans-serif;
   --font-script:  'Hyperwave', cursive;
   --font-body:    'Circe', sans-serif;
@@ -57,8 +47,8 @@
   /* ink */
   --ink:       #FFFFFF;
   --ink-72:    rgba(255,255,255,0.72);
-  --ink-50:    rgba(255,255,255,0.50);
-  --ink-32:    rgba(255,255,255,0.32);
+  --ink-50:    rgba(255,255,255,0.50);   /* 5.3:1 on --bg — AA ✓ */
+  --ink-32:    rgba(255,255,255,0.47);   /* §14: was 0.32 (2.8:1, failed AA); 0.47 = 4.8:1 for placeholders + footer copyright */
 
   /* single accent — electric purple (user-mandated) */
   --accent:    #9D14FF;
@@ -81,7 +71,7 @@
 
 html {
   font-family: var(--font-body);
-  background-color: var(--navy);
+  background-color: var(--bg);
   color: white;
 }
 
@@ -101,27 +91,6 @@ body {
   .font-display  { font-family: var(--font-display); }
   .font-script   { font-family: var(--font-script); }
   .font-body     { font-family: var(--font-body); }
-
-  .text-navy     { color: var(--navy); }
-  .text-purple   { color: var(--purple); }
-  .text-cyan     { color: var(--cyan); }
-  .text-red-brand { color: var(--red); }
-  .text-lime     { color: var(--lime); }
-  .text-hot-pink { color: var(--hot-pink); }
-  .text-orange   { color: var(--orange); }
-  .text-cream    { color: var(--cream); }
-
-  .bg-navy       { background-color: var(--navy); }
-  .bg-purple-brand { background-color: var(--purple); }
-  .bg-cyan-brand { background-color: var(--cyan); }
-  .bg-red-brand  { background-color: var(--red); }
-  .bg-lime       { background-color: var(--lime); }
-  .bg-hot-pink   { background-color: var(--hot-pink); }
-  .bg-orange-brand { background-color: var(--orange); }
-  .bg-cream      { background-color: var(--cream); }
-
-  .border-cyan-brand { border-color: var(--cyan); }
-  .border-red-brand  { border-color: var(--red); }
 
   /* ── Film grain — below nav (z-50) and modals (z-60+) ── */
   .grain {

@@ -12,6 +12,7 @@ export default function JoinRoster() {
         alt=""
         aria-hidden="true"
         loading="lazy"
+        decoding="async"
         className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-40"
       />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-base via-base/85 to-base/40" />

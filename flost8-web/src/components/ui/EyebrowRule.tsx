@@ -1,11 +1,10 @@
 import { useEffect, useRef } from 'react'
 import { useInView } from 'framer-motion'
-import { animate } from 'animejs'
 import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 /** Hairline purple rule that inks itself L->R when scrolled into view. */
 export default function EyebrowRule({ width = 56 }: { width?: number }) {
-  const { reduce, guard } = useMotionSafe()
+  const { reduce } = useMotionSafe()
   const ref = useRef<SVGSVGElement>(null)
   const lineRef = useRef<SVGLineElement>(null)
   const inView = useInView(ref, { once: true, margin: '-40px' })
@@ -15,20 +14,21 @@ export default function EyebrowRule({ width = 56 }: { width?: number }) {
     if (!line) return
     const len = width
     line.style.strokeDasharray = String(len)
-    line.style.strokeDashoffset = reduce ? '0' : String(len)
-
-    return guard(() => {
-      if (!inView) return
-      const anim = animate(line, {
-        strokeDashoffset: [len, 0],
-        duration: 700,
-        ease: 'inOutQuad',
+    // ponytail: CSS transition replaces animejs. Global reduced-motion CSS block
+    // also neutralises this; the explicit branch below is belt-and-suspenders.
+    if (reduce) {
+      line.style.transition = 'none'
+      line.style.strokeDashoffset = '0'
+      return
+    }
+    line.style.strokeDashoffset = String(len)
+    line.style.transition = 'stroke-dashoffset 700ms cubic-bezier(0.45,0,0.55,1)'
+    if (inView) {
+      const raf = requestAnimationFrame(() => {
+        line.style.strokeDashoffset = '0'
       })
-      return () => {
-        anim.revert()
-      }
-    })
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      return () => cancelAnimationFrame(raf)
+    }
   }, [inView, reduce, width])
 
   return (

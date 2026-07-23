@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion, useScroll, useMotionValueEvent } from 'framer-motion'
 import { List, X, ArrowUpRight } from '@phosphor-icons/react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
@@ -9,7 +9,9 @@ import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 function useMobileMenu() {
   const [open, setOpen] = useState(false)
-  return { open, toggle: () => setOpen(v => !v), close: () => setOpen(false) }
+  const toggle = useCallback(() => setOpen(v => !v), [])
+  const close = useCallback(() => setOpen(false), [])
+  return { open, toggle, close }
 }
 
 // Stagger variants for mobile menu items
@@ -45,7 +47,7 @@ function NavLink({
   const content = (
     <span className="group relative inline-block py-1">
       <span
-        className={`font-grotesk text-[14px] font-medium tracking-wide transition-colors duration-[200ms] ${
+        className={`font-grotesk uppercase text-[11px] md:text-[12px] font-medium tracking-[0.18em] transition-colors duration-[200ms] ${
           active ? 'text-ink' : 'text-[var(--ink-72)] group-hover:text-ink'
         }`}
       >
@@ -64,11 +66,11 @@ function NavLink({
   )
 
   return isRoute ? (
-    <Link to={href} onClick={onClick} aria-label={label}>
+    <Link to={href} onClick={onClick} className="rounded-sm outline-none touch-manipulation focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#120917]">
       {content}
     </Link>
   ) : (
-    <a href={href} onClick={onHashNav ? (e) => onHashNav(e, href, onClick) : onClick} aria-label={label}>
+    <a href={href} onClick={onHashNav ? (e) => onHashNav(e, href, onClick) : onClick} className="rounded-sm outline-none touch-manipulation focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#120917]">
       {content}
     </a>
   )
@@ -79,12 +81,12 @@ function BookPill({ onClick }: { onClick?: () => void }) {
     <Link
       to="/bookings"
       onClick={onClick}
-      className="edge-refract accent-press inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-2 font-grotesk text-[13px] font-semibold tracking-wide text-ink"
+      className="edge-refract accent-press inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-1.5 font-grotesk text-[11px] font-semibold uppercase tracking-[0.14em] text-ink touch-manipulation outline-none transition-[filter] duration-200 hover:brightness-110 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#120917]"
       aria-label="Book"
     >
       Book
       <span className="inline-flex items-center justify-center rounded-full bg-ink/15 p-0.5">
-        <ArrowUpRight size={12} weight="bold" />
+        <ArrowUpRight size={12} weight="bold" aria-hidden="true" />
       </span>
     </Link>
   )
@@ -98,10 +100,82 @@ export default function TopNav() {
   const location = useLocation()
   const navigate = useNavigate()
   const lenis = useLenis()
+  const menuRef = useRef<HTMLDivElement>(null)
+  // Scroll-spy: which homepage section is currently in view (drives the active underline).
+  const [activeSection, setActiveSection] = useState('')
 
   useMotionValueEvent(scrollY, 'change', (latest) => {
     setScrolled(latest > 20)
   })
+
+  // Scroll-spy — track the section crossing the viewport's mid-band so the nav
+  // underline follows where the user is (homepage only).
+  useEffect(() => {
+    if (location.pathname !== '/') {
+      setActiveSection('')
+      return
+    }
+    const ids = ['roster', 'about', 'shows']
+    const els = ids.map(id => document.getElementById(id)).filter((el): el is HTMLElement => !!el)
+    if (!els.length) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        const top = entries
+          .filter(e => e.isIntersecting)
+          .sort((a, b) => b.intersectionRatio - a.intersectionRatio)[0]
+        if (top) setActiveSection(top.target.id)
+      },
+      { rootMargin: '-45% 0px -45% 0px', threshold: [0, 0.5, 1] },
+    )
+    els.forEach(el => io.observe(el))
+    return () => io.disconnect()
+  }, [location.pathname])
+
+  // §12: when the mobile menu is open, trap focus inside it, close on Escape,
+  // lock the page behind it, and restore focus to the trigger on close.
+  useEffect(() => {
+    if (!open) return
+    const overlay = menuRef.current
+    const prevFocused = document.activeElement as HTMLElement | null
+    const prevOverflow = document.body.style.overflow
+    document.body.style.overflow = 'hidden'
+    lenis?.stop()
+
+    const focusables = () =>
+      overlay
+        ? Array.from(
+            overlay.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'),
+          )
+        : []
+    focusables()[0]?.focus()
+
+    function onKey(e: KeyboardEvent) {
+      if (e.key === 'Escape') {
+        close()
+        return
+      }
+      if (e.key !== 'Tab') return
+      const items = focusables()
+      if (items.length === 0) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault()
+        last.focus()
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault()
+        first.focus()
+      }
+    }
+    document.addEventListener('keydown', onKey)
+
+    return () => {
+      document.removeEventListener('keydown', onKey)
+      document.body.style.overflow = prevOverflow
+      lenis?.start()
+      prevFocused?.focus?.()
+    }
+  }, [open, close, lenis])
 
   function handleHashNav(e: React.MouseEvent<HTMLAnchorElement>, href: string, afterClick?: () => void) {
     e.preventDefault()
@@ -123,7 +197,8 @@ export default function TopNav() {
   // Determine active link: match on hash (home) or full pathname (routes)
   function isActive(href: string) {
     if (href.startsWith('/#')) {
-      return location.pathname === '/' && location.hash === href.slice(1)
+      // Driven by scroll-spy, so the underline follows the section in view.
+      return location.pathname === '/' && activeSection === href.slice(2)
     }
     return location.pathname === href
   }
@@ -131,61 +206,109 @@ export default function TopNav() {
   // Only text links — Book becomes the pill
   const textLinks = NAV_LINKS.filter(link => link.href !== '/bookings')
 
+  // Left side: Roster + What We Do; Right side: Shows
+  const leftLinks = textLinks.slice(0, 2)
+  const rightLinks = textLinks.slice(2)
+
   return (
-    <header
-      className="fixed inset-x-0 top-0 z-50 h-[68px] transition-[background-color,backdrop-filter,border-color] duration-[250ms]"
-      style={{
-        ...(scrolled
-          ? { borderBottom: '1px solid rgba(255,255,255,0.08)', backgroundColor: 'rgba(18,9,23,0.82)', backdropFilter: 'blur(20px)' }
-          : { borderBottom: '1px solid transparent', backgroundColor: 'transparent' }),
-        ...(reduce ? { transition: 'none' } : {}),
-      }}
+    <motion.header
+      className="fixed inset-x-0 top-3 md:top-4 z-50 flex justify-center px-4 pointer-events-none"
+      initial={reduce ? false : { y: -16, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={reduce ? { duration: 0 } : { type: 'spring', stiffness: 100, damping: 20 }}
     >
-      <div className="mx-auto flex h-full max-w-[1400px] items-center justify-between px-6 md:px-10">
-        {/* Logo — subtle scale on scroll (GPU-only transform) */}
-        <Link
-          to="/"
-          aria-label="FLOST8 home"
-          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center shrink-0"
-          onClick={(e) => {
-            if (location.pathname === '/') {
-              e.preventDefault()
-              lenis?.scrollTo(0, { duration: 1.8 })
-            }
-          }}
-        >
-          <motion.img
-            src="/logo-transparent.png"
-            alt="FLOST8"
-            className="h-[34px] w-auto"
-            animate={reduce ? {} : { scale: scrolled ? 0.92 : 1 }}
-            transition={{ duration: 0.25, ease: EASE }}
-          />
-        </Link>
-
-        {/* Desktop nav */}
-        <nav className="hidden items-center gap-8 md:flex" aria-label="Primary">
-          {textLinks.map(link => (
-            <NavLink
-              key={link.label}
-              {...link}
-              reduce={reduce}
-              active={isActive(link.href)}
-              onHashNav={handleHashNav}
-            />
-          ))}
-        </nav>
-
-        <div className="flex items-center gap-3">
-          {/* Desktop Book pill */}
-          <div className="hidden md:block">
-            <BookPill />
+      {/* Floating glass pill */}
+      <div
+        className={`pointer-events-auto relative w-full max-w-[680px] rounded-full backdrop-blur-xl backdrop-saturate-150 bg-[#120917]/55 ${
+          reduce ? '' : 'transition-shadow duration-300'
+        }`}
+        style={{
+          // Thin 0.5px-ish hairline ring (was edge-refract's 1px @0.10) + lighter float shadow.
+          boxShadow: scrolled
+            ? 'inset 0 0 0 1px rgba(255,255,255,0.05), 0 10px 34px -14px rgba(0,0,0,0.6)'
+            : 'inset 0 0 0 1px rgba(255,255,255,0.05), 0 6px 22px -14px rgba(0,0,0,0.45)',
+        }}
+      >
+        {/* Desktop layout — logo dead-center via CSS grid */}
+        <nav aria-label="Primary" className="hidden md:grid grid-cols-[1fr_auto_1fr] items-center gap-4 py-2 pl-6 pr-2">
+          {/* LEFT: Roster + What We Do */}
+          <div className="flex items-center justify-end gap-6">
+            {leftLinks.map(link => (
+              <NavLink
+                key={link.label}
+                {...link}
+                reduce={reduce}
+                active={isActive(link.href)}
+                onHashNav={handleHashNav}
+              />
+            ))}
           </div>
 
-          {/* Mobile hamburger — single close affordance (no duplicate X in menu) */}
+          {/* CENTER: Logo */}
+          <Link
+            to="/"
+            aria-label="FLOST8 home"
+            onClick={(e) => {
+              if (location.pathname === '/') {
+                e.preventDefault()
+                lenis?.scrollTo(0, { duration: 1.8 })
+              }
+            }}
+          >
+            <motion.img
+              src="/logo-transparent.png"
+              alt="FLOST8"
+              width={514}
+              height={555}
+              className="h-[26px] w-auto max-w-[120px] object-contain"
+              animate={reduce ? {} : { scale: scrolled ? 0.94 : 1 }}
+              transition={{ duration: 0.25, ease: EASE }}
+            />
+          </Link>
+
+          {/* RIGHT: Shows + Book pill */}
+          <div className="flex items-center justify-start gap-6">
+            {rightLinks.map(link => (
+              <NavLink
+                key={link.label}
+                {...link}
+                reduce={reduce}
+                active={isActive(link.href)}
+                onHashNav={handleHashNav}
+              />
+            ))}
+            <BookPill />
+          </div>
+        </nav>
+
+        {/* Mobile layout */}
+        <div className="flex md:hidden items-center justify-between py-2 pl-5 pr-2 w-full">
+          {/* Logo */}
+          <Link
+            to="/"
+            aria-label="FLOST8 home"
+            onClick={(e) => {
+              if (location.pathname === '/') {
+                e.preventDefault()
+                lenis?.scrollTo(0, { duration: 1.8 })
+              }
+            }}
+          >
+            <motion.img
+              src="/logo-transparent.png"
+              alt="FLOST8"
+              width={514}
+              height={555}
+              className="h-[26px] w-auto max-w-[120px] object-contain"
+              animate={reduce ? {} : { scale: scrolled ? 0.94 : 1 }}
+              transition={{ duration: 0.25, ease: EASE }}
+            />
+          </Link>
+
+          {/* Hamburger */}
           <button
             type="button"
-            className="accent-press inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-ink md:hidden"
+            className="accent-press inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 text-ink touch-manipulation outline-none transition-colors duration-200 hover:border-white/25 hover:bg-white/5 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#120917]"
             onClick={toggle}
             aria-label={open ? 'Close menu' : 'Open menu'}
             aria-expanded={open}
@@ -199,7 +322,7 @@ export default function TopNav() {
                   exit={{ rotate: 45, opacity: 0 }}
                   transition={reduce ? { duration: 0 } : { duration: 0.18, ease: EASE }}
                 >
-                  <X size={22} />
+                  <X size={22} aria-hidden="true" />
                 </motion.span>
               ) : (
                 <motion.span
@@ -209,7 +332,7 @@ export default function TopNav() {
                   exit={{ rotate: -45, opacity: 0 }}
                   transition={reduce ? { duration: 0 } : { duration: 0.18, ease: EASE }}
                 >
-                  <List size={22} />
+                  <List size={22} aria-hidden="true" />
                 </motion.span>
               )}
             </AnimatePresence>
@@ -217,16 +340,20 @@ export default function TopNav() {
         </div>
       </div>
 
-      {/* Mobile menu — fixed overlay, NOT a child of any backdrop-filter ancestor */}
+      {/* Mobile overlay menu — sibling of pill, NOT nested inside the blurred pill */}
       <AnimatePresence>
         {open && (
           <motion.div
             key="mobile-menu"
+            ref={menuRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Site menu"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: reduce ? 0 : 0.3, ease: EASE }}
-            className="fixed inset-x-0 top-0 z-40 flex h-[100dvh] flex-col bg-[var(--bg)] px-6 pt-[80px] md:hidden"
+            className="pointer-events-auto fixed inset-x-0 top-0 z-40 flex h-[100dvh] flex-col overscroll-contain bg-[var(--bg)] px-6 pt-[80px] pb-[env(safe-area-inset-bottom)] md:hidden"
             style={{ backgroundColor: 'var(--bg)' }}
           >
             <motion.nav
@@ -272,15 +399,15 @@ export default function TopNav() {
                 className="edge-refract accent-press inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 font-grotesk text-[15px] font-semibold tracking-wide text-ink"
                 aria-label="Book"
               >
-                Book a show
+                Book a Show
                 <span className="inline-flex items-center justify-center rounded-full bg-ink/15 p-1">
-                  <ArrowUpRight size={14} weight="bold" />
+                  <ArrowUpRight size={14} weight="bold" aria-hidden="true" />
                 </span>
               </Link>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
-    </header>
+    </motion.header>
   )
 }

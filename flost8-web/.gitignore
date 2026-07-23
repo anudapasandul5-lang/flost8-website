@@ -20,6 +20,10 @@ dist-ssr
 # Superpowers brainstorm runtime scratch (specs/plans under docs/ stay tracked)
 /.superpowers/
 
+# Agent/tooling scratch output
+/dogfood-output/
+/verify/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

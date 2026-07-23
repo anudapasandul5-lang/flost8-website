@@ -24,11 +24,21 @@ export default function Roster() {
   // Viewport width (for end-anchoring so no dead space past first/last card)
   const [viewportW, setViewportW] = useState(0)
 
-  // true when the viewport is mobile-width (<640px)
-  const isMobile = viewportW > 0 && viewportW < 640
+  // Mobile mode: native scroll-snap vs desktop peek/drag. Seeded synchronously
+  // from matchMedia so first paint is correct — deriving it from the async-
+  // measured viewportW (starts at 0) rendered the desktop carousel on mobile.
+  const [isMobile, setIsMobile] = useState(
+    () => typeof window !== 'undefined' && window.matchMedia('(max-width: 639px)').matches,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 639px)')
+    const onChange = () => setIsMobile(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
 
-  // RAF guard for scroll → activeIndex sync
-  const rafPendingRef = useRef(false)
+  // Debounce timer: sync activeIndex only after the mobile scroll settles
+  const scrollEndTimer = useRef<number | undefined>(undefined)
 
   // Framer motion x value for the track
   const x = useMotionValue(0)
@@ -55,6 +65,9 @@ export default function Roster() {
     if (viewportRef.current) observer.observe(viewportRef.current)
     return () => observer.disconnect()
   }, [measure])
+
+  // Clear the pending scroll-settle timer on unmount
+  useEffect(() => () => window.clearTimeout(scrollEndTimer.current), [])
 
   // ── Resting track-x for a given card index (centered, with end anchoring) ────
   const getTargetX = useCallback(
@@ -154,25 +167,27 @@ export default function Roster() {
         aria-label="Artist roster"
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className="mt-12 outline-none md:mt-16 focus-visible:ring-0"
+        className="mt-12 outline-none md:mt-16 rounded-2xl focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-[#120917]"
       >
         {/* Viewport: clips the overflowing track (desktop) / native scroll container (mobile) */}
         <div
           ref={viewportRef}
-          className={`relative ${isMobile ? 'overflow-x-auto snap-x snap-mandatory no-scrollbar' : 'overflow-hidden'}`}
+          className={`relative ${isMobile ? 'overflow-x-auto snap-x snap-proximity no-scrollbar scroll-smooth' : 'overflow-hidden'}`}
           style={isMobile ? undefined : { cursor: reduce ? 'default' : 'grab' }}
           onScroll={() => {
             if (!isMobile || cardStep === 0) return
-            if (rafPendingRef.current) return
-            rafPendingRef.current = true
-            requestAnimationFrame(() => {
-              rafPendingRef.current = false
+            // Sync the active index only once scrolling SETTLES. Calling
+            // setActiveIndex mid-fling re-renders all cards + swaps overlays,
+            // which cancels the native momentum and snaps back before the next
+            // card arrives.
+            window.clearTimeout(scrollEndTimer.current)
+            scrollEndTimer.current = window.setTimeout(() => {
               const el = viewportRef.current
               if (!el) return
               const raw = Math.round(el.scrollLeft / cardStep)
               const idx = Math.max(0, Math.min(PUBLIC_ARTISTS.length - 1, raw))
               setActiveIndex((prev) => (prev !== idx ? idx : prev))
-            })
+            }, 90)
           }}
         >
           {/* Track */}
@@ -189,6 +204,10 @@ export default function Roster() {
           >
             {PUBLIC_ARTISTS.map((artist, index) => {
               const isActive = index === activeIndex
+              // On mobile every full-bleed card shows the full overlay — the
+              // active index lags scroll (debounced), so keying content off it
+              // would flash the minimal label mid-swipe.
+              const showFull = isActive || isMobile
 
               return (
                 <motion.div
@@ -222,6 +241,7 @@ export default function Roster() {
                     src={`/photos/${artist.slug}.webp`}
                     alt={artist.name}
                     loading="lazy"
+                    decoding="async"
                     className={`grade-portrait absolute inset-0 h-full w-full object-cover ${isActive || isMobile ? 'is-active' : ''}`}
                     onError={(e) => {
                       const el = e.currentTarget;
@@ -235,7 +255,7 @@ export default function Roster() {
                   <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-base via-base/30 to-transparent" />
 
                   {/* Active card: full content overlay */}
-                  {isActive && (
+                  {showFull && (
                     <>
                       <span className="absolute left-4 top-4 font-display text-2xl text-accent md:left-6 md:top-6">
                         {String(index + 1).padStart(2, '0')}
@@ -268,7 +288,7 @@ export default function Roster() {
                   )}
 
                   {/* Inactive card: minimal label */}
-                  {!isActive && (
+                  {!showFull && (
                     <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 pointer-events-none">
                       <span className="font-display text-lg text-accent">
                         {String(index + 1).padStart(2, '0')}
@@ -302,17 +322,16 @@ export default function Roster() {
             <CaretLeft size={20} weight="bold" />
           </button>
 
-          {/* Dot indicators */}
-          <div className="flex items-center gap-1" role="tablist" aria-label="Artist selector">
+          {/* Dot indicators — plain buttons (not a tablist: no tabpanels to control) */}
+          <div className="flex items-center gap-1" aria-label="Artist selector">
             {PUBLIC_ARTISTS.map((artist, index) => {
               const isDotActive = index === activeIndex
               return (
                 <button
                   key={artist.slug}
                   type="button"
-                  role="tab"
-                  aria-selected={isDotActive}
                   aria-label={`Go to ${artist.name}`}
+                  aria-current={isDotActive ? 'true' : undefined}
                   onClick={() => {
                     if (isMobile) {
                       setActiveIndex(index)
@@ -321,27 +340,12 @@ export default function Roster() {
                       setActiveIndex(index)
                     }
                   }}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    minWidth: 44,
-                    minHeight: 44,
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 0,
-                  }}
+                  className="flex min-h-[44px] min-w-[44px] cursor-pointer items-center justify-center rounded-full border-none bg-transparent p-0 outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#120917]"
                 >
                   <span
-                    style={{
-                      display: 'block',
-                      width: isDotActive ? 24 : 8,
-                      height: 10,
-                      borderRadius: 9999,
-                      backgroundColor: isDotActive ? 'var(--accent)' : 'rgba(255,255,255,0.25)',
-                      transition: 'width 0.3s cubic-bezier(0.16,1,0.3,1), background-color 0.3s',
-                    }}
+                    className={`block h-[10px] rounded-full transition-[width,background-color] duration-300 ease-[cubic-bezier(0.16,1,0.3,1)] ${
+                      isDotActive ? 'w-6 bg-accent' : 'w-2 bg-white/25'
+                    }`}
                   />
                 </button>
               )

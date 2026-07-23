@@ -15,19 +15,6 @@ export const fadeUp: Variants = {
   visible: { opacity: 1, y: 0, transition: { duration: 1.5, ease: EASE } },
 };
 
-export const fadeUpBlur: Variants = {
-  // IMPORTANT: filter animation is NOT suppressed by the CSS reduced-motion safety net.
-  // Consuming components MUST use the useMotionSafe() seam and skip this variant if reduce is true.
-  // Desktop only — gate via: const { variant } = useMotionSafe(); const v = variant(fadeUpBlur, fadeUp);
-  hidden: { opacity: 0, y: 20, filter: "blur(8px)" },
-  visible: { opacity: 1, y: 0, filter: "blur(0px)", transition: { duration: 1.7, ease: EASE } },
-};
-
-export const scaleIn: Variants = {
-  hidden: { opacity: 0, scale: 0.94 },
-  visible: { opacity: 1, scale: 1, transition: { duration: 1.35, ease: EASE } },
-};
-
 export const staggerParent: Variants = {
   hidden: {},
   visible: { transition: { staggerChildren: 0.24, delayChildren: 0.15 } },

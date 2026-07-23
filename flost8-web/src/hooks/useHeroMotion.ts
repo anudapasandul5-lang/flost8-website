@@ -1,6 +1,6 @@
 import { useLayoutEffect, useRef, type RefObject } from 'react'
 import type Lenis from 'lenis'
-import { animate } from 'animejs'
+import { animate } from 'framer-motion'
 import { splitGraphemes, type CharNode } from '../lib/splitText'
 import { useMotionSafe } from './useMotionSafe'
 
@@ -144,7 +144,8 @@ export function useHeroMotion({ sectionRef, line1Ref, prefixRef, wordRef, lenis 
       const onOver = (e: Event) => {
         const t = e.target as HTMLElement
         if (!t.classList?.contains('glyph')) return
-        animate(t, { y: [-12, 0], scale: [1.35, 1], duration: 600, ease: 'outElastic(1, .4)' })
+        // ponytail: framer-motion replaces animejs. backOut approximates outElastic's settle.
+        animate(t, { y: [-12, 0], scale: [1.35, 1] }, { duration: 0.6, ease: 'backOut' })
       }
       hero.addEventListener('mouseover', onOver)
       return () => hero.removeEventListener('mouseover', onOver)

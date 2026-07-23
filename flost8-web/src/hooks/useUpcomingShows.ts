@@ -35,7 +35,12 @@ export function useUpcomingShows(limit?: number): UpcomingShowsState {
     if (typeof limit === 'number') params.set('n', String(limit))
 
     fetch(`${BOOKING_API_URL}?${params.toString()}`, { signal: controller.signal })
-      .then((response) => response.json())
+      .then((response) => {
+        // §6: a 5xx still returns JSON ({ok:false,...}); without this an outage
+        // would silently fall back to placeholder shows with error:false.
+        if (!response.ok) throw new Error(`upcoming shows HTTP ${response.status}`)
+        return response.json()
+      })
       .then((data) => {
         setState({
           shows: withFallback(normalizeUpcomingShows(data, limit), limit),

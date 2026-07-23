@@ -122,11 +122,12 @@ export const BOOKING_FIELDS: BookingFieldDef[] = [
 ]
 
 export const PLACEHOLDER_SHOWS: UpcomingShow[] = [
-  { artist: 'DR. GREEN', date: 'Jun 14 2026', venue: 'The Factory', city: 'Colombo' },
-  { artist: 'SONAL', date: 'Jun 21 2026', venue: 'Arugam Bay Hotel', city: 'Arugam Bay' },
-  { artist: 'IMTHXD', date: 'Jun 28 2026', venue: 'Kama', city: 'Colombo' },
-  { artist: 'MAALIN', date: 'Jul 5 2026', venue: 'Hilton Rooftop', city: 'Colombo' },
-  { artist: 'SONAL', date: 'Jul 19 2026', venue: 'Salt', city: 'Mirissa' },
+  { artist: 'DR. GREEN', date: 'Aug 8 2026', venue: 'The Factory', city: 'Colombo' },
+  { artist: 'SONAL', date: 'Aug 22 2026', venue: 'Arugam Bay Hotel', city: 'Arugam Bay' },
+  { artist: 'IMTHXD', date: 'Sep 5 2026', venue: 'Kama', city: 'Colombo' },
+  { artist: 'MAALIN', date: 'Sep 19 2026', venue: 'Hilton Rooftop', city: 'Colombo' },
+  { artist: 'THE PROFESSOR', date: 'Oct 3 2026', venue: 'Salt', city: 'Mirissa' },
+  { artist: 'ANUSH', date: 'Oct 17 2026', venue: 'Ministry of Crab', city: 'Colombo' },
 ]
 
 export function normalizeUpcomingShows(data: unknown, limit?: number): UpcomingShow[] {
@@ -215,7 +216,9 @@ function stringValue(value: unknown): string {
 
 function formatShowDate(date: string, time: string): string {
   if (!date) return ''
-  const match = date.match(/^(\d{4})-(\d{2})-(\d{2})$/)
+  // §4: accept both plain `YYYY-MM-DD` and full ISO datetimes (a Date-typed Sheet
+  // cell serialises as `2026-06-14T00:00:00.000Z`), taking the date portion.
+  const match = date.match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ].*)?$/)
   if (!match) return date
 
   const [, year, month, day] = match
@@ -227,5 +230,17 @@ function formatShowDate(date: string, time: string): string {
     timeZone: 'UTC',
   }).format(utcDate)
 
-  return time ? `${formatted} - ${time}` : formatted
+  return time ? `${formatted} - ${format12h(time)}` : formatted
+}
+
+// Display a 24h "HH:MM" time (as stored by the Sheet) as "10:00 PM". Any other
+// shape (already 12h, or free text) passes through unchanged.
+function format12h(time: string): string {
+  const m = time.match(/^(\d{1,2}):(\d{2})$/)
+  if (!m) return time
+  let h = Number(m[1])
+  const ap = h >= 12 ? 'PM' : 'AM'
+  h = h % 12
+  if (h === 0) h = 12
+  return `${h}:${m[2]} ${ap}`
 }

@@ -20,7 +20,7 @@ export default function ArtistPage() {
   // ALL hooks above — early return only after hooks
   if (!artist) {
     return (
-      <main className="bg-base min-h-[100dvh] grid place-items-center px-6">
+      <main id="main-content" tabIndex={-1} className="bg-base min-h-[100dvh] grid place-items-center px-6 outline-none">
         <div className="text-center">
           <p className="font-display text-5xl text-ink md:text-7xl">Artist not found</p>
           <Link
@@ -39,7 +39,7 @@ export default function ArtistPage() {
   const hasSingleTrack = youtubeMusic.length === 1
 
   return (
-    <main className="bg-base min-h-[100dvh]">
+    <main id="main-content" tabIndex={-1} className="bg-base min-h-[100dvh] outline-none">
       <div className="mx-auto max-w-[1200px] px-6 md:px-10 pt-28 md:pt-32 pb-24">
         {/* BACK ROW */}
         <Link
@@ -61,22 +61,19 @@ export default function ArtistPage() {
               className="h-full w-full"
               style={reduce ? undefined : { scale, y }}
             >
-              <picture>
-                <source srcSet={`/photos/${artist.slug}.webp`} type="image/webp" />
-                <img
-                  src={`/photos/${artist.slug}.png`}
-                  alt={artist.name}
-                  loading="lazy"
-                  decoding="async"
-                  className="grade-portrait is-active h-full w-full object-cover"
-                  onError={(e) => {
-                    const el = e.currentTarget;
-                    el.style.display = 'none';
-                    const wrapper = el.closest('.photo-treat') as HTMLElement | null;
-                    if (wrapper) wrapper.style.backgroundColor = '#1B0F24';
-                  }}
-                />
-              </picture>
+              <img
+                src={`/photos/${artist.slug}.webp`}
+                alt={artist.name}
+                loading="lazy"
+                decoding="async"
+                className="grade-portrait is-active h-full w-full object-cover"
+                onError={(e) => {
+                  const el = e.currentTarget;
+                  el.style.display = 'none';
+                  const wrapper = el.closest('.photo-treat') as HTMLElement | null;
+                  if (wrapper) wrapper.style.backgroundColor = '#1B0F24';
+                }}
+              />
             </motion.div>
             {/* Hero scrim: stronger bottom gradient to anchor low-res photos compositionally */}
             <div
@@ -172,7 +169,7 @@ export default function ArtistPage() {
             <motion.div variants={fadeUp} className="mt-8">
               <Link
                 to={`/bookings?artist=${artist.slug}`}
-                className="accent-press edge-refract inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-accent px-7 py-3 font-grotesk text-base text-ink sm:w-auto"
+                className="accent-press edge-refract inline-flex min-h-[44px] w-full items-center justify-center gap-2 rounded-full bg-accent px-7 py-3 font-grotesk text-[1rem] text-ink sm:w-auto"
               >
                 Book {artist.name}
               </Link>

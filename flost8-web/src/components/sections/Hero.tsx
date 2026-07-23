@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import { useLenis } from 'lenis/react'
 import { ArrowUpRight, PaperPlaneTilt } from '@phosphor-icons/react'
 import { useHeroMotion } from '../../hooks/useHeroMotion'
@@ -151,20 +152,20 @@ export default function Hero() {
             variants={fadeUp}
             className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center"
           >
-            <a
-              href="/bookings"
+            <Link
+              to="/bookings"
               className="edge-refract accent-press inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 font-grotesk text-ink"
             >
               <ArrowUpRight size={18} weight="bold" />
               Book Now
-            </a>
-            <a
-              href="/partner"
+            </Link>
+            <Link
+              to="/partner"
               className="accent-press inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full border border-[var(--accent-line)] bg-transparent px-6 py-3.5 font-grotesk text-ink transition-colors duration-[450ms] hover:bg-[var(--accent-soft)]"
             >
               <PaperPlaneTilt size={18} weight="bold" />
               Work With Us
-            </a>
+            </Link>
           </motion.div>
         </motion.div>
       </div>
