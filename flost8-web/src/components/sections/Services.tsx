@@ -79,7 +79,7 @@ function StackCard({
   progress,
 }: {
   service: Service
-  image: string
+  image: ServiceImage
   index: number
   progress: MotionValue<number>
 }) {
