@@ -19,6 +19,8 @@ export interface PublicArtist {
   music?: MusicLink[]
   gigs?: string[]
   bio?: string
+  /** CSS object-position for the portrait (e.g. 'center top') when centering crops badly. */
+  focal?: string
 }
 
 export const PUBLIC_ARTISTS: PublicArtist[] = [
@@ -63,7 +65,7 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
       },
     ],
     gigs: ['AGRA Festival', 'AudioSolo', 'Nexgen'],
-    bio: 'Maalin is a rising force in the progressive electronic scene, carving out a signature sound that blends deep groove with dark, hypnotic energy. What began at just 15 as a wide exploration of genres has evolved into a focused and powerful artistic identity rooted in the underground. Drawing inspiration from talents like Kyotto and global heavyweights such as Guy J and Simon Vuarambon, Maalin delivers immersive DJ sets that go beyond music — they\'re journeys. Each performance is carefully crafted to pull audiences into a world of deep rhythms, rolling basslines, and emotionally charged atmospheres. Sharing stages with names like Kebin Van Reeken, Volen Sentir, Kostya Outta, Hicky and Kalo, Not Demure and Alto Astral, he has quickly built a reputation for delivering sets that resonate long after the night ends. With debut releases on the way, Maalin is stepping onto the global stage with a sound that\'s bold, evolving, and impossible to ignore — positioning himself as one of the most exciting emerging names in progressive electronic music.',
+    bio: 'Maalin is a rising force in the progressive electronic scene, carving out a signature sound that blends deep groove with dark, hypnotic energy. What began at just 15 as a wide exploration of genres has evolved into a focused and powerful artistic identity rooted in the underground. Drawing inspiration from talents like Kyotto and global heavyweights such as Guy J and Simon Vuarambon, Maalin delivers immersive DJ sets that go beyond music. They\'re journeys. Each performance is carefully crafted to pull audiences into a world of deep rhythms, rolling basslines, and emotionally charged atmospheres. Sharing stages with names like Kebin Van Reeken, Volen Sentir, Kostya Outta, Hicky and Kalo, Not Demure and Alto Astral, he has quickly built a reputation for delivering sets that resonate long after the night ends. With debut releases on the way, Maalin is stepping onto the global stage with a sound that\'s bold, evolving, and impossible to ignore, positioning himself as one of the most exciting emerging names in progressive electronic music.',
   },
   {
     slug: 'sonal',
@@ -77,7 +79,8 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
       { name: 'SoundCloud', url: 'https://soundcloud.com/user-461176365' },
     ],
     music: [{ type: 'youtube', url: 'https://www.youtube.com/watch?v=Bou6t7w7SXE&t=12s' }],
-    gigs: ['Pirates', 'AGRA Festival', 'Ilovebrunch', 'ORIX'],
+    gigs: ['All Day Music', 'Yaga', 'Odyssey', 'Next Gen', 'Gala', 'Invade', 'Kulture', 'Pirates', 'AGRA Festival', 'Ilovebrunch', 'ORIX'],
+    bio: 'Sonal is a progressive house DJ and producer based in Sri Lanka, and the founder of FLOST8, a label, artist management agency, and content studio pushing the island’s electronic music scene forward. Since 2022, Sonal has performed island-wide, building a reputation for hypnotic, groove-driven sets that blend deep, melodic textures with peak-time energy. Sonal has shared the stage with international and local artists including Guy J, Guy Mantzur, Simon Vuarambon, Sebastian Busto, EMPHI, and Funk Sun, among many others, performing at leading events such as Odyssey, Yaga, and numerous other international and local showcases. Beyond the booth, Sonal leads FLOST8’s roster and creative direction, shaping the label’s sound and its growing footprint in event production and artist management. Rooted in the island, driven by the groove, Sonal continues to champion progressive house as both artist and architect of the scene.',
   },
   {
     slug: 'imthxd',
@@ -97,7 +100,7 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
       },
     ],
     gigs: ['AudioSolo', 'Balance Festival Day2', 'Ocean Drive'],
-    bio: 'Imthxd is a Sri Lanka-born DJ specializing in Progressive House and Dark Progressive. Known for crafting deep, atmospheric journeys through sound, he draws inspiration from artists like Guy J, Kebin Van Reeken, Mike Rish, Kyotto, Fran Garay, and Tonaco. His sets blend hypnotic grooves, layered melodies, and emotionally driven rhythms that resonate deeply with underground music lovers. Rooted in the raw emotion and tension of dark progressive, Imthxd\'s music bridges intensity and serenity — delivering powerful, transformative experiences every time he steps behind the decks. Now making waves in Sri Lanka\'s electronic music scene, Imthxd is quickly emerging as a rising talent for those who crave depth, energy, and sonic storytelling.',
+    bio: 'Imthxd is a Sri Lanka-born DJ specializing in Progressive House and Dark Progressive. Known for crafting deep, atmospheric journeys through sound, he draws inspiration from artists like Guy J, Kebin Van Reeken, Mike Rish, Kyotto, Fran Garay, and Tonaco. His sets blend hypnotic grooves, layered melodies, and emotionally driven rhythms that resonate deeply with underground music lovers. Rooted in the raw emotion and tension of dark progressive, Imthxd\'s music bridges intensity and serenity, delivering powerful, transformative experiences every time he steps behind the decks. Now making waves in Sri Lanka\'s electronic music scene, Imthxd is quickly emerging as a rising talent for those who crave depth, energy, and sonic storytelling.',
   },
   {
     slug: 'the-professor',

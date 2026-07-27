@@ -11,7 +11,8 @@
     "lint": "eslint .",
     "test": "vitest run",
     "cf:who": "wrangler whoami",
-    "deploy:dev": "npm run build && wrangler pages deploy dist --project-name flost8 --branch dev"
+    "deploy:dev": "npm run build && wrangler pages deploy dist --project-name flost8 --branch dev",
+    "photos:normalize": "node scripts/normalize-portraits.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

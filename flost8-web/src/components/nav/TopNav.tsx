@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { AnimatePresence, motion, useScroll, useMotionValueEvent } from 'framer-motion'
-import { List, X, ArrowUpRight } from '@phosphor-icons/react'
+import { List, X } from '@phosphor-icons/react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useLenis } from 'lenis/react'
 import { NAV_LINKS } from '../../lib/config'
@@ -73,22 +73,6 @@ function NavLink({
     <a href={href} onClick={onHashNav ? (e) => onHashNav(e, href, onClick) : onClick} className="rounded-sm outline-none touch-manipulation focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#120917]">
       {content}
     </a>
-  )
-}
-
-function BookPill({ onClick }: { onClick?: () => void }) {
-  return (
-    <Link
-      to="/bookings"
-      onClick={onClick}
-      className="edge-refract accent-press inline-flex items-center gap-1.5 rounded-full bg-accent px-4 py-1.5 font-grotesk text-[11px] font-semibold uppercase tracking-[0.14em] text-ink touch-manipulation outline-none transition-[filter] duration-200 hover:brightness-110 focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-[#120917]"
-      aria-label="Book"
-    >
-      Book
-      <span className="inline-flex items-center justify-center rounded-full bg-ink/15 p-0.5">
-        <ArrowUpRight size={12} weight="bold" aria-hidden="true" />
-      </span>
-    </Link>
   )
 }
 
@@ -184,8 +168,11 @@ export default function TopNav() {
     if (location.pathname === '/') {
       const el = document.getElementById(id)
       if (el && lenis) {
+        lenis.start() // mobile menu close() stops lenis; scrollTo below would no-op if still stopped
         lenis.scrollTo(el, reduce ? { immediate: true } : { offset: -70, duration: 1.6, easing: lenisEase })
-        navigate('/#' + id, { replace: true })
+        // Scroll-spy (activeSection) drives the active underline, not the URL hash —
+        // so keep the URL clean instead of leaving #about stuck in the bar.
+        window.history.replaceState(null, '', '/')
       } else {
         navigate('/#' + id)
       }
@@ -203,10 +190,10 @@ export default function TopNav() {
     return location.pathname === href
   }
 
-  // Only text links — Book becomes the pill
-  const textLinks = NAV_LINKS.filter(link => link.href !== '/bookings')
+  // All nav items render identically — Book included, no standout pill.
+  const textLinks = NAV_LINKS
 
-  // Left side: Roster + What We Do; Right side: Shows
+  // Left side: Roster + What We Do; Right side: Shows + Book
   const leftLinks = textLinks.slice(0, 2)
   const rightLinks = textLinks.slice(2)
 
@@ -219,7 +206,7 @@ export default function TopNav() {
     >
       {/* Floating glass pill */}
       <div
-        className={`pointer-events-auto relative w-full max-w-[680px] rounded-full backdrop-blur-xl backdrop-saturate-150 bg-[#120917]/55 ${
+        className={`pointer-events-auto relative z-50 w-full max-w-[680px] rounded-full backdrop-blur-xl backdrop-saturate-150 bg-[#120917]/55 ${
           reduce ? '' : 'transition-shadow duration-300'
         }`}
         style={{
@@ -277,7 +264,6 @@ export default function TopNav() {
                 onHashNav={handleHashNav}
               />
             ))}
-            <BookPill />
           </div>
         </nav>
 
@@ -383,28 +369,6 @@ export default function TopNav() {
                 )
               })}
             </motion.nav>
-
-            <motion.div
-              className="mt-8"
-              variants={reduce ? {} : menuItemVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
-              transition={reduce ? {} : { delay: textLinks.length * 0.07 + 0.08 }}
-            >
-              {/* Mobile pill — same compact size as desktop, not oversized */}
-              <Link
-                to="/bookings"
-                onClick={close}
-                className="edge-refract accent-press inline-flex items-center gap-2 rounded-full bg-accent px-6 py-3 font-grotesk text-[15px] font-semibold tracking-wide text-ink"
-                aria-label="Book"
-              >
-                Book a Show
-                <span className="inline-flex items-center justify-center rounded-full bg-ink/15 p-1">
-                  <ArrowUpRight size={14} weight="bold" aria-hidden="true" />
-                </span>
-              </Link>
-            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -29,6 +29,8 @@ export default function MainPage() {
       if (el) {
         lenis.resize() // recalc dimensions after route swap — fixes stale clamp
         lenis.scrollTo(el as HTMLElement, reduce ? { immediate: true } : { offset: -70, duration: 1.6, easing: lenisEase })
+        // Strip the hash so it doesn't stick in the URL after the jump (doesn't re-navigate).
+        window.history.replaceState(null, '', window.location.pathname + window.location.search)
         return
       }
       if (tries++ < 20) raf = requestAnimationFrame(run)

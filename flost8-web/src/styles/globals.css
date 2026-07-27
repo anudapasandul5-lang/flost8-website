@@ -180,8 +180,8 @@ body {
   .accent-press { transition: transform 0.18s cubic-bezier(0.16,1,0.3,1); }
   .accent-press:active { transform: scale(0.97); }
 
-  /* ── Hide scrollbar (mobile carousel) ── */
-  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+  /* ── Hide scrollbar + momentum scroll (mobile carousel) ── */
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
   .no-scrollbar::-webkit-scrollbar { display: none; }
 
   /* ── Horizontal mask for marquee edge fade ── */

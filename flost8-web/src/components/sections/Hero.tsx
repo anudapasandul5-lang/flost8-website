@@ -31,8 +31,9 @@ export default function Hero() {
     target: sectionRef,
     offset: ['start start', 'end start'],
   })
+  // ponytail: scale-only parallax. A y-translate needs an oversized layer to avoid gapping,
+  // and that overscan zoomed the footage past the fold — artists lost their heads on short windows.
   const bgScale = useTransform(scrollYProgress, [0, 1], [1, 1.08])
-  const bgY = useTransform(scrollYProgress, [0, 1], ['0%', '8%'])
 
   // Pause/resume the loop based on viewport visibility
   useEffect(() => {
@@ -66,21 +67,22 @@ export default function Hero() {
       <motion.div
         className="absolute inset-0"
         aria-hidden="true"
-        style={reduce ? undefined : { scale: bgScale, y: bgY }}
+        style={reduce ? undefined : { scale: bgScale }}
       >
         <img
           src="/ui2/hero-bg.jpeg"
           alt=""
           aria-hidden="true"
-          width={2048}
-          height={1365}
+          width={1920}
+          height={1080}
           fetchPriority="high"
-          className="h-full w-full object-cover transition-opacity duration-[1050ms]"
+          className="absolute inset-0 h-full w-full object-cover transition-opacity duration-[1050ms]"
           style={{
-            height: '120%',
-            top: '-10%',
-            position: 'absolute',
-            width: '100%',
+            // Anchor top: on wide/short windows cover trims top and bottom, and every scene puts
+            // the artist's head in the upper third. This is the most headroom the crop can give.
+            // ponytail: owner chose full-bleed footage over a padded top safe-area, so on the
+            // beach scene the head still passes behind the 64px nav pill. Deliberate.
+            objectPosition: 'center top',
             opacity: showVideo && videoReady ? 0 : 1,
           }}
         />
@@ -94,12 +96,9 @@ export default function Hero() {
             preload="metadata"
             poster="/ui2/hero-bg.jpeg"
             aria-hidden="true"
-            className="h-full w-full object-cover transition-opacity duration-[1050ms]"
+            className="absolute inset-0 h-full w-full object-cover transition-opacity duration-[1050ms]"
             style={{
-              height: '120%',
-              top: '-10%',
-              position: 'absolute',
-              width: '100%',
+              objectPosition: 'center top',
               opacity: videoReady ? 1 : 0,
             }}
             onCanPlay={() => setVideoReady(true)}
@@ -111,27 +110,29 @@ export default function Hero() {
         )}
       </motion.div>
 
-      {/* Dark grade for legibility */}
-      <div className="absolute inset-0 bg-gradient-to-b from-base/40 via-base/55 to-base" aria-hidden="true" />
-      <div className="absolute inset-0 bg-gradient-to-r from-base/80 to-transparent" aria-hidden="true" />
+      {/* Dark grade for legibility. Weighted to the top (nav) and the bottom (copy), deliberately
+          thin through the middle band where the artist stands. */}
+      <div
+        className="absolute inset-0 bg-gradient-to-b from-base/70 via-base/10 via-40% to-base"
+        aria-hidden="true"
+      />
+      {/* Left scrim only where the copy sits, so it never dims the centre-framed subject.
+          Masked at the top edge so it dissolves into the frame instead of banding. */}
+      <div
+        className="absolute inset-x-0 bottom-0 h-[85%] bg-gradient-to-t from-base via-base/65 to-transparent md:bg-gradient-to-r md:from-base/90 md:via-base/55 md:to-transparent md:[mask-image:linear-gradient(to_top,black_30%,transparent_100%)]"
+        aria-hidden="true"
+      />
 
-      <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[1200px] flex-col justify-center px-6 pb-28 pt-32 md:px-10 md:pb-36 md:pt-36">
+      <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[1200px] flex-col justify-end px-6 pb-16 pt-24 md:px-10 md:pb-20">
         <motion.div
           className="max-w-full md:max-w-[72%]"
           variants={staggerParentSlow}
           initial={reduce ? 'visible' : 'hidden'}
           animate="visible"
         >
-          <motion.p
-            variants={fadeUp}
-            className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink"
-          >
-            Colombo &middot; Artist Collective
-          </motion.p>
-
           <h1
             aria-label="WHERE ARTISTS BECOME CULTURE"
-            className="mt-4 font-display text-[56px] leading-[0.92] text-ink sm:text-[68px] md:text-[92px] lg:text-[108px]"
+            className="font-display text-[52px] leading-[0.92] text-ink sm:text-[62px] md:text-[80px] lg:text-[94px]"
           >
             <span ref={line1Ref}>WHERE ARTISTS</span>
             <br />

@@ -13,7 +13,11 @@ const GAP = 16 // px between cards
 
 export default function Roster() {
   const { reduce } = useMotionSafe()
-  const [activeIndex, setActiveIndex] = useState(0)
+  // Seed from the last-viewed card so returning from an artist page lands on it.
+  const [activeIndex, setActiveIndex] = useState(() => {
+    const saved = Number(sessionStorage.getItem('roster:index'))
+    return Number.isFinite(saved) ? Math.min(Math.max(0, saved), PUBLIC_ARTISTS.length - 1) : 0
+  })
   const viewportRef = useRef<HTMLDivElement>(null)
   const trackRef = useRef<HTMLDivElement>(null)
 
@@ -37,8 +41,11 @@ export default function Roster() {
     return () => mq.removeEventListener('change', onChange)
   }, [])
 
-  // Debounce timer: sync activeIndex only after the mobile scroll settles
-  const scrollEndTimer = useRef<number | undefined>(undefined)
+  // rAF handle: throttle the mobile scroll → activeIndex sync to one update per frame
+  const scrollRaf = useRef<number | undefined>(undefined)
+  // Lock card taps while the track is settling so a double-click doesn't activate a
+  // second card that slid under the cursor mid-animation.
+  const settling = useRef(false)
 
   // Framer motion x value for the track
   const x = useMotionValue(0)
@@ -66,8 +73,29 @@ export default function Roster() {
     return () => observer.disconnect()
   }, [measure])
 
-  // Clear the pending scroll-settle timer on unmount
-  useEffect(() => () => window.clearTimeout(scrollEndTimer.current), [])
+  // Cancel any pending scroll-sync frame on unmount
+  useEffect(
+    () => () => {
+      if (scrollRaf.current !== undefined) window.cancelAnimationFrame(scrollRaf.current)
+    },
+    [],
+  )
+
+  // Persist the active card so it survives navigating away + back.
+  useEffect(() => {
+    sessionStorage.setItem('roster:index', String(activeIndex))
+  }, [activeIndex])
+
+  // Restore the mobile scroll position to the seeded card once measured (once).
+  // Desktop restores via the x-sync effect below. Runs before any user scroll.
+  const didRestore = useRef(false)
+  useLayoutEffect(() => {
+    if (didRestore.current || cardStep === 0) return
+    didRestore.current = true
+    if (isMobile && activeIndex > 0 && viewportRef.current) {
+      viewportRef.current.scrollLeft = activeIndex * cardStep
+    }
+  }, [cardStep, isMobile, activeIndex])
 
   // ── Resting track-x for a given card index (centered, with end anchoring) ────
   const getTargetX = useCallback(
@@ -87,12 +115,16 @@ export default function Roster() {
   )
 
   // ── Sync x to activeIndex (programmatic: arrows / dots / keyboard) ───────────
+  const firstSync = useRef(true)
   useEffect(() => {
     if (cardStep === 0) return
     if (isMobile) return
     const targetX = getTargetX(activeIndex)
-    if (reduce) {
+    // First run (mount / restore from a back-nav) jumps instantly so the seeded card
+    // is just there — no slide-into-place. Later index changes animate normally.
+    if (reduce || firstSync.current) {
       x.set(targetX)
+      firstSync.current = false
     } else {
       animate(x, targetX, { ...SPRING })
     }
@@ -156,7 +188,7 @@ export default function Roster() {
           className="mt-3 font-display text-5xl leading-[0.9] text-ink md:text-7xl"
         />
         <p className="mt-4 max-w-[60ch] font-grotesk text-[1rem] text-[var(--ink-72)] md:text-lg">
-          We build the people, the sound, and the rooms they take over — not a roster we rent out by the hour.
+          We build the people, the sound, and the rooms they take over, not a roster we rent out by the hour.
         </p>
       </div>
 
@@ -172,22 +204,28 @@ export default function Roster() {
         {/* Viewport: clips the overflowing track (desktop) / native scroll container (mobile) */}
         <div
           ref={viewportRef}
-          className={`relative ${isMobile ? 'overflow-x-auto snap-x snap-proximity no-scrollbar scroll-smooth' : 'overflow-hidden'}`}
+          className={`relative ${
+            isMobile
+              ? `overflow-x-auto snap-x snap-mandatory no-scrollbar overscroll-x-contain ${reduce ? '' : 'scroll-smooth'}`
+              : 'overflow-hidden'
+          }`}
           style={isMobile ? undefined : { cursor: reduce ? 'default' : 'grab' }}
           onScroll={() => {
             if (!isMobile || cardStep === 0) return
-            // Sync the active index only once scrolling SETTLES. Calling
-            // setActiveIndex mid-fling re-renders all cards + swaps overlays,
-            // which cancels the native momentum and snaps back before the next
-            // card arrives.
-            window.clearTimeout(scrollEndTimer.current)
-            scrollEndTimer.current = window.setTimeout(() => {
+            // Sync activeIndex LIVE (rAF-throttled) so the bottom dot tracks the
+            // swipe instead of jumping at settle. Safe on mobile: card content is
+            // identical regardless of activeIndex (showFull = isActive || isMobile,
+            // scale/opacity constant), so this only toggles aria-current + the dot —
+            // it does not re-render card internals, so native momentum is preserved.
+            if (scrollRaf.current !== undefined) return
+            scrollRaf.current = window.requestAnimationFrame(() => {
+              scrollRaf.current = undefined
               const el = viewportRef.current
               if (!el) return
               const raw = Math.round(el.scrollLeft / cardStep)
               const idx = Math.max(0, Math.min(PUBLIC_ARTISTS.length - 1, raw))
               setActiveIndex((prev) => (prev !== idx ? idx : prev))
-            }, 90)
+            })
           }}
         >
           {/* Track */}
@@ -198,7 +236,10 @@ export default function Roster() {
             dragElastic={0.12}
             onDragEnd={handleDragEnd}
             dragMomentum={false}
-            style={{ x, willChange: 'transform', touchAction: isMobile ? 'auto' : 'pan-y' }}
+            // will-change only on desktop, where the track is transform-animated.
+            // On mobile the native scroller moves scrollLeft (not x), so a permanent
+            // compositor layer here is pure waste and hurts FPS.
+            style={{ x, willChange: isMobile ? 'auto' : 'transform', touchAction: isMobile ? 'manipulation' : 'pan-y' }}
             className="flex"
             // gap via inline style so the JS gap constant matches
           >
@@ -218,7 +259,7 @@ export default function Roster() {
                   className="
                     relative flex-shrink-0 overflow-hidden rounded-none sm:rounded-2xl edge-refract photo-treat snap-center
                     w-full sm:w-[62vw] lg:w-[46vw] xl:w-[560px]
-                    h-[60vh] max-h-[560px] min-h-[360px]
+                    aspect-[3/4] sm:aspect-square
                   "
                   animate={
                     reduce
@@ -229,11 +270,18 @@ export default function Roster() {
                         }
                   }
                   transition={reduce ? { duration: 0 } : { ...SPRING }}
-                  onClick={() => !isActive && setActiveIndex(index)}
+                  onClick={() => {
+                    if (isActive || settling.current) return
+                    settling.current = true
+                    window.setTimeout(() => { settling.current = false }, 450)
+                    setActiveIndex(index)
+                  }}
                   style={{
                     marginRight: index < PUBLIC_ARTISTS.length - 1 ? GAP : 0,
                     cursor: isActive ? 'default' : 'pointer',
-                    willChange: 'transform, opacity',
+                    // ponytail: no permanent will-change — every full-screen card
+                    // holding its own compositor layer is what caused the mobile
+                    // stutter. Framer promotes the card itself while it animates (desktop).
                   }}
                 >
                   {/* Photo */}
@@ -242,6 +290,7 @@ export default function Roster() {
                     alt={artist.name}
                     loading="lazy"
                     decoding="async"
+                    style={{ objectPosition: artist.focal ?? 'center' }}
                     className={`grade-portrait absolute inset-0 h-full w-full object-cover ${isActive || isMobile ? 'is-active' : ''}`}
                     onError={(e) => {
                       const el = e.currentTarget;
@@ -269,18 +318,18 @@ export default function Roster() {
                         </p>
                         <div className="mt-4 flex flex-wrap gap-2.5">
                           <Link
-                            to={`/bookings?artist=${artist.slug}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="accent-press edge-refract inline-flex min-h-[44px] items-center gap-2 rounded-full bg-accent px-5 py-2.5 font-grotesk text-sm text-ink"
-                          >
-                            Book Now
-                          </Link>
-                          <Link
                             to={`/artist/${artist.slug}`}
                             onClick={(e) => e.stopPropagation()}
                             className="inline-flex min-h-[44px] items-center rounded-full border border-[var(--accent-line)] px-5 py-2.5 font-grotesk text-sm text-ink transition-colors hover:bg-[var(--accent-soft)]"
                           >
                             View Artist
+                          </Link>
+                          <Link
+                            to={`/bookings?artist=${artist.slug}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="accent-press edge-refract inline-flex min-h-[44px] items-center gap-2 rounded-full bg-accent px-5 py-2.5 font-grotesk text-sm text-ink"
+                          >
+                            Book Now
                           </Link>
                         </div>
                       </div>
@@ -335,7 +384,7 @@ export default function Roster() {
                   onClick={() => {
                     if (isMobile) {
                       setActiveIndex(index)
-                      viewportRef.current?.scrollTo({ left: index * cardStep, behavior: 'smooth' })
+                      viewportRef.current?.scrollTo({ left: index * cardStep, behavior: reduce ? 'auto' : 'smooth' })
                     } else {
                       setActiveIndex(index)
                     }

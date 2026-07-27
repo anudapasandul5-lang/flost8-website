@@ -24,6 +24,7 @@ Decline others unless user explicit.
 - Bookings POST to `/api/script` → handled by `functions/api/script.ts` (Pages Function forwards to Apps Script). Needs Cloudflare Pages env vars `APPS_SCRIPT_URL` + `TURNSTILE_SECRET` set in Production. Turnstile server-side verify is SKIPPED if `TURNSTILE_SECRET` unset → forms unprotected. No rate limiting yet (see vault `flost8-traffic-defense-moc`)
 - Hero text split must be word-atomic (`.word` inline-block + `white-space: nowrap`), not glyph-atomic, or browser breaks mid-word
 - `text-base` is a COLOR utility here (palette defines color `base` #120917), NOT font-size — it silently overrides text color to near-black (invisible on dark). For body size use `text-[1rem]`/`text-lg`, never `text-base`
+- `public/photos/*.webp` AND `public/photos/full/*.webp` are GENERATED — do not hand-edit or drop a new file in either, `npm run photos:normalize` overwrites them. Put the new photo in `photos-src/`, add its `FRAMES` row (eyeY + head width, measured in that image's own pixels) in `scripts/normalize-portraits.mjs`, then re-run. Two outputs, on purpose: `photos/` is normalised to 1100×1100, eyes at 36%, head 242px wide (roster + Shows — they sit side by side, so heads must match), `photos/full/` is the untouched original (ArtistPage — profile shows the full figure). `object-position: center` is correct in both
 - Always update `Projects/FLOST8/STATUS.md` after any work
 
 ## Don't

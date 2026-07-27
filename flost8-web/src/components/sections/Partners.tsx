@@ -5,11 +5,9 @@ import { useMotionSafe } from '../../hooks/useMotionSafe'
 
 const PARTNERS = [
   { slug: 'corso', name: 'Corso', url: 'https://www.instagram.com/corso.lk/' },
-  { slug: 'sun_crush', name: 'Sun Crush', url: 'https://www.instagram.com/suncrushbeverage/' },
   { slug: 'a_logo', name: 'Astroid SL', url: 'https://astroidsl.com/' },
   { slug: 'vibe_mount', name: 'Vibe Mount', url: 'https://www.instagram.com/vibemount_/' },
   { slug: 'pixels_n_pints', name: 'Pixels n Pints', url: 'https://www.instagram.com/pixelsnpints.cmb/' },
-  { slug: 'soul_boner', name: 'Soul Boner', url: 'https://thirstyforsoulboner.com/' },
   { slug: 'abstract_mark', name: 'Address.lk', url: 'https://www.addresshop.com/' },
   { slug: 'speedbay', name: 'Speedbay', url: 'https://www.instagram.com/speedbaylk/' },
   { slug: 'reignite', name: 'Reignite', url: 'https://www.reignitee.com/' },
@@ -17,6 +15,12 @@ const PARTNERS = [
   { slug: 'spinner_energy_drink', name: 'Spinner Energy Drink', url: 'https://www.instagram.com/spinnerenergydrink/' },
   { slug: 'traveling_bruncher', name: 'The Traveling Bruncher', url: 'https://www.instagram.com/thetravelingbruncher/' },
   { slug: 'vocaine', name: 'Vocaine', url: 'https://vocaine.com/' },
+  { slug: 'snack_entity', name: 'Snack Entity', url: 'https://snackentity.lk/' },
+  { slug: 'calista', name: 'Calista', url: 'https://calistaclothing.com/' },
+  { slug: 'sozo', name: 'SOZO', url: 'https://sozoiced.com/' },
+  { slug: 'crepe_runner', name: 'Crepe Runner', url: 'https://creperunner.lk/' },
+  { slug: 'oyster_colombo', name: 'Oyster Colombo', url: 'https://www.instagram.com/oyster_colombo/' },
+  { slug: 'noir_luxe', name: 'Noir Luxe', url: 'https://www.instagram.com/noir.luxe.lk/' },
 ] as const
 
 const K = 0.06 // lerp factor for reveal — small = slow ease-in on scroll-up

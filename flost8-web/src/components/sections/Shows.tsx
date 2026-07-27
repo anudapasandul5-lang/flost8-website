@@ -179,7 +179,7 @@ export default function Shows() {
           <div className="rounded-2xl bg-base-raise edge-refract p-10 md:p-14 text-center md:text-left">
             <h3 className="font-display text-ink text-4xl md:text-5xl mb-3">NEW DATES DROPPING SOON</h3>
             <p className="font-grotesk text-[var(--ink-50)] mb-8 max-w-md md:mx-0 mx-auto">
-              Get on the list — we announce shows here first.
+              Get on the list. We announce shows here first.
             </p>
             <Link
               to="/bookings"

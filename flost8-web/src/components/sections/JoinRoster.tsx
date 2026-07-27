@@ -17,13 +17,6 @@ export default function JoinRoster() {
       />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-base via-base/85 to-base/40" />
       <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-b from-base/70 via-transparent to-base" />
-      {/* oversized watermark */}
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -bottom-10 left-1/2 -translate-x-1/2 select-none whitespace-nowrap font-display text-accent/5 text-[22vw] leading-none md:text-[16vw]"
-      >
-        JOIN
-      </span>
 
       <div className="relative z-10 mx-auto max-w-[1400px] px-6 md:px-10">
         <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">Become an artist</p>

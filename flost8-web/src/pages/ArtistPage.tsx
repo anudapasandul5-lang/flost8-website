@@ -1,5 +1,5 @@
 import { useRef } from 'react'
-import { useParams, Link } from 'react-router-dom'
+import { useParams, useNavigate, Link } from 'react-router-dom'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { CaretLeft, InstagramLogo } from '@phosphor-icons/react'
 import { getPublicArtistBySlug } from '../lib/artistRoster'
@@ -10,6 +10,14 @@ import { useMotionSafe } from '../hooks/useMotionSafe'
 
 export default function ArtistPage() {
   const { slug } = useParams<{ slug: string }>()
+  const navigate = useNavigate()
+  // Prefer a real history-back (POP) so the home page restores its scroll + carousel card.
+  // Fall back to the roster anchor when the artist page was opened directly (no history).
+  const goBack = () => {
+    const idx = (window.history.state as { idx?: number } | null)?.idx ?? 0
+    if (idx > 0) navigate(-1)
+    else navigate('/#roster')
+  }
   const heroRef = useRef<HTMLDivElement>(null)
   const { reduce } = useMotionSafe()
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
@@ -23,12 +31,13 @@ export default function ArtistPage() {
       <main id="main-content" tabIndex={-1} className="bg-base min-h-[100dvh] grid place-items-center px-6 outline-none">
         <div className="text-center">
           <p className="font-display text-5xl text-ink md:text-7xl">Artist not found</p>
-          <Link
-            to="/#roster"
+          <button
+            type="button"
+            onClick={goBack}
             className="accent-press mt-6 inline-flex min-h-[44px] items-center gap-2 rounded-full bg-accent px-6 py-3 font-grotesk text-sm text-ink"
           >
             Back to roster
-          </Link>
+          </button>
         </div>
       </main>
     )
@@ -42,18 +51,19 @@ export default function ArtistPage() {
     <main id="main-content" tabIndex={-1} className="bg-base min-h-[100dvh] outline-none">
       <div className="mx-auto max-w-[1200px] px-6 md:px-10 pt-28 md:pt-32 pb-24">
         {/* BACK ROW */}
-        <Link
-          to="/#roster"
+        <button
+          type="button"
+          onClick={goBack}
           className="inline-flex min-h-[44px] items-center gap-2 font-grotesk text-sm text-[var(--ink-72)] transition-colors hover:text-ink"
         >
           <CaretLeft size={16} weight="bold" />
           Back to roster
-        </Link>
+        </button>
 
         {/* HERO */}
         <section
           ref={heroRef}
-          className="mt-8 grid grid-cols-1 items-center gap-8 md:grid-cols-2 md:gap-12"
+          className="mt-8 grid grid-cols-1 items-start gap-8 md:grid-cols-2 md:gap-12"
         >
           {/* PORTRAIT — first in DOM, stacks on top on mobile */}
           <div className="relative overflow-hidden rounded-2xl edge-refract aspect-[3/4] w-full max-w-[480px] photo-treat">
@@ -62,10 +72,14 @@ export default function ArtistPage() {
               style={reduce ? undefined : { scale, y }}
             >
               <img
-                src={`/photos/${artist.slug}.webp`}
+                // Original framing, not the head-matched roster crop — the profile
+                // shows the artist in full. Both come from photos-src/ via
+                // `npm run photos:normalize`.
+                src={`/photos/full/${artist.slug}.webp`}
                 alt={artist.name}
                 loading="lazy"
                 decoding="async"
+                style={{ objectPosition: artist.focal ?? 'center' }}
                 className="grade-portrait is-active h-full w-full object-cover"
                 onError={(e) => {
                   const el = e.currentTarget;
