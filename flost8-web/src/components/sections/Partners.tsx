@@ -21,6 +21,7 @@ const PARTNERS = [
   { slug: 'crepe_runner', name: 'Crepe Runner', url: 'https://creperunner.lk/' },
   { slug: 'oyster_colombo', name: 'Oyster Colombo', url: 'https://www.instagram.com/oyster_colombo/' },
   { slug: 'noir_luxe', name: 'Noir Luxe', url: 'https://www.instagram.com/noir.luxe.lk/' },
+  { slug: 'slfd', name: 'Solitude', url: 'https://solitude.lk/' },
 ] as const
 
 const K = 0.06 // lerp factor for reveal — small = slow ease-in on scroll-up
