@@ -40,7 +40,9 @@ const PAD_COLOR = '#050505'
 // cropBottom trims rows before scaling, to keep the subject off the bottom edge.
 const FRAMES = {
   'dr-green': { eyeY: 424, headLeft: 440, headRight: 685 },
-  maalin: { eyeY: 554, headLeft: 463, headRight: 652 },
+  // Chin-up three-quarter on a black plate. Head span is measured at the temples, not the
+  // jaw — the upward tilt throws the silhouette's widest point down onto the jawline.
+  maalin: { eyeY: 690, headLeft: 418, headRight: 760 },
   sonal: { eyeY: 550, headLeft: 414, headRight: 621 },
   anush: { eyeY: 320, headLeft: 280, headRight: 462, cropBottom: 790 },
   imthxd: { eyeY: 511, headLeft: 350, headRight: 650 },

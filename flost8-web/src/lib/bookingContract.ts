@@ -130,9 +130,30 @@ export const PLACEHOLDER_SHOWS: UpcomingShow[] = [
   { artist: 'ANUSH', date: 'Oct 17 2026', venue: 'Ministry of Crab', city: 'Colombo' },
 ]
 
+/** Today as `YYYY-MM-DD` in UTC — same key space the sheet's date cells use. */
+function todayKeyUTC(): string {
+  return new Date().toISOString().slice(0, 10)
+}
+
+/** The `YYYY-MM-DD` prefix of a raw date cell, or '' when it isn't one. */
+function dateKey(raw: string): string {
+  const match = raw.match(/^(\d{4}-\d{2}-\d{2})(?:[T ].*)?$/)
+  return match ? match[1] : ''
+}
+
 export function normalizeUpcomingShows(data: unknown, limit?: number): UpcomingShow[] {
-  const rows = getEventRows(data)
-  const shows = rows.map(normalizeEvent).filter((show): show is UpcomingShow => Boolean(show))
+  const today = todayKeyUTC()
+  const shows = getEventRows(data)
+    // Finished shows must never reach the UI. Compare the RAW date cell, not the formatted
+    // label — ISO keys sort as strings, so no Date parsing is needed. Filtering happens
+    // BEFORE the limit slice so `n=5` yields five *future* shows, not five rows minus the
+    // past ones. Fail open: a date we can't read is kept rather than silently dropped.
+    .filter((event) => {
+      const key = dateKey(stringValue(event.date))
+      return key === '' || key >= today
+    })
+    .map(normalizeEvent)
+    .filter((show): show is UpcomingShow => Boolean(show))
   return typeof limit === 'number' ? shows.slice(0, limit) : shows
 }
 

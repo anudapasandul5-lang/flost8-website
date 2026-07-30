@@ -117,13 +117,16 @@ export default function Hero() {
         aria-hidden="true"
       />
       {/* Left scrim only where the copy sits, so it never dims the centre-framed subject.
-          Masked at the top edge so it dissolves into the frame instead of banding. */}
+          Copy is vertically centred, so the scrim is weighted to the middle band and masked
+          away at BOTH ends — it dissolves into the frame instead of banding. */}
       <div
-        className="absolute inset-x-0 bottom-0 h-[85%] bg-gradient-to-t from-base via-base/65 to-transparent md:bg-gradient-to-r md:from-base/90 md:via-base/55 md:to-transparent md:[mask-image:linear-gradient(to_top,black_30%,transparent_100%)]"
+        className="absolute inset-0 bg-gradient-to-b from-transparent via-base/75 to-transparent md:bg-gradient-to-r md:from-base/90 md:via-base/55 md:to-transparent md:[mask-image:linear-gradient(to_bottom,transparent_0%,black_25%,black_75%,transparent_100%)]"
         aria-hidden="true"
       />
 
-      <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[1200px] flex-col justify-end px-6 pb-16 pt-24 md:px-10 md:pb-20">
+      {/* Vertically centred copy. pt-24 reserves the 64px nav pill so "centre" means centred in
+          the space BELOW the nav, not in the raw viewport. */}
+      <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[1200px] flex-col justify-center px-6 pb-16 pt-24 md:px-10">
         <motion.div
           className="max-w-full md:max-w-[72%]"
           variants={staggerParentSlow}

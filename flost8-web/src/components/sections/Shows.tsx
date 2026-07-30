@@ -8,44 +8,6 @@ import { PUBLIC_ARTISTS } from '../../lib/artistRoster'
 import type { UpcomingShow } from '../../lib/bookingContract'
 import { EASE, SPRING, staggerParent } from '../../lib/motion'
 
-// ---------------------------------------------------------------------------
-// Date filtering helpers
-// ---------------------------------------------------------------------------
-
-/**
- * Parse a show's display date string into a UTC midnight Date.
- * Handles formats produced by formatShowDate in bookingContract:
- *   "Jun 14, 2026"           (Intl.DateTimeFormat output, may include comma)
- *   "Jun 14 2026"            (PLACEHOLDER_SHOWS format, no comma)
- *   "Jun 14, 2026 - 10:00 PM" (with time suffix)
- * Returns null if unparseable (fail-open: keep the show).
- */
-function parseShowDate(dateStr: string): Date | null {
-  if (!dateStr) return null
-  // Strip any time suffix (everything after " - ")
-  const bare = dateStr.split(' - ')[0].trim()
-  // Normalise: remove trailing comma so both "Jun 14, 2026" and "Jun 14 2026" parse cleanly
-  const normalised = bare.replace(',', '')
-  const d = new Date(normalised)
-  return isNaN(d.getTime()) ? null : d
-}
-
-/** Return today's date at UTC midnight for a stable day-boundary comparison. */
-function todayUTC(): Date {
-  const now = new Date()
-  return new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()))
-}
-
-/** Keep shows whose date >= today. Unparseable dates are kept (fail-open). */
-function filterFutureShows(shows: UpcomingShow[]): UpcomingShow[] {
-  const today = todayUTC()
-  return shows.filter((show) => {
-    const d = parseShowDate(show.date)
-    if (!d) return true // fail-open
-    return d >= today
-  })
-}
-
 interface ShowRow {
   slug: string | null
   photo: string | null
@@ -137,9 +99,9 @@ function ShowRowCard({ row, reduce }: { row: ShowRow; reduce: boolean }) {
 
 export default function Shows() {
   const { reduce } = useMotionSafe()
-  const { shows: rawShows, loading } = useUpcomingShows(5)
-  // Task A: filter to today-or-future only; unparseable dates are kept (fail-open).
-  const shows = filterFutureShows(rawShows)
+  // Past shows are filtered upstream in normalizeUpcomingShows, so every consumer of the
+  // hook gets the same list — this section and /bookings both.
+  const { shows, loading } = useUpcomingShows(5)
 
   return (
     <section id="shows" className="relative bg-base py-10 md:py-20">

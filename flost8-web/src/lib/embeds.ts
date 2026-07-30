@@ -1,9 +1,12 @@
 /**
- * Extract the 11-character video ID from a YouTube watch URL.
- * Returns null if no valid v= parameter is found.
+ * Extract the 11-character video ID from a YouTube URL.
+ * Accepts both the long `watch?v=` form and the `youtu.be/` share link — the share
+ * link is what the YouTube app copies, and returning null for it makes the whole
+ * embed disappear with no error.
+ * Returns null if no valid ID is found.
  */
 export function getYouTubeId(url: string): string | null {
-  const match = url.match(/[?&]v=([\w-]{11})/);
+  const match = url.match(/(?:[?&]v=|youtu\.be\/)([\w-]{11})/);
   return match ? match[1] : null;
 }
 

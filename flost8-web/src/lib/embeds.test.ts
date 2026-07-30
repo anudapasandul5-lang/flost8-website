@@ -25,6 +25,12 @@ describe('embeds', () => {
       );
     });
 
+    it('extracts id from a youtu.be share link with a tracking param', () => {
+      expect(getYouTubeId('https://youtu.be/Zm-9yuSTc8k?si=oOg_3BAHbWBdGQ7O')).toBe(
+        'Zm-9yuSTc8k'
+      );
+    });
+
     it('returns null for SoundCloud URL', () => {
       expect(
         getYouTubeId('https://soundcloud.com/artist/track-name-123456789')

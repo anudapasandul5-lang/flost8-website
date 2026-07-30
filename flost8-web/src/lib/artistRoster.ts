@@ -43,6 +43,7 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
       { type: 'youtube', url: 'https://www.youtube.com/watch?v=mIzxpKdVS7g' },
       { type: 'youtube', url: 'https://www.youtube.com/watch?v=jPFlSMzOJEI&t=789s' },
       { type: 'youtube', url: 'https://www.youtube.com/watch?v=ZP14TK60BIs&t=3297s' },
+      { type: 'youtube', url: 'https://www.youtube.com/watch?v=Zm-9yuSTc8k' },
     ],
     gigs: ['Soundgarden Festival', 'Dr Green & Friends', 'International Tours'],
     bio: 'Hailing from the beautiful island of Sri Lanka, Dr. Green is a DJ and producer who has been making waves in the electronic music scene. With a distinct taste for progressive house, deep house, and melodic techno, his track productions are a true reflection of his personal style.',
