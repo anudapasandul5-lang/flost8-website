@@ -24,7 +24,7 @@ export default function MainPage() {
     let raf = 0
     let tries = 0
     const run = () => {
-      let el: Element | null = null
+      let el: Element | null
       try { el = document.querySelector(hash) } catch { return }
       if (el) {
         lenis.resize() // recalc dimensions after route swap — fixes stale clamp

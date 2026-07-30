@@ -16,7 +16,7 @@ interface ShowRow {
   place: string
 }
 
-export function showToRow(show: UpcomingShow): ShowRow {
+function showToRow(show: UpcomingShow): ShowRow {
   const match = PUBLIC_ARTISTS.find(
     (artist) => artist.name.toLowerCase() === show.artist.toLowerCase(),
   )

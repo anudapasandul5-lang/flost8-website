@@ -95,10 +95,9 @@ export default function TopNav() {
   // Scroll-spy — track the section crossing the viewport's mid-band so the nav
   // underline follows where the user is (homepage only).
   useEffect(() => {
-    if (location.pathname !== '/') {
-      setActiveSection('')
-      return
-    }
+    // No spy targets off the homepage. Nothing to clear either — the only reader of
+    // activeSection already gates on pathname === '/', so a stale value is never shown.
+    if (location.pathname !== '/') return
     const ids = ['roster', 'about', 'shows']
     const els = ids.map(id => document.getElementById(id)).filter((el): el is HTMLElement => !!el)
     if (!els.length) return

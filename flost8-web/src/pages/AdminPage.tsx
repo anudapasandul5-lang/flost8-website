@@ -78,6 +78,10 @@ export default function AdminPage() {
 
   // Restore a session on refresh if a password is still stored this tab session.
   useEffect(() => {
+    // Kicking off a fetch is the whole point of this effect, and refresh() sets loading
+    // state before it awaits. There is no render-time way to restore a session, so the
+    // rule has nothing better to offer here.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     if (password) void refresh()
   }, [password, refresh])
 
