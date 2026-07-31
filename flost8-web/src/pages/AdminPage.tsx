@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { PencilSimple, Trash, Plus, SignOut } from '@phosphor-icons/react'
 import { PUBLIC_ARTISTS } from '../lib/artistRoster'
@@ -76,8 +76,15 @@ export default function AdminPage() {
     }
   }, [password, logout])
 
-  // Restore a session on refresh if a password is still stored this tab session.
+  // Restore a session on page load if a password is still stored from this tab session.
+  // Fires at most once: handleLogin already loads shows itself before it sets `password`,
+  // so reacting to `password` changing would fire a second, redundant listShows on every
+  // login. The ref (not an empty dep array) keeps the deps honest and survives StrictMode's
+  // double-invoke in development, which would otherwise double-fetch on mount.
+  const restoreAttempted = useRef(false)
   useEffect(() => {
+    if (restoreAttempted.current) return
+    restoreAttempted.current = true
     // Kicking off a fetch is the whole point of this effect, and refresh() sets loading
     // state before it awaits. There is no render-time way to restore a session, so the
     // rule has nothing better to offer here.
