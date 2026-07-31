@@ -1,1 +1,8 @@
+# Google (and some feed readers) probe /favicon.ico by default. Without this the
+# catch-all below answers that probe with index.html at HTTP 200, so the crawler
+# gets HTML where it asked for an image — worse than a clean 404, which would at
+# least fall through to the <link rel="icon"> tags. Must stay ABOVE the catch-all:
+# first match wins. Serves the PNG's own image/png content-type, which Google accepts.
+/favicon.ico    /favicon-48.png    200
+
 /*    /index.html    200
