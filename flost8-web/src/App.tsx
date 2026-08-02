@@ -36,19 +36,39 @@ function ScrollRestorer() {
     const saved = positions.current.get(pathname)
     const target = navType === 'POP' && saved != null ? saved : 0
     isRestoring.current = true
+
     const apply = () => {
       lenis?.resize() // recalc after route swap so the clamp isn't stale
       if (lenis) lenis.scrollTo(target, { immediate: true })
       else window.scrollTo(0, target)
     }
+
+    // The incoming route's height arrives in STAGES, not at once: the Suspense fallback
+    // (100dvh), then the lazy route chunk, then images. Each stage changes the max scroll,
+    // the browser re-clamps native scrollY to it, and Lenis adopts that clamped value as
+    // its own position. Correcting only at commit + one rAF loses every stage that lands
+    // later — which is how a forward nav could end up mid-page instead of at the top.
+    // Whether it happens depends on whether the chunk is already cached, hence intermittent.
+    // Re-apply for as long as the height is still moving.
+    const ro = new ResizeObserver(apply)
+    const INPUT = ['wheel', 'touchstart', 'keydown'] as const
+    let timer = 0
+
+    // Real input means the user owns the scroll now — stop correcting it, and let the
+    // recorder start saving again.
+    const release = () => {
+      ro.disconnect()
+      window.clearTimeout(timer)
+      for (const e of INPUT) window.removeEventListener(e, release)
+      isRestoring.current = false
+    }
+
     apply() // before paint
-    // Re-apply after paint in case late layout (images) shifted the max scroll,
-    // then release the lock a beat later so trailing programmatic scrolls are ignored.
-    const raf = requestAnimationFrame(() => {
-      apply()
-      window.setTimeout(() => { isRestoring.current = false }, 80)
-    })
-    return () => cancelAnimationFrame(raf)
+    ro.observe(document.documentElement)
+    for (const e of INPUT) window.addEventListener(e, release, { passive: true })
+    timer = window.setTimeout(release, 500)
+
+    return release
   }, [pathname, navType, lenis])
 
   // Record the current route's scroll position as the user scrolls (never during a
