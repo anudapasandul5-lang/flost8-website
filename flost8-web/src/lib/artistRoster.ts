@@ -33,7 +33,6 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
     genre: 'Progressive House',
     instagram: { handle: 'dr_green_sl', followers: '12K' },
     platforms: [
-      { name: 'Mixcloud', url: 'https://www.mixcloud.com/DrGreenSL/' },
       { name: 'SoundCloud', url: 'https://soundcloud.com/dr_green_lk' },
       { name: 'Traxsource', url: 'https://www.traxsource.com/artist/578267/dr-green' },
       { name: 'Spotify', url: 'https://open.spotify.com/artist/7iwl8mIIMxzYFmWvMft2tE' },
