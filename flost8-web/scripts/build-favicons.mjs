@@ -9,18 +9,17 @@ import sharp from 'sharp'
 const SRC = 'public/logo-transparent.png'
 const OUT_DIR = 'public'
 
-// Solid tile in the site's own base colour. Transparent was tried first and reverted:
-// measured against the light chip that Google/Bing results and light tab bars draw the
-// icon on, the cyan `st8` half lands at 1.43:1 contrast — under the 3:1 floor, so the
-// bottom of the lockup all but disappears. On this tile both halves clear 4.5:1.
-// Set this to { r: 0, g: 0, b: 0, alpha: 0 } to go back to a transparent tile.
-const BG = '#120917'
+// Transparent tile — the logo sits on whatever surface draws it. Owner's call: the
+// solid #120917 tile read as a black box against light UI, which he did not want.
+// Known tradeoff, measured: on the light chip Google/Bing results and light tab bars
+// use, the cyan `st8` half lands at 1.43:1 — under the 3:1 floor, so the bottom of the
+// lockup goes faint there. Set this to '#120917' to go back to the solid tile.
+const BG = { r: 0, g: 0, b: 0, alpha: 0 }
 // Fraction of the tile the logo occupies. The source has no transparent margin of its
 // own (verified: trim() is a no-op on it), so this is the only breathing room there is.
-// A mark flush to the edge of a *solid* tile reads as clipped once a surface rounds the
-// corners — on a transparent tile there is no visible edge, which is why that variant
-// used full bleed instead.
-const INSET = 0.82
+// Full bleed is right for a transparent tile — there is no visible edge to read as
+// clipped, and any inset is just dead space at 16px. Pair 0.82 with the solid tile.
+const INSET = 1
 
 // ponytail: no rounded corners. iOS masks apple-touch-icon itself, and a radius
 // is sub-pixel at 48px. Add one only if a surface turns up that draws the tile square.
@@ -47,7 +46,8 @@ async function build({ size, file }) {
     .png()
     .toFile(out)
 
-  console.log(`${out.padEnd(28)} ${size}x${size}  logo ${inner}px on ${BG}`)
+  const bgLabel = typeof BG === 'string' ? BG : 'transparent'
+  console.log(`${out.padEnd(28)} ${size}x${size}  logo ${inner}px on ${bgLabel}`)
 }
 
 const meta = await sharp(SRC).metadata()
