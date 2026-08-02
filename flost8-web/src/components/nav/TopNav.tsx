@@ -246,7 +246,7 @@ export default function TopNav() {
               alt="FLOST8"
               width={514}
               height={555}
-              className="h-[26px] w-auto max-w-[120px] object-contain"
+              className="h-[36px] w-auto max-w-[160px] object-contain"
               animate={reduce ? {} : { scale: scrolled ? 0.94 : 1 }}
               transition={{ duration: 0.25, ease: EASE }}
             />
@@ -284,7 +284,7 @@ export default function TopNav() {
               alt="FLOST8"
               width={514}
               height={555}
-              className="h-[26px] w-auto max-w-[120px] object-contain"
+              className="h-[36px] w-auto max-w-[160px] object-contain"
               animate={reduce ? {} : { scale: scrolled ? 0.94 : 1 }}
               transition={{ duration: 0.25, ease: EASE }}
             />

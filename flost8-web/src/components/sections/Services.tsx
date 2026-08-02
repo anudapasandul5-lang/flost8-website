@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
-import { motion, useScroll, useSpring, useTransform, type MotionValue } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { ArrowRight } from '@phosphor-icons/react'
 import { SERVICES } from '../../lib/config'
@@ -28,8 +27,6 @@ const SERVICE_IMAGES: ServiceImage[] = [
     band: '/ui2/gen/what-we-do-content-engine-band.webp',
   },
 ]
-const TOTAL = SERVICES.length
-
 type Service = (typeof SERVICES)[number]
 
 /** Card visual — image on top (mobile) / to the side (desktop); fixed height for the stack. */
@@ -71,43 +68,6 @@ function CardInner({ service, image }: { service: Service; image: ServiceImage }
   )
 }
 
-/** Pinned-stage card — rises from below and stacks under the fixed header. */
-function StackCard({
-  service,
-  image,
-  index,
-  progress,
-}: {
-  service: Service
-  image: ServiceImage
-  index: number
-  progress: MotionValue<number>
-}) {
-  const seg = 1 / TOTAL
-  const enterAt = index * seg
-  const y = useTransform(
-    progress,
-    [Math.max(0, enterAt - seg), enterAt],
-    index === 0 ? ['0%', '0%'] : ['115%', '0%'],
-  )
-  const isLast = index === TOTAL - 1
-  const scale = useTransform(progress, [enterAt, isLast ? 1 : enterAt + seg], [1, isLast ? 1 : 0.93])
-  const lift = useTransform(progress, [enterAt, isLast ? 1 : enterAt + seg], ['0%', isLast ? '0%' : '-6%'])
-  const opacity = useTransform(
-    progress,
-    [Math.max(0, enterAt - seg * 0.45), Math.max(0, enterAt - seg * 0.05)],
-    index === 0 ? [1, 1] : [0, 1],
-  )
-
-  return (
-    <motion.div style={{ y, opacity, zIndex: index }} className="absolute inset-x-0 top-0">
-      <motion.div style={{ scale, y: lift, willChange: 'transform' }} className="origin-top">
-        <CardInner service={service} image={image} />
-      </motion.div>
-    </motion.div>
-  )
-}
-
 function Header() {
   return (
     <div className="shrink-0">
@@ -135,7 +95,7 @@ function StartLink() {
   )
 }
 
-/** Plain vertical stack — no scroll-jack. Used on mobile + reduced-motion. */
+/** Plain vertical stack — cards fade up as they enter view. No pinning, no scroll-jack. */
 function StackedCards({ animate }: { animate: boolean }) {
   return (
     <div className="mt-10 flex flex-col gap-5">
@@ -156,64 +116,16 @@ function StackedCards({ animate }: { animate: boolean }) {
 
 export default function Services() {
   const { reduce } = useMotionSafe()
-  // Mobile: the 360vh pinned scroll-stack feels janky on touch → plain stacked cards.
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const mq = window.matchMedia('(max-width: 767px)')
-    const on = () => setIsMobile(mq.matches)
-    on()
-    mq.addEventListener('change', on)
-    return () => mq.removeEventListener('change', on)
-  }, [])
-  const trackRef = useRef<HTMLDivElement>(null)
-  const { scrollYProgress } = useScroll({
-    target: trackRef,
-    offset: ['start start', 'end end'],
-  })
-  const smoothProgress = useSpring(scrollYProgress, {
-    stiffness: 90,
-    damping: 26,
-    restDelta: 0.0005,
-  })
 
-  if (reduce || isMobile) {
-    // Plain stacked cards, header in normal flow — no pinning / scroll-jack.
-    return (
-      <section id="about" className="relative bg-base">
-        <div className="mx-auto max-w-[1400px] px-6 pb-6 pt-14 md:px-10 md:pt-20">
-          <Header />
-          <StackedCards animate={!reduce} />
-          <div className="mt-8">
-            <StartLink />
-          </div>
-        </div>
-      </section>
-    )
-  }
-
-  // Pinned stage — header stays fixed, cards rise + stack beneath. All viewports.
+  // Plain stacked cards, header in normal flow — no pinning / scroll-jack.
   return (
     <section id="about" className="relative bg-base">
-      <div ref={trackRef} className="relative h-[360vh] md:h-[340vh]">
-        <div className="sticky top-0 h-[100dvh] overflow-hidden">
-          <div className="mx-auto flex h-full max-w-[1400px] flex-col px-6 pb-10 pt-24 md:px-10 md:pb-10 md:pt-28">
-            <Header />
-            <div className="relative mt-12 min-h-0 flex-1 md:mt-12">
-              {SERVICES.map((service, i) => (
-                <StackCard
-                  key={service.no}
-                  service={service}
-                  image={SERVICE_IMAGES[i]}
-                  index={i}
-                  progress={smoothProgress}
-                />
-              ))}
-            </div>
-          </div>
+      <div className="mx-auto max-w-[1400px] px-6 pb-6 pt-14 md:px-10 md:pt-20">
+        <Header />
+        <StackedCards animate={!reduce} />
+        <div className="mt-8">
+          <StartLink />
         </div>
-      </div>
-      <div className="mx-auto max-w-[1400px] px-6 pb-6 md:px-10">
-        <StartLink />
       </div>
     </section>
   )
