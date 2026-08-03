@@ -2,10 +2,10 @@ import { useEffect, useRef, useState } from 'react'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { Link } from 'react-router-dom'
 import { useLenis } from 'lenis/react'
-import { ArrowUpRight, PaperPlaneTilt } from '@phosphor-icons/react'
+import { ArrowUpRight, Users } from '@phosphor-icons/react'
 import { useHeroMotion } from '../../hooks/useHeroMotion'
 import { useMotionSafe } from '../../hooks/useMotionSafe'
-import { staggerParentSlow, fadeUp } from '../../lib/motion'
+import { staggerParentSlow, fadeUp, lenisEase } from '../../lib/motion'
 
 export default function Hero() {
   const { reduce } = useMotionSafe()
@@ -126,22 +126,22 @@ export default function Hero() {
 
       {/* Vertically centred copy. pt-24 reserves the 64px nav pill so "centre" means centred in
           the space BELOW the nav, not in the raw viewport. */}
-      <div className="relative z-10 mx-auto flex min-h-[100dvh] max-w-[1200px] flex-col justify-center px-6 pb-16 pt-24 md:px-10">
+      <div className="relative z-10 flex min-h-[100dvh] w-full flex-col justify-center px-6 pb-16 pt-24 md:px-10">
         <motion.div
-          className="max-w-full md:max-w-[72%]"
+          className="max-w-full md:max-w-[58%]"
           variants={staggerParentSlow}
           initial={reduce ? 'visible' : 'hidden'}
           animate="visible"
         >
           <h1
-            aria-label="WHERE ARTISTS BECOME CULTURE"
+            aria-label="NOT AN AGENCY. A MOVEMENT."
             className="font-display text-[52px] leading-[0.92] text-ink sm:text-[62px] md:text-[80px] lg:text-[94px]"
           >
-            <span ref={line1Ref}>WHERE ARTISTS</span>
+            <span ref={line1Ref}>NOT AN AGENCY.</span>
             <br />
-            <span ref={prefixRef}>BECOME </span>
+            <span ref={prefixRef}>A </span>
             <span ref={wordRef} aria-hidden="true" className="text-accent">
-              CULTURE
+              MOVEMENT.
             </span>
           </h1>
 
@@ -149,26 +149,35 @@ export default function Hero() {
             variants={fadeUp}
             className="mt-4 font-grotesk text-xl text-[var(--ink-72)] md:text-2xl"
           >
-            not an agency. a movement.
+            building artists | crafting moments
           </motion.p>
 
           <motion.div
             variants={fadeUp}
             className="mt-8 flex flex-col gap-4 sm:flex-row sm:items-center"
           >
+            <a
+              href="/#roster"
+              onClick={(e) => {
+                const el = document.getElementById('roster')
+                // No target or no lenis? Leave the native anchor jump alone as the fallback.
+                if (!el || !lenis) return
+                e.preventDefault()
+                lenis.start()
+                lenis.scrollTo(el, reduce ? { immediate: true } : { offset: -70, duration: 1.6, easing: lenisEase })
+                window.history.replaceState(null, '', '/')
+              }}
+              className="accent-press inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full border border-[var(--accent-line)] bg-transparent px-6 py-3.5 font-grotesk text-ink transition-colors duration-[450ms] hover:bg-[var(--accent-soft)]"
+            >
+              <Users size={18} weight="bold" />
+              View Roster
+            </a>
             <Link
               to="/bookings"
               className="edge-refract accent-press inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full bg-accent px-6 py-3.5 font-grotesk text-ink"
             >
               <ArrowUpRight size={18} weight="bold" />
               Book Now
-            </Link>
-            <Link
-              to="/partner"
-              className="accent-press inline-flex min-h-[52px] items-center justify-center gap-2 rounded-full border border-[var(--accent-line)] bg-transparent px-6 py-3.5 font-grotesk text-ink transition-colors duration-[450ms] hover:bg-[var(--accent-soft)]"
-            >
-              <PaperPlaneTilt size={18} weight="bold" />
-              Work With Us
             </Link>
           </motion.div>
         </motion.div>

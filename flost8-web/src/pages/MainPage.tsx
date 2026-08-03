@@ -43,9 +43,9 @@ export default function MainPage() {
   return (
     <main id="main-content" tabIndex={-1} className="bg-base outline-none">
       <Hero />
-      <Partners />
       <Roster />
       <Services />
+      <Partners />
       <ScrollFadeSection><Metrics /></ScrollFadeSection>
       <ScrollFadeSection><Shows /></ScrollFadeSection>
       <ScrollFadeSection><JoinRoster /></ScrollFadeSection>

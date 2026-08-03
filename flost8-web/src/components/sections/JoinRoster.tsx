@@ -39,7 +39,7 @@ export default function JoinRoster() {
             to="/partner"
             className="inline-flex min-h-[48px] items-center gap-2 rounded-full border border-[var(--accent-line)] px-7 py-4 font-grotesk text-ink transition-colors hover:bg-[var(--accent-soft)]"
           >
-            Work With FLOST8
+            Work With Us
           </Link>
         </div>
       </div>

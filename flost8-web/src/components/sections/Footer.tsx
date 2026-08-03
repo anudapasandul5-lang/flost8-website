@@ -34,9 +34,13 @@ export default function Footer() {
   return (
     <footer className="relative bg-base border-t border-white/10">
       <div className="mx-auto max-w-[1400px] px-6 md:px-10 pt-16 md:pt-24">
-        <h2 className="font-display text-ink text-7xl md:text-9xl leading-none">
-          FLOST8<span className="text-accent">.</span>
-        </h2>
+        <img
+          src="/logo-transparent.png"
+          alt="FLOST8"
+          width={514}
+          height={555}
+          className="h-36 w-auto object-contain md:h-56"
+        />
       </div>
 
       <div className="mx-auto grid max-w-[1400px] grid-cols-2 gap-8 px-6 py-16 md:grid-cols-4 md:px-10">

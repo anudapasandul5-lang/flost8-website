@@ -1,5 +1,6 @@
 import { useScroll, useMotionValueEvent } from 'framer-motion'
 import { useRef, useEffect } from 'react'
+import { Link } from 'react-router-dom'
 import EyebrowRule from '../ui/EyebrowRule'
 import { PARTNERS } from '../../lib/config'
 import { useMotionSafe } from '../../hooks/useMotionSafe'
@@ -10,6 +11,9 @@ const SETTLE = 0.004 // snap threshold
 export default function Partners() {
   const { reduce } = useMotionSafe()
   const gridRef = useRef<HTMLDivElement>(null)
+  // Tile list — cached once on mount. PARTNERS is a static import so the tile
+  // count never changes; re-querying the DOM every rAF frame was pure waste.
+  const tilesRef = useRef<HTMLElement[]>([])
 
   // Per-tile smoothed opacity (what's actually written to the DOM).
   const displayed = useRef<number[]>([])
@@ -35,12 +39,11 @@ export default function Partners() {
   // tick: called each animation frame while running.
   // Lerps displayed toward targets (slow on reveal, instant on hide).
   const tick = () => {
-    const grid = gridRef.current
-    if (!grid) {
+    const tiles = tilesRef.current
+    if (tiles.length === 0) {
       running.current = false
       return
     }
-    const tiles = grid.querySelectorAll<HTMLElement>('.partner-tile')
     let settled = true
     tiles.forEach((tile, i) => {
       const target = targets.current[i] ?? 0
@@ -72,11 +75,10 @@ export default function Partners() {
 
   // Paint: computes targets[] + scale, then kicks off the rAF loop.
   const paint = () => {
-    const grid = gridRef.current
-    if (!grid) return
+    const tiles = tilesRef.current
+    if (tiles.length === 0) return
     const p = scrollYProgress.get()
     const vh = window.innerHeight || 1
-    const tiles = grid.querySelectorAll<HTMLElement>('.partner-tile')
     const c = (tiles.length - 1) / 2
 
     const isFirstRun = displayed.current.length !== tiles.length
@@ -121,6 +123,13 @@ export default function Partners() {
   })
 
   useEffect(() => {
+    const grid = gridRef.current
+    if (grid) {
+      tilesRef.current = Array.from(grid.querySelectorAll<HTMLElement>('.partner-tile'))
+    }
+  }, [])
+
+  useEffect(() => {
     if (reduce) return
     paint() // set initial state (handles mid-page loads, initializes displayed[])
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -132,7 +141,7 @@ export default function Partners() {
   }, [])
 
   return (
-    <section className="relative bg-base py-8 md:py-14">
+    <section id="brands" className="relative bg-base py-8 md:py-14">
       <div className="mx-auto max-w-[1400px] px-6 md:px-10">
         <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">
           Trusted by venues &amp; brands
@@ -166,6 +175,15 @@ export default function Partners() {
               </Wrapper>
             )
           })}
+        </div>
+
+        <div className="mt-10 flex justify-center md:mt-12">
+          <Link
+            to="/collaborate"
+            className="accent-press inline-flex min-h-[52px] items-center justify-center rounded-full border border-[var(--accent-line)] bg-transparent px-6 py-3.5 font-grotesk text-ink transition-colors duration-[450ms] hover:bg-[var(--accent-soft)]"
+          >
+            Collaborate With Us
+          </Link>
         </div>
       </div>
     </section>

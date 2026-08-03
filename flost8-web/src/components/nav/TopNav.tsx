@@ -98,7 +98,7 @@ export default function TopNav() {
     // No spy targets off the homepage. Nothing to clear either — the only reader of
     // activeSection already gates on pathname === '/', so a stale value is never shown.
     if (location.pathname !== '/') return
-    const ids = ['roster', 'about', 'shows']
+    const ids = ['roster', 'about', 'brands', 'shows', 'join']
     const els = ids.map(id => document.getElementById(id)).filter((el): el is HTMLElement => !!el)
     if (!els.length) return
     const io = new IntersectionObserver(
@@ -183,8 +183,12 @@ export default function TopNav() {
   // Determine active link: match on hash (home) or full pathname (routes)
   function isActive(href: string) {
     if (href.startsWith('/#')) {
-      // Driven by scroll-spy, so the underline follows the section in view.
-      return location.pathname === '/' && activeSection === href.slice(2)
+      const id = href.slice(2)
+      // On the homepage, driven by scroll-spy so the underline follows the section in view.
+      if (location.pathname === '/') return activeSection === id
+      // Off the homepage, some sections mirror a standalone page (e.g. #join / /join) —
+      // match that route directly since there's no scroll-spy to drive it there.
+      return location.pathname === '/' + id
     }
     return location.pathname === href
   }
@@ -192,9 +196,9 @@ export default function TopNav() {
   // All nav items render identically — Book included, no standout pill.
   const textLinks = NAV_LINKS
 
-  // Left side: Roster + What We Do; Right side: Shows + Book
-  const leftLinks = textLinks.slice(0, 2)
-  const rightLinks = textLinks.slice(2)
+  // Left side: Roster + Book + What We Do; Right side: Partners + Shows + Join Roster
+  const leftLinks = textLinks.slice(0, 3)
+  const rightLinks = textLinks.slice(3)
 
   return (
     <motion.header
@@ -205,7 +209,7 @@ export default function TopNav() {
     >
       {/* Floating glass pill */}
       <div
-        className={`pointer-events-auto relative z-50 w-full max-w-[680px] rounded-full backdrop-blur-xl backdrop-saturate-150 bg-[#120917]/55 ${
+        className={`pointer-events-auto relative z-50 w-full max-w-[820px] rounded-full backdrop-blur-xl backdrop-saturate-150 bg-[#120917]/55 ${
           reduce ? '' : 'transition-shadow duration-300'
         }`}
         style={{
@@ -217,7 +221,7 @@ export default function TopNav() {
       >
         {/* Desktop layout — logo dead-center via CSS grid */}
         <nav aria-label="Primary" className="hidden md:grid grid-cols-[1fr_auto_1fr] items-center gap-4 py-2 pl-6 pr-2">
-          {/* LEFT: Roster + What We Do */}
+          {/* LEFT: Roster + Book + What We Do */}
           <div className="flex items-center justify-end gap-6">
             {leftLinks.map(link => (
               <NavLink
@@ -252,7 +256,7 @@ export default function TopNav() {
             />
           </Link>
 
-          {/* RIGHT: Shows + Book pill */}
+          {/* RIGHT: Partners + Shows + Join Roster */}
           <div className="flex items-center justify-start gap-6">
             {rightLinks.map(link => (
               <NavLink

@@ -10,22 +10,22 @@ export const ADMIN_EMAIL = 'admin@flost8.lk';
 export const PARTNERS = [
   { slug: 'corso', name: 'Corso', url: 'https://www.instagram.com/corso.lk/' },
   { slug: 'a_logo', name: 'Astroid SL', url: 'https://astroidsl.com/' },
-  { slug: 'vibe_mount', name: 'Vibe Mount', url: 'https://www.instagram.com/vibemount_/' },
+  { slug: 'vocaine', name: 'Vocaine', url: 'https://vocaine.com/' },
   { slug: 'pixels_n_pints', name: 'Pixels n Pints', url: 'https://www.instagram.com/pixelsnpints.cmb/' },
   { slug: 'abstract_mark', name: 'Address.lk', url: 'https://www.addresshop.com/' },
+  { slug: 'vibe_mount', name: 'Vibe Mount', url: 'https://www.instagram.com/vibemount_/' },
   { slug: 'speedbay', name: 'Speedbay', url: 'https://www.instagram.com/speedbaylk/' },
-  { slug: 'reignite', name: 'Reignite', url: 'https://www.reignitee.com/' },
+  { slug: 'sozo', name: 'SOZO', url: 'https://sozoiced.com/' },
   { slug: 'hype_bomb', name: 'Hype Bomb', url: 'https://www.instagram.com/drinkhypebam/' },
+  { slug: 'calista', name: 'Calista', url: 'https://calistaclothing.com/' },
   { slug: 'spinner_energy_drink', name: 'Spinner Energy Drink', url: 'https://www.instagram.com/spinnerenergydrink/' },
   { slug: 'traveling_bruncher', name: 'The Traveling Bruncher', url: 'https://www.instagram.com/thetravelingbruncher/' },
-  { slug: 'vocaine', name: 'Vocaine', url: 'https://vocaine.com/' },
   { slug: 'snack_entity', name: 'Snack Entity', url: 'https://snackentity.lk/' },
-  { slug: 'calista', name: 'Calista', url: 'https://calistaclothing.com/' },
-  { slug: 'sozo', name: 'SOZO', url: 'https://sozoiced.com/' },
+  { slug: 'reignite', name: 'Reignite', url: 'https://www.reignitee.com/' },
   { slug: 'crepe_runner', name: 'Crepe Runner', url: 'https://creperunner.lk/' },
+  { slug: 'slfd', name: 'Solitude', url: 'https://solitude.lk/' },
   { slug: 'oyster_colombo', name: 'Oyster Colombo', url: 'https://www.instagram.com/oyster_colombo/' },
   { slug: 'noir_luxe', name: 'Noir Luxe', url: 'https://www.instagram.com/noir.luxe.lk/' },
-  { slug: 'slfd', name: 'Solitude', url: 'https://solitude.lk/' },
 ] as const;
 
 // Impact metrics shown in the Stats section
@@ -59,7 +59,9 @@ export const SERVICES = [
 
 export const NAV_LINKS = [
   { label: 'Roster',  href: '/#roster' },
-  { label: 'What We Do',   href: '/#about' },
-  { label: 'Shows',   href: '/#shows' },
   { label: 'Book',    href: '/bookings' },
+  { label: 'What We Do',   href: '/#about' },
+  { label: 'Partners',   href: '/#brands' },
+  { label: 'Shows',   href: '/#shows' },
+  { label: 'Join Roster',   href: '/#join' },
 ] as const;
