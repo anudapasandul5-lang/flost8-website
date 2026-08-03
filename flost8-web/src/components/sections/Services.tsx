@@ -16,8 +16,8 @@ const SERVICE_IMAGES: ServiceImage[] = [
 ]
 type Service = (typeof SERVICES)[number]
 
-/** Mobile: editorial treatment — tall portrait image with the index + title overlaid on a
- *  bottom scrim, body copy below. Desktop (md+): the original boxed side-by-side card. */
+/** Mobile: editorial treatment — tall portrait image with the index, title, and body copy all
+ *  overlaid on a bottom scrim. Desktop (md+): the original boxed side-by-side card. */
 function CardInner({ service, image }: { service: Service; image: ServiceImage }) {
   return (
     <div className="relative mx-auto flex w-full max-w-[960px] flex-col md:h-[46vh] md:flex-row md:overflow-hidden md:rounded-[1.75rem] md:bg-base-raise md:edge-refract md:shadow-[0_40px_80px_-30px_rgba(0,0,0,0.7)]">
@@ -33,23 +33,27 @@ function CardInner({ service, image }: { service: Service; image: ServiceImage }
           decoding="async"
           className={`grade-portrait h-full w-full object-cover${image.desktopZoom ? ' md:scale-[1.25]' : ''}`}
         />
-        {/* Scrim + overlaid index/title: mobile only, so the desktop side-panel stays a clean photo. */}
+        {/* Scrim + overlaid copy: mobile only, so the desktop side-panel stays a clean photo.
+            Taller/denser than a decorative fade because real text sits on it (WCAG AA). */}
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-base via-base/70 to-transparent md:hidden"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-4/5 bg-gradient-to-t from-base via-base/85 to-transparent md:hidden"
         />
-        <div className="absolute inset-x-0 bottom-0 flex items-end gap-4 p-5 md:hidden">
-          <span className="font-display text-6xl leading-[0.8] text-accent">{service.no}</span>
-          <h3 className="pb-1 font-display text-3xl leading-[0.9] text-ink">{service.title}</h3>
+        <div className="absolute inset-x-0 bottom-0 px-5 pb-10 pt-5 md:hidden">
+          <div className="flex items-end gap-4">
+            <span className="font-display text-6xl leading-[0.8] text-accent">{service.no}</span>
+            <h3 className="pb-1 font-display text-3xl leading-[0.9] text-ink">{service.title}</h3>
+          </div>
+          <p className="mt-3 font-grotesk text-[0.95rem] text-[var(--ink-72)]">{service.line}</p>
         </div>
       </div>
 
-      {/* Desktop copy block — index + title repeat here; mobile shows them over the image instead. */}
-      <div className="relative z-10 flex flex-1 flex-col justify-center pt-4 md:px-10 md:py-8 md:pt-0">
-        <span className="mb-3 hidden font-display leading-none text-accent md:block md:text-7xl">
+      {/* Desktop copy block — mobile shows all of this over the image instead. */}
+      <div className="relative z-10 hidden flex-1 flex-col justify-center md:flex md:px-10 md:py-8">
+        <span className="mb-3 font-display leading-none text-accent md:text-7xl">
           {service.no}
         </span>
-        <h3 className="mb-4 hidden font-display leading-[0.95] text-ink md:block md:text-5xl">
+        <h3 className="mb-4 font-display leading-[0.95] text-ink md:text-5xl">
           {service.title}
         </h3>
         <p className="max-w-[52ch] font-grotesk text-[0.95rem] text-[var(--ink-72)] md:text-[1rem]">
