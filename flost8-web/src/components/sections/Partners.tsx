@@ -182,7 +182,7 @@ export default function Partners() {
             to="/partner"
             className="accent-press inline-flex min-h-[52px] items-center justify-center rounded-full border border-[var(--accent-line)] bg-transparent px-6 py-3.5 font-grotesk text-ink transition-colors duration-[450ms] hover:bg-[var(--accent-soft)]"
           >
-            Collaborate With Us
+            Work With Us
           </Link>
         </div>
       </div>
