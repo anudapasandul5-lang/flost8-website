@@ -1,6 +1,17 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
-import { InstagramLogo } from '@phosphor-icons/react'
+import { InstagramLogo, YoutubeLogo, FacebookLogo, TiktokLogo } from '@phosphor-icons/react'
+
+const socialLinks = [
+  { label: 'Instagram', href: 'https://www.instagram.com/flost8.lk/', Icon: InstagramLogo },
+  { label: 'YouTube', href: 'https://youtube.com/@flost8lk', Icon: YoutubeLogo },
+  {
+    label: 'Facebook',
+    href: 'https://www.facebook.com/profile.php?id=61592980643003&mibextid=wwXIfr&mibextid=wwXIfr',
+    Icon: FacebookLogo,
+  },
+  { label: 'TikTok', href: 'https://www.tiktok.com/@flost8.lk', Icon: TiktokLogo },
+] as const
 
 const footerCols = [
   {
@@ -84,15 +95,20 @@ export default function Footer() {
       </div>
 
       <div className="mx-auto flex max-w-[1400px] flex-col items-center gap-4 border-t border-white/10 px-6 py-10 md:px-10">
-        <a
-          href="https://www.instagram.com/flost8.lk/"
-          target="_blank"
-          rel="noopener noreferrer"
-          aria-label="FLOST8 on Instagram"
-          className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-[var(--ink-72)] transition-colors hover:text-accent-ink"
-        >
-          <InstagramLogo size={28} weight="bold" />
-        </a>
+        <div className="flex items-center gap-6">
+          {socialLinks.map(({ label, href, Icon }) => (
+            <a
+              key={label}
+              href={href}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label={`FLOST8 on ${label}`}
+              className="inline-flex min-h-[44px] min-w-[44px] items-center justify-center text-[var(--ink-72)] transition-colors hover:text-accent-ink"
+            >
+              <Icon size={28} weight="bold" />
+            </a>
+          ))}
+        </div>
         <p className="text-center font-grotesk text-sm text-[var(--ink-32)]">
           © 2026 FLOST8. All rights reserved. · flost8.lk
         </p>
