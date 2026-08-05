@@ -48,7 +48,7 @@ interface ApiEvent {
 }
 
 export const EMPTY_BOOKING_FORM: BookingFormData = {
-  artist: 'any',
+  artist: '',
   event_date: '',
   venue: '',
   city: '',
@@ -193,7 +193,6 @@ export function buildBookingPayload(formData: BookingFormData, token: string): B
   return {
     type: 'booking',
     ...formData,
-    artist: formData.artist || 'any',
     set_duration_h: String(formData.set_duration_h || '').trim(),
     token,
   }

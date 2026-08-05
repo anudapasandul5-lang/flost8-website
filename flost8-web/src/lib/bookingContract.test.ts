@@ -9,7 +9,7 @@ import {
 describe('validateBookingForm', () => {
   it('flags required fields when empty', () => {
     const errors = validateBookingForm(EMPTY_BOOKING_FORM)
-    // artist defaults to 'any', so it passes; the rest are required and blank
+    expect(errors.artist).toBeTruthy()
     expect(errors.venue).toBeTruthy()
     expect(errors.organizer_email).toBeTruthy()
     expect(errors.event_date).toBeTruthy()

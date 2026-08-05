@@ -51,7 +51,7 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
     slug: 'maalin',
     name: 'MAALIN',
     role: 'DJ / Producer',
-    realName: 'Dev Maalin',
+    realName: 'Dev Nawarathne',
     tagline: 'CrowdHyper',
     genre: 'Progressive House',
     instagram: { handle: 'maalin.ofc', followers: '1K' },
@@ -64,7 +64,21 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
         url: 'https://soundcloud.com/user-25002526/maalin-audiosolo-set-wav?si=474d7dea853042e98df400dfbe3e9135&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing',
       },
     ],
-    gigs: ['AGRA Festival', 'AudioSolo', 'Nexgen'],
+    gigs: [
+      'AGRA Festival',
+      'AudioSolo',
+      'Nexgen',
+      'The Pirates',
+      'Synthesis',
+      'Beyond Seed',
+      'Orix',
+      'Again and Beyond',
+      'Rythm',
+      'Mira',
+      'Beat Synth',
+      'All Day Music',
+      'Noise Of Serendib',
+    ],
     bio: 'Maalin is a rising force in the progressive electronic scene, carving out a signature sound that blends deep groove with dark, hypnotic energy. What began at just 15 as a wide exploration of genres has evolved into a focused and powerful artistic identity rooted in the underground. Drawing inspiration from talents like Kyotto and global heavyweights such as Guy J and Simon Vuarambon, Maalin delivers immersive DJ sets that go beyond music. They\'re journeys. Each performance is carefully crafted to pull audiences into a world of deep rhythms, rolling basslines, and emotionally charged atmospheres. Sharing stages with names like Kebin Van Reeken, Volen Sentir, Kostya Outta, Hicky and Kalo, Not Demure and Alto Astral, he has quickly built a reputation for delivering sets that resonate long after the night ends. With debut releases on the way, Maalin is stepping onto the global stage with a sound that\'s bold, evolving, and impossible to ignore, positioning himself as one of the most exciting emerging names in progressive electronic music.',
   },
   {
@@ -143,13 +157,10 @@ export const PUBLIC_ARTISTS: PublicArtist[] = [
   },
 ]
 
-export const BOOKING_ARTIST_OPTIONS = [
-  { value: 'any', label: 'Any FLOST8 artist' },
-  ...PUBLIC_ARTISTS.map((artist) => ({
-    value: artist.slug,
-    label: artist.name,
-  })),
-]
+export const BOOKING_ARTIST_OPTIONS = PUBLIC_ARTISTS.map((artist) => ({
+  value: artist.slug,
+  label: artist.name,
+}))
 
 export function getPublicArtistBySlug(slug: string): PublicArtist | undefined {
   return PUBLIC_ARTISTS.find((artist) => artist.slug === slug)

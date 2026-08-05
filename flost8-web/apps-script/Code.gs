@@ -81,6 +81,7 @@ function doPost(e) {
 
     logToSheet(type, payload);
     sendNotification(type, payload, email);
+    if (type === 'booking') sendWhatsAppAlert(payload);
 
     return json({ ok: true });
   } catch (err) {
@@ -334,6 +335,76 @@ function sendNotification(type, payload, replyTo) {
     subject: subject,
     htmlBody: html,
   });
+}
+
+// --- WhatsApp alert (bookings only) -----------------------------------------
+// Sends a WhatsApp template message via the official Meta Cloud API to
+// whichever person manages the requested artist. One shared sender (test
+// number + permanent token, Script Properties WHATSAPP_CLOUD_PHONE_ID /
+// WHATSAPP_CLOUD_TOKEN) messages each person's own number (per-person Script
+// Property WHATSAPP_<NAME>_PHONE). See apps-script/README.md for the one-time
+// Meta setup (app, test number, token, recipient whitelist, template
+// approval) and the current artist -> person assignments.
+// ponytail: token MUST be a permanent System User token — a default 24h user
+// token would silently break alerts after a day. Test-number recipient cap is
+// 5 numbers; migrate to a verified business number if that's ever exceeded.
+var WHATSAPP_ROUTE = {
+  'imthxd':        'NIRBHEETH',
+  'anush':         'NIRBHEETH',
+  'the-professor': 'NIRBHEETH',
+  'sonal':         'KASUNI',
+  'dr-green':      'KASUNI',
+  'maalin':        'KASUNI',
+};
+
+function sendWhatsAppAlert(payload) {
+  var recipient = WHATSAPP_ROUTE[String(payload.artist)];
+  if (!recipient) return; // artist not in the routing table — no one to alert
+
+  var props = PropertiesService.getScriptProperties();
+  var phone = props.getProperty('WHATSAPP_' + recipient + '_PHONE');
+  var phoneId = props.getProperty('WHATSAPP_CLOUD_PHONE_ID');
+  var token = props.getProperty('WHATSAPP_CLOUD_TOKEN');
+  if (!phone || !phoneId || !token) return;
+
+  // Never let a Cloud API failure (network error, unapproved template,
+  // un-whitelisted recipient, bad token) escape this function — doPost's
+  // outer try/catch would otherwise report ok:false to the client even
+  // though the booking was already logged and emailed.
+  try {
+    var url = 'https://graph.facebook.com/v20.0/' + phoneId + '/messages';
+    // Parameter order is positional, not semantic — must match the
+    // {{1}}..{{6}} order the "booking_alert" template body was written in.
+    var body = {
+      messaging_product: 'whatsapp',
+      to: phone,
+      type: 'template',
+      template: {
+        name: 'booking_alert',
+        language: { code: 'en_US' },
+        components: [{
+          type: 'body',
+          parameters: [
+            { type: 'text', text: trim_(payload.artist) },
+            { type: 'text', text: trim_(payload.event_date) },
+            { type: 'text', text: trim_(payload.venue) },
+            { type: 'text', text: trim_(payload.city) },
+            { type: 'text', text: trim_(payload.organizer_name) },
+            { type: 'text', text: trim_(payload.direct_number) },
+          ],
+        }],
+      },
+    };
+    UrlFetchApp.fetch(url, {
+      method: 'post',
+      contentType: 'application/json',
+      headers: { Authorization: 'Bearer ' + token },
+      payload: JSON.stringify(body),
+      muteHttpExceptions: true,
+    });
+  } catch (err) {
+    // fail-open: booking is already recorded, a missed WhatsApp ping isn't fatal
+  }
 }
 
 // Escape free text so submitted values can't inject HTML into the email.

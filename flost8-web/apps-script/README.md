@@ -84,6 +84,76 @@ display name (both set from the dropdown).
 `ADMIN_SECRET` script property set). Plain `npm run dev` bypasses Pages Functions,
 so `/api/admin` — and thus the whole dashboard — will not authenticate.
 
+## WhatsApp alerts (bookings only)
+
+Booking enquiries ping the WhatsApp number of whoever manages the requested
+artist, via the official [Meta WhatsApp Cloud API](https://developers.facebook.com/docs/whatsapp/cloud-api/get-started)
+(one shared FLOST8 sender number messages each person's own WhatsApp number —
+they don't need a business account themselves, though they can have one, it
+doesn't matter to the API). Optional overall — leave the Script Properties
+unset and nothing changes (email still goes out as always).
+
+**Current artist → person routing** (`WHATSAPP_ROUTE` in `Code.gs`):
+
+| Artist | Person |
+|--------|--------|
+| IMTHXD, ANUSH, THE PROFESSOR | Nirbheeth |
+| SONAL, DR. GREEN, MAALIN | Kasuni |
+
+**Setup (one-time):**
+
+1. Create a [Meta Developer](https://developers.facebook.com) account + app,
+   add the **WhatsApp** product. The dashboard gives you a free test number
+   and its **Phone Number ID** — copy that ID.
+2. **Business Settings → Users → System Users** → create one, assign it to
+   the app with `whatsapp_business_messaging` permission, generate a
+   **permanent access token** (not the default 24h token — that one expires
+   and alerts would silently stop after a day). Copy the token.
+3. In the WhatsApp API Setup dashboard, add Anuda's, Kasuni's, and
+   Nirbheeth's numbers to the test number's **recipient list** (each verifies
+   via a code Meta texts them) — a test number can only message numbers on
+   this list, capped at 5.
+4. **WhatsApp Manager → Message Templates** → create `booking_alert`
+   (category: Utility, language: English (US)), body text with 6 numbered
+   placeholders **in this exact order** — artist, event_date, venue, city,
+   organizer_name, direct_number, e.g.:
+   > New booking enquiry
+   > Artist: {{1}}
+   > Date: {{2}}
+   > Venue: {{3}}, {{4}}
+   > Organizer: {{5}} ({{6}})
+
+   Submit for review. Approval is usually quick, occasionally up to ~24h —
+   sends silently fail until it's approved (see troubleshooting below).
+5. **Apps Script** → Project Settings (gear) → Script properties → add:
+   - `WHATSAPP_CLOUD_PHONE_ID` = the Phone Number ID from step 1
+   - `WHATSAPP_CLOUD_TOKEN` = the permanent token from step 2
+   - `WHATSAPP_NIRBHEETH_PHONE` = digits + country code only, no `+` or spaces
+     (e.g. `94771234567`, not `+94 77 123 4567`)
+   - `WHATSAPP_KASUNI_PHONE` = `94786552412`
+6. Re-deploy (**Manage deployments → edit → New version**) so `doPost` picks
+   it up. The `/exec` URL stays the same.
+
+**Testing:** until Nirbheeth sends his real number, set
+`WHATSAPP_NIRBHEETH_PHONE` to your own (`94763431469`, already added to the
+recipient list in step 3) so bookings for his 3 artists alert you instead.
+Swap in his real number later — no code change needed, just edit the Script
+Property and re-deploy.
+
+**Cost:** the setup above is free. Each template send outside an existing 24h
+conversation carries a small per-message utility fee (varies by recipient
+country) — negligible at booking-enquiry volume, but not literally $0.
+
+**Troubleshooting:** a rejected send (unapproved template, un-whitelisted
+recipient, expired/bad token) fails silently by design — the booking still
+logs and emails normally, but no WhatsApp arrives and no error surfaces
+anywhere in the website or Sheet. If a message doesn't show up, check
+**WhatsApp Manager → Overview → message/error logs** in Meta's dashboard for
+the actual rejection reason before assuming `Code.gs` is broken.
+
+Adding/moving an artist later = edit the `WHATSAPP_ROUTE` map in `Code.gs`
+only, same as the email `ROUTE` map above.
+
 ## Notes / not done yet
 
 - **Turnstile (spam) check** is stubbed off in `functions/api/script.ts`. Enable it
