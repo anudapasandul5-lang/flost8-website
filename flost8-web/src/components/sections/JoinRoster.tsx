@@ -13,10 +13,10 @@ export default function JoinRoster() {
         aria-hidden="true"
         loading="lazy"
         decoding="async"
-        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-40"
+        className="pointer-events-none absolute inset-0 h-full w-full object-cover opacity-70"
       />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-base via-base/85 to-base/40" />
-      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-b from-base/70 via-transparent to-base" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-r from-base via-base/70 to-base/15" />
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-b from-base/50 via-transparent to-base" />
 
       <div className="relative z-10 mx-auto max-w-[1400px] px-6 md:px-10">
         <p className="font-grotesk text-[13px] uppercase tracking-[0.25em] text-accent-ink">Become an artist</p>

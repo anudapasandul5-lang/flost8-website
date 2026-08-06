@@ -77,7 +77,7 @@ export default function ArtistPage() {
                 // `npm run photos:normalize`.
                 src={`/photos/full/${artist.slug}.webp`}
                 alt={artist.name}
-                loading="lazy"
+                fetchPriority="high"
                 decoding="async"
                 style={{ objectPosition: artist.focal ?? 'center' }}
                 className="grade-portrait is-active h-full w-full object-cover"
