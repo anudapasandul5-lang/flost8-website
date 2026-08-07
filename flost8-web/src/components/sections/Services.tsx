@@ -8,11 +8,13 @@ import { useMotionSafe } from '../../hooks/useMotionSafe'
 // Scene image per service (index-matched to SERVICES). The dedicated mobile "band" crops
 // were bad too-tight closeups on some of these — the panel shot is well-composed at ~4:5
 // and used everywhere now (tall aspect on mobile, square-ish side panel on desktop).
-type ServiceImage = { panel: string; desktopZoom?: boolean }
+// `pos` overrides object-position where a centred cover crop lands badly (the content-engine
+// shot is a tall portrait — centring it cuts the head off in the short desktop side panel).
+type ServiceImage = { panel: string; pos?: string }
 const SERVICE_IMAGES: ServiceImage[] = [
   { panel: '/ui2/gen/what-we-do-artist-development.webp' },
   { panel: '/ui2/gen/what-we-do-booking-system.webp' },
-  { panel: '/ui2/gen/what-we-do-content-engine.webp', desktopZoom: true },
+  { panel: '/ui2/gen/what-we-do-content-engine.webp', pos: 'object-[50%_30%]' },
 ]
 type Service = (typeof SERVICES)[number]
 
@@ -21,7 +23,7 @@ type Service = (typeof SERVICES)[number]
 function CardInner({ service, image }: { service: Service; image: ServiceImage }) {
   return (
     <div className="relative mx-auto flex w-full max-w-[960px] flex-col md:h-[46vh] md:flex-row md:overflow-hidden md:rounded-[1.75rem] md:bg-base-raise md:edge-refract md:shadow-[0_40px_80px_-30px_rgba(0,0,0,0.7)]">
-      <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden rounded-2xl md:order-last md:aspect-auto md:h-full md:w-[40%] md:rounded-none">
+      <div className="relative aspect-[4/5] w-full shrink-0 overflow-hidden rounded-2xl md:order-last md:aspect-auto md:h-full md:w-[36%] md:rounded-none">
         <img
           src={image.panel}
           alt=""
@@ -31,7 +33,7 @@ function CardInner({ service, image }: { service: Service; image: ServiceImage }
           loading="eager"
           fetchPriority="low"
           decoding="async"
-          className={`grade-portrait h-full w-full object-cover${image.desktopZoom ? ' md:scale-[1.25]' : ''}`}
+          className={`grade-portrait h-full w-full object-cover ${image.pos ?? ''}`}
         />
         {/* Scrim + overlaid copy: mobile only, so the desktop side-panel stays a clean photo.
             Taller/denser than a decorative fade because real text sits on it (WCAG AA). */}
