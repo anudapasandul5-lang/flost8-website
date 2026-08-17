@@ -193,13 +193,18 @@ export default function Roster() {
       </div>
 
       {/* ── Carousel region ── */}
+      {/* Capped to the header's own max-w-[1400px] so the carousel's own PAD inset
+          (meant to roughly match the header's px-6/10) lines up with it on wide
+          viewports too - without this the region bled edge-to-edge past 1400px+padding
+          while the header text above stayed centered, so card 01 sat further left
+          than "THE ROSTER" heading. */}
       <div
         role="region"
         aria-roledescription="carousel"
         aria-label="Artist roster"
         tabIndex={0}
         onKeyDown={handleKeyDown}
-        className="mt-12 outline-none md:mt-16 rounded-2xl focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-[#120917]"
+        className="mx-auto mt-12 max-w-[1400px] outline-none md:mt-16 rounded-2xl focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-[#120917]"
       >
         {/* Viewport: clips the overflowing track (desktop) / native scroll container (mobile) */}
         <div
