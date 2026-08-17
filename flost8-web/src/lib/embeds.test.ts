@@ -3,6 +3,7 @@ import {
   getYouTubeId,
   getYouTubeStart,
   getYouTubeThumb,
+  getYouTubeThumbFallback,
   buildYouTubeEmbed,
   buildSoundCloudEmbed,
 } from './embeds';
@@ -65,15 +66,23 @@ describe('embeds', () => {
   });
 
   describe('getYouTubeThumb', () => {
-    it('returns hqdefault thumbnail URL', () => {
+    it('returns maxresdefault thumbnail URL', () => {
       expect(getYouTubeThumb('mIzxpKdVS7g')).toBe(
-        'https://i.ytimg.com/vi/mIzxpKdVS7g/hqdefault.jpg'
+        'https://i.ytimg.com/vi/mIzxpKdVS7g/maxresdefault.jpg'
       );
     });
 
     it('works with different video ids', () => {
       expect(getYouTubeThumb('jPFlSMzOJEI')).toBe(
-        'https://i.ytimg.com/vi/jPFlSMzOJEI/hqdefault.jpg'
+        'https://i.ytimg.com/vi/jPFlSMzOJEI/maxresdefault.jpg'
+      );
+    });
+  });
+
+  describe('getYouTubeThumbFallback', () => {
+    it('returns hqdefault thumbnail URL', () => {
+      expect(getYouTubeThumbFallback('mIzxpKdVS7g')).toBe(
+        'https://i.ytimg.com/vi/mIzxpKdVS7g/hqdefault.jpg'
       );
     });
   });

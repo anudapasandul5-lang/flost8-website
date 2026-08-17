@@ -4,6 +4,7 @@ import { useLenis } from 'lenis/react'
 import { useMotionSafe } from '../hooks/useMotionSafe'
 import { lenisEase } from '../lib/motion'
 import Hero from '../components/sections/Hero'
+import LiveSessions from '../components/sections/LiveSessions'
 import Roster from '../components/sections/Roster'
 import Shows from '../components/sections/Shows'
 import JoinRoster from '../components/sections/JoinRoster'
@@ -43,6 +44,7 @@ export default function MainPage() {
   return (
     <main id="main-content" tabIndex={-1} className="bg-base outline-none">
       <Hero />
+      <LiveSessions />
       <Roster />
       <Services />
       <Partners />

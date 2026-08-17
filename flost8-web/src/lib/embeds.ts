@@ -47,9 +47,17 @@ export function getYouTubeStart(url: string): number | undefined {
 }
 
 /**
- * Get the high-quality thumbnail URL for a YouTube video.
+ * Highest-resolution YouTube thumbnail (1280x720). Not every video has one rendered -
+ * callers should fall back to getYouTubeThumbFallback() on image load error.
  */
 export function getYouTubeThumb(id: string): string {
+  return `https://i.ytimg.com/vi/${id}/maxresdefault.jpg`;
+}
+
+/**
+ * Guaranteed-to-exist thumbnail (480x360) - use when maxresdefault 404s.
+ */
+export function getYouTubeThumbFallback(id: string): string {
   return `https://i.ytimg.com/vi/${id}/hqdefault.jpg`;
 }
 

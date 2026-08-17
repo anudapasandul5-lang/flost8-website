@@ -4,6 +4,7 @@ import {
   getYouTubeId,
   getYouTubeStart,
   getYouTubeThumb,
+  getYouTubeThumbFallback,
   buildYouTubeEmbed,
   buildSoundCloudEmbed,
 } from '../../lib/embeds'
@@ -16,7 +17,9 @@ interface MusicEmbedProps {
 export default function MusicEmbed({ link }: MusicEmbedProps) {
   const [loaded, setLoaded] = useState(false)
   const [iframeReady, setIframeReady] = useState(false)
-  const [thumbError, setThumbError] = useState(false)
+  // 'max' = maxresdefault (1280x720, not always rendered by YouTube), 'hq' = the
+  // guaranteed-to-exist fallback (480x360), 'none' = both 404'd.
+  const [thumbStage, setThumbStage] = useState<'max' | 'hq' | 'none'>('max')
 
   if (link.type === 'youtube') {
     const id = getYouTubeId(link.url)
@@ -25,13 +28,20 @@ export default function MusicEmbed({ link }: MusicEmbedProps) {
     return (
       <div className="relative aspect-video w-full overflow-hidden rounded-2xl edge-refract">
         {/* Thumbnail stays mounted underneath so the iframe's load gap never shows as a blank flash */}
-        {!thumbError ? (
+        {thumbStage !== 'none' ? (
           <img
-            src={getYouTubeThumb(id)}
+            src={thumbStage === 'max' ? getYouTubeThumb(id) : getYouTubeThumbFallback(id)}
             alt=""
             loading="lazy"
             className="absolute inset-0 h-full w-full object-cover"
-            onError={() => setThumbError(true)}
+            onError={() => setThumbStage((stage) => (stage === 'max' ? 'hq' : 'none'))}
+            onLoad={(e) => {
+              // Missing maxresdefault renders don't 404 - YouTube serves a 200 OK
+              // 120x90 gray placeholder instead, so onError never fires. Catch it here.
+              if (thumbStage === 'max' && e.currentTarget.naturalWidth <= 120) {
+                setThumbStage('hq')
+              }
+            }}
           />
         ) : (
           <div className="absolute inset-0 bg-raise" />

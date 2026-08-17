@@ -58,10 +58,10 @@ export const SERVICES = [
 ] as const;
 
 export const NAV_LINKS = [
+  { label: 'Live Sessions', href: '/live-sessions' },
   { label: 'Roster',  href: '/#roster' },
   { label: 'Book',    href: '/bookings' },
   { label: 'What We Do',   href: '/#about' },
   { label: 'Partners',   href: '/#brands' },
-  { label: 'Shows',   href: '/#shows' },
   { label: 'Join Roster',   href: '/#join' },
 ] as const;

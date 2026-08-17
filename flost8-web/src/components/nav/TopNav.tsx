@@ -47,7 +47,7 @@ function NavLink({
   const content = (
     <span className="group relative inline-block py-1">
       <span
-        className={`font-grotesk uppercase text-[11px] md:text-[12px] font-medium tracking-[0.18em] transition-colors duration-[200ms] ${
+        className={`whitespace-nowrap font-grotesk uppercase text-[11px] md:text-[12px] font-medium tracking-[0.18em] transition-colors duration-[200ms] ${
           active ? 'text-ink' : 'text-[var(--ink-72)] group-hover:text-ink'
         }`}
       >
@@ -98,7 +98,7 @@ export default function TopNav() {
     // No spy targets off the homepage. Nothing to clear either — the only reader of
     // activeSection already gates on pathname === '/', so a stale value is never shown.
     if (location.pathname !== '/') return
-    const ids = ['roster', 'about', 'brands', 'shows', 'join']
+    const ids = ['live-sessions', 'roster', 'about', 'brands', 'join']
     const els = ids.map(id => document.getElementById(id)).filter((el): el is HTMLElement => !!el)
     if (!els.length) return
     const io = new IntersectionObserver(
@@ -182,6 +182,11 @@ export default function TopNav() {
 
   // Determine active link: match on hash (home) or full pathname (routes)
   function isActive(href: string) {
+    // Live Sessions is a real route AND a homepage section (scroll-spied like the
+    // hash items) — light up on either, unlike the other route-only links (Book).
+    if (href === '/live-sessions') {
+      return location.pathname === '/live-sessions' || (location.pathname === '/' && activeSection === 'live-sessions')
+    }
     if (href.startsWith('/#')) {
       const id = href.slice(2)
       // On the homepage, driven by scroll-spy so the underline follows the section in view.
@@ -196,9 +201,11 @@ export default function TopNav() {
   // All nav items render identically — Book included, no standout pill.
   const textLinks = NAV_LINKS
 
-  // Left side: Roster + Book + What We Do; Right side: Partners + Shows + Join Roster
-  const leftLinks = textLinks.slice(0, 3)
-  const rightLinks = textLinks.slice(3)
+  // Split evenly around the centered logo — computed so adding/removing a nav
+  // item never leaves one side lopsided (was a hardcoded slice(0, 3)).
+  const mid = Math.ceil(textLinks.length / 2)
+  const leftLinks = textLinks.slice(0, mid)
+  const rightLinks = textLinks.slice(mid)
 
   return (
     <motion.header
@@ -220,9 +227,9 @@ export default function TopNav() {
         }}
       >
         {/* Desktop layout — logo dead-center via CSS grid */}
-        <nav aria-label="Primary" className="hidden md:grid grid-cols-[1fr_auto_1fr] items-center gap-4 py-2 pl-6 pr-2">
-          {/* LEFT: Roster + Book + What We Do */}
-          <div className="flex items-center justify-end gap-6">
+        <nav aria-label="Primary" className="hidden md:grid grid-cols-[1fr_auto_1fr] items-center gap-4 py-2 px-6">
+          {/* LEFT: Live Sessions + Roster + Book */}
+          <div className="flex items-center justify-end gap-5 lg:gap-6">
             {leftLinks.map(link => (
               <NavLink
                 key={link.label}
@@ -257,7 +264,7 @@ export default function TopNav() {
           </Link>
 
           {/* RIGHT: Partners + Shows + Join Roster */}
-          <div className="flex items-center justify-start gap-6">
+          <div className="flex items-center justify-start gap-5 lg:gap-6">
             {rightLinks.map(link => (
               <NavLink
                 key={link.label}
@@ -342,7 +349,7 @@ export default function TopNav() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: reduce ? 0 : 0.3, ease: EASE }}
-            className="pointer-events-auto fixed inset-x-0 top-0 z-40 flex h-[100dvh] flex-col overscroll-contain bg-[var(--bg)] px-6 pt-[80px] pb-[env(safe-area-inset-bottom)] md:hidden"
+            className="pointer-events-auto fixed inset-x-0 top-0 z-40 flex h-[100dvh] flex-col overflow-y-auto overscroll-contain bg-[var(--bg)] px-6 pt-[80px] pb-[env(safe-area-inset-bottom)] md:hidden"
             style={{ backgroundColor: 'var(--bg)' }}
           >
             <motion.nav
