@@ -22,6 +22,7 @@ export interface BookingFieldDef {
 
 export interface BookingFormData {
   artist: string
+  event_name: string
   event_date: string
   venue: string
   city: string
@@ -49,6 +50,7 @@ interface ApiEvent {
 
 export const EMPTY_BOOKING_FORM: BookingFormData = {
   artist: '',
+  event_name: '',
   event_date: '',
   venue: '',
   city: '',
@@ -68,6 +70,7 @@ export const BOOKING_FIELDS: BookingFieldDef[] = [
     required: true,
     options: BOOKING_ARTIST_OPTIONS,
   },
+  { id: 'event_name', label: 'Event Name', type: 'text', required: true, placeholder: 'e.g. New Year\'s Eve Bash' },
   { id: 'event_date', label: 'Event Date', type: 'date', required: true },
   { id: 'venue', label: 'Venue', type: 'text', required: true, placeholder: 'Venue name' },
   { id: 'city', label: 'City', type: 'text', required: true, placeholder: 'Colombo' },

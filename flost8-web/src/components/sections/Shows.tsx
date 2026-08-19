@@ -145,7 +145,7 @@ export default function Shows() {
             </p>
             <Link
               to="/bookings"
-              className="inline-flex items-center gap-2 bg-accent text-ink rounded-full px-6 py-3.5 accent-press edge-refract font-grotesk font-semibold"
+              className="inline-flex items-center gap-2 bg-accent text-ink rounded-full px-6 py-3.5 accent-press edge-refract font-grotesk"
             >
               Book a Date
               <ArrowUpRight size={20} weight="bold" />

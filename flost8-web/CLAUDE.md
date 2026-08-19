@@ -10,7 +10,15 @@ Invoke only when relevant:
 - `design-taste-frontend` — **mandatory for all UI/design decisions** (user requirement, see vault antipatterns)
 - `frontend-design` — component implementation
 - `animate` / `impeccable:animate` — motion enhancements
-- `gpt-taste` — alternative design lens
+- `gpt-taste` / `gpt-tasteskill` — alternative design lens
+- `taste-skill` / `taste-skill-v1` — design taste library (from `leonxlnx/taste-skill` plugin)
+- `brutalist-skill` / `minimalist-skill` / `soft-skill` — aesthetic-specific lenses within taste-skill
+- `redesign-skill` — targeted redesign passes on existing UI
+- `stitch-skill` — component/section stitching within taste-skill
+- `brandkit` — brand asset/token consistency checks
+- `image-to-code-skill` — convert a reference image/mock into code
+- `imagegen-frontend-web` / `imagegen-frontend-mobile` — generate UI imagery for web/mobile
+- `output-skill` — output formatting within taste-skill
 - `vercel:nextjs` — N/A here (Cloudflare Pages)
 - `agent-browser` — preview QA
 - `wiki` / `save` / `think` — vault

@@ -89,7 +89,7 @@ export default function LiveSessions({ variant = 'teaser' }: LiveSessionsProps) 
               href={YOUTUBE_CHANNEL}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 bg-accent text-ink rounded-full px-6 py-3.5 accent-press edge-refract font-grotesk font-semibold"
+              className="inline-flex items-center gap-2 bg-accent text-ink rounded-full px-6 py-3.5 accent-press edge-refract font-grotesk"
             >
               Watch all on YouTube
               <ArrowUpRight size={20} weight="bold" />
@@ -113,7 +113,7 @@ export default function LiveSessions({ variant = 'teaser' }: LiveSessionsProps) 
           <div className="mt-10 md:mt-12">
             <Link
               to="/live-sessions"
-              className="inline-flex items-center gap-2 bg-accent text-ink rounded-full px-6 py-3.5 accent-press edge-refract font-grotesk font-semibold"
+              className="inline-flex items-center gap-2 bg-accent text-ink rounded-full px-6 py-3.5 accent-press edge-refract font-grotesk"
             >
               All sessions
               <ArrowUpRight size={20} weight="bold" />

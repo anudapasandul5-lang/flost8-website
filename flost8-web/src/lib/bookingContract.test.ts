@@ -10,6 +10,7 @@ describe('validateBookingForm', () => {
   it('flags required fields when empty', () => {
     const errors = validateBookingForm(EMPTY_BOOKING_FORM)
     expect(errors.artist).toBeTruthy()
+    expect(errors.event_name).toBeTruthy()
     expect(errors.venue).toBeTruthy()
     expect(errors.organizer_email).toBeTruthy()
     expect(errors.event_date).toBeTruthy()
