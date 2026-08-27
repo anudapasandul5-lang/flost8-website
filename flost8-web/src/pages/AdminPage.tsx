@@ -5,11 +5,13 @@ import { PUBLIC_ARTISTS } from '../lib/artistRoster'
 import {
   addShow,
   AdminAuthError,
+  composeArtistDisplay,
   deleteShow,
   EMPTY_SHOW,
   listShows,
   prettyDate,
   sortShows,
+  splitB2B,
   to12h,
   to24h,
   updateShow,
@@ -35,6 +37,7 @@ export default function AdminPage() {
   const [loadError, setLoadError] = useState<string | null>(null)
 
   const [editing, setEditing] = useState<AdminShow | null>(null)
+  const [b2bSlugs, setB2bSlugs] = useState<[string, string]>(['', ''])
   const [formErrors, setFormErrors] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
   const [saveError, setSaveError] = useState<string | null>(null)
@@ -116,12 +119,17 @@ export default function AdminPage() {
     setFormErrors({})
     setSaveError(null)
     setEditing({ ...EMPTY_SHOW })
+    setB2bSlugs(['', ''])
   }
 
   function openEdit(show: AdminShow) {
     setFormErrors({})
     setSaveError(null)
     setEditing({ ...show })
+    const names = splitB2B(show.artist_display).slice(1) // [0] is the primary artist
+    const slugFor = (name: string) =>
+      PUBLIC_ARTISTS.find((a) => a.name.toLowerCase() === name.toLowerCase())?.slug ?? ''
+    setB2bSlugs([names[0] ? slugFor(names[0]) : '', names[1] ? slugFor(names[1]) : ''])
   }
 
   function setField<K extends keyof AdminShow>(key: K, value: AdminShow[K]) {
@@ -135,10 +143,15 @@ export default function AdminPage() {
     }
   }
 
+  function nameFor(slug: string): string | undefined {
+    return PUBLIC_ARTISTS.find((a) => a.slug === slug)?.name
+  }
+
   function selectArtist(slug: string) {
-    const match = PUBLIC_ARTISTS.find((a) => a.slug === slug)
     setEditing((prev) =>
-      prev ? { ...prev, artist: slug, artist_display: match?.name ?? '' } : prev,
+      prev
+        ? { ...prev, artist: slug, artist_display: composeArtistDisplay([nameFor(slug), ...b2bSlugs.map(nameFor)]) }
+        : prev,
     )
     if (formErrors.artist) {
       setFormErrors((prev) => {
@@ -147,6 +160,16 @@ export default function AdminPage() {
         return next
       })
     }
+  }
+
+  function selectB2B(index: 0 | 1, slug: string) {
+    const nextSlugs: [string, string] = index === 0 ? [slug, b2bSlugs[1]] : [b2bSlugs[0], slug]
+    setB2bSlugs(nextSlugs)
+    setEditing((prev) =>
+      prev
+        ? { ...prev, artist_display: composeArtistDisplay([nameFor(prev.artist), ...nextSlugs.map(nameFor)]) }
+        : prev,
+    )
   }
 
   async function handleSave(e: React.FormEvent) {
@@ -275,6 +298,41 @@ export default function AdminPage() {
                     Select artist…
                   </option>
                   {PUBLIC_ARTISTS.map((a) => (
+                    <option key={a.slug} value={a.slug} className="bg-base text-white">
+                      {a.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field label="B2B with (optional)" error={undefined} htmlFor="f-b2b-1">
+                <select
+                  id="f-b2b-1"
+                  value={b2bSlugs[0]}
+                  onChange={(e) => selectB2B(0, e.target.value)}
+                  className={`${INPUT_CLS} appearance-none`}
+                  style={{ colorScheme: 'dark' }}
+                >
+                  <option value="">None</option>
+                  {PUBLIC_ARTISTS.filter((a) => a.slug !== editing.artist && a.slug !== b2bSlugs[1]).map((a) => (
+                    <option key={a.slug} value={a.slug} className="bg-base text-white">
+                      {a.name}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+
+              <Field label="+ B3B with (optional)" error={undefined} htmlFor="f-b2b-2">
+                <select
+                  id="f-b2b-2"
+                  value={b2bSlugs[1]}
+                  onChange={(e) => selectB2B(1, e.target.value)}
+                  disabled={!b2bSlugs[0]}
+                  className={`${INPUT_CLS} appearance-none disabled:opacity-40 disabled:cursor-not-allowed`}
+                  style={{ colorScheme: 'dark' }}
+                >
+                  <option value="">None</option>
+                  {PUBLIC_ARTISTS.filter((a) => a.slug !== editing.artist && a.slug !== b2bSlugs[0]).map((a) => (
                     <option key={a.slug} value={a.slug} className="bg-base text-white">
                       {a.name}
                     </option>

@@ -9,21 +9,23 @@ import type { UpcomingShow } from '../../lib/bookingContract'
 import { EASE, SPRING, staggerParent } from '../../lib/motion'
 
 interface ShowRow {
-  slug: string | null
-  photo: string | null
+  photos: Array<{ slug: string; photo: string }>
   dateLabel: string
   title: string
   place: string
 }
 
 function showToRow(show: UpcomingShow): ShowRow {
-  const match = PUBLIC_ARTISTS.find(
-    (artist) => artist.name.toLowerCase() === show.artist.toLowerCase(),
-  )
+  // B2B/B3B sets store "NAME1 B2B NAME2 B2B NAME3" (see showsAdmin.composeArtistDisplay)
+  // — every matched artist gets its own portrait, the title keeps the full combined string.
+  const names = show.artist.split(/\s+B2B\s+/i).map((name) => name.trim())
+  const photos = names.flatMap((name) => {
+    const match = PUBLIC_ARTISTS.find((artist) => artist.name.toLowerCase() === name.toLowerCase())
+    return match ? [{ slug: match.slug, photo: `/photos/${match.slug}.webp` }] : []
+  })
 
   return {
-    slug: match?.slug ?? null,
-    photo: match ? `/photos/${match.slug}.webp` : null,
+    photos,
     dateLabel: show.date,
     title: show.artist,
     place: `${show.venue} · ${show.city}`,
@@ -78,18 +80,23 @@ function ShowRowCard({ row, reduce }: { row: ShowRow; reduce: boolean }) {
         <p className="truncate font-grotesk text-sm text-[var(--ink-50)]">{row.place}</p>
       </div>
 
-      {/* Portrait — tall narrow right column matches portrait orientation, so the face reads */}
-      {row.photo && (
-        <div className="relative w-24 shrink-0 overflow-hidden md:w-40">
-          <img
-            src={row.photo}
-            alt=""
-            aria-hidden="true"
-            loading="lazy"
-            decoding="async"
-            className="h-full w-full object-cover object-top grayscale transition duration-500 group-hover:scale-105 group-hover:grayscale-0"
-          />
-          {/* blend the photo's left edge into the card */}
+      {/* Portrait(s) — tall narrow right column matches portrait orientation, so the face
+          reads. A B2B/B3B set splits this column evenly, one strip per matched artist. */}
+      {row.photos.length > 0 && (
+        <div className="relative flex w-24 shrink-0 overflow-hidden md:w-40">
+          {row.photos.map((p) => (
+            <div key={p.slug} className="relative h-full flex-1 overflow-hidden">
+              <img
+                src={p.photo}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover object-top grayscale transition duration-500 group-hover:scale-105 group-hover:grayscale-0"
+              />
+            </div>
+          ))}
+          {/* blend the photo column's left edge into the card */}
           <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-base-raise to-transparent" />
         </div>
       )}

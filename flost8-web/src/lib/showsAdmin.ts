@@ -10,8 +10,21 @@ export interface AdminShow {
   time: string
   venue: string
   city: string
-  artist: string // roster slug
-  artist_display: string // roster display name (matched to a portrait on the public site)
+  artist: string // roster slug (primary — first in a B2B/B3B lineup)
+  artist_display: string // roster display name. B2B/B3B sets join names with " B2B " (see composeArtistDisplay)
+}
+
+/** Build the stored display name for a show, joining 2+ artists as a B2B/B3B set. */
+export function composeArtistDisplay(names: Array<string | undefined>): string {
+  return names.filter((name): name is string => Boolean(name)).join(' B2B ')
+}
+
+/** Split a stored "NAME1 B2B NAME2 B2B NAME3" display string back into its artist names. */
+export function splitB2B(artistDisplay: string): string[] {
+  return (artistDisplay ?? '')
+    .split(/\s+B2B\s+/i)
+    .map((name) => name.trim())
+    .filter(Boolean)
 }
 
 export const EMPTY_SHOW: AdminShow = {
