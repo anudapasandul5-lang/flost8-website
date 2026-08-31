@@ -115,10 +115,18 @@ function doGet(e) {
   }
 }
 
+// A date-only cell has no real time or zone — it means a calendar day. Sheets hands it
+// to us as a Date at midnight in the SPREADSHEET's timezone; formatting that in UTC
+// rolls it back a day for any zone east of UTC (Colombo is +5:30, so a typed "12 Sep"
+// came out as the 11th on the site). Format in the sheet's own zone so the day is kept.
+function sheetDayString_(v) {
+  return Utilities.formatDate(v, getSpreadsheet().getSpreadsheetTimeZone(), 'yyyy-MM-dd');
+}
+
 // Normalize a date cell (Date object, ISO string, or YYYY-MM-DD) to a sortable
 // yyyy-MM-dd key. Unparseable -> far-future so junk sorts last, never throws.
 function dateKey_(v) {
-  if (v instanceof Date) return Utilities.formatDate(v, 'UTC', 'yyyy-MM-dd');
+  if (v instanceof Date) return sheetDayString_(v);
   var m = String(v == null ? '' : v).trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
   return m ? m[1] + '-' + m[2] + '-' + m[3] : '9999-99-99';
 }
@@ -196,7 +204,7 @@ function cleanReadRow_(obj) {
 }
 
 function cleanDate_(v) {
-  if (v instanceof Date) return Utilities.formatDate(v, 'UTC', 'yyyy-MM-dd');
+  if (v instanceof Date) return sheetDayString_(v);
   var s = String(v == null ? '' : v).trim();
   var m = s.match(/^(\d{4})-(\d{2})-(\d{2})/);
   return m ? m[1] + '-' + m[2] + '-' + m[3] : s;
