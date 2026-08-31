@@ -9,15 +9,17 @@ import sharp from 'sharp'
 const SRC = 'public/logo-transparent.png'
 const OUT_DIR = 'public'
 
-// Solid brand tile. Owner's call (2026-08-27): the transparent tile let the cyan `st8`
-// half wash out on Google's light results chip. The solid #120917 fill gives the whole
-// lockup a constant dark backdrop everywhere it's drawn — Google chip, light tab bars,
-// dark tab bars — so contrast no longer depends on the host surface.
-const BG = '#120917'
+// Transparent tile — the logo sits on whatever surface draws it. Owner's call: the
+// solid #120917 tile read as a black box against light UI, which he did not want.
+// Known tradeoff, measured: on the light chip Google/Bing results and light tab bars
+// use, the cyan `st8` half lands at 1.43:1 — under the 3:1 floor, so the bottom of the
+// lockup goes faint there. Set this to '#120917' to go back to the solid tile.
+const BG = { r: 0, g: 0, b: 0, alpha: 0 }
 // Fraction of the tile the logo occupies. The source has no transparent margin of its
 // own (verified: trim() is a no-op on it), so this is the only breathing room there is.
-// 0.82 pairs with the solid tile — a small dark border keeps the lockup off the edge.
-const INSET = 0.82
+// Full bleed is right for a transparent tile — there is no visible edge to read as
+// clipped, and any inset is just dead space at 16px. Pair 0.82 with the solid tile.
+const INSET = 1
 
 // ponytail: no rounded corners. iOS masks apple-touch-icon itself, and a radius
 // is sub-pixel at 48px. Add one only if a surface turns up that draws the tile square.
