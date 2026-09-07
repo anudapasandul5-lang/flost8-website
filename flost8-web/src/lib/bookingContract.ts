@@ -1,4 +1,4 @@
-import { BOOKING_ARTIST_OPTIONS } from './artistRoster'
+import { BOOKING_ARTIST_OPTIONS, getPublicArtistBySlug } from './artistRoster'
 
 export interface UpcomingShow {
   artist: string
@@ -18,10 +18,20 @@ export interface BookingFieldDef {
   min?: string
   max?: string
   step?: string
+  /** Field is only rendered + validated when this returns true. */
+  showIf?: (data: Record<string, string>) => boolean
+}
+
+/** Which extra DJ slots a set type needs. Solo = just dj_1. */
+export function djSlots(setType: string): { dj2: boolean; dj3: boolean } {
+  return { dj2: setType === 'B2B' || setType === 'B3B', dj3: setType === 'B3B' }
 }
 
 export interface BookingFormData {
-  artist: string
+  set_type: string
+  dj_1: string
+  dj_2: string
+  dj_3: string
   event_name: string
   event_date: string
   venue: string
@@ -34,10 +44,7 @@ export interface BookingFormData {
   other_artists: string
 }
 
-export interface BookingPayload extends BookingFormData {
-  type: 'booking'
-  token: string
-}
+export type BookingPayload = Record<string, string> & { type: 'booking'; token: string }
 
 interface ApiEvent {
   date?: unknown
@@ -49,7 +56,10 @@ interface ApiEvent {
 }
 
 export const EMPTY_BOOKING_FORM: BookingFormData = {
-  artist: '',
+  set_type: 'Solo',
+  dj_1: '',
+  dj_2: '',
+  dj_3: '',
   event_name: '',
   event_date: '',
   venue: '',
@@ -64,11 +74,32 @@ export const EMPTY_BOOKING_FORM: BookingFormData = {
 
 export const BOOKING_FIELDS: BookingFieldDef[] = [
   {
-    id: 'artist',
-    label: 'Artist Requested',
+    id: 'set_type',
+    label: 'Set Type',
+    type: 'select',
+    required: true,
+    options: [
+      { value: 'Solo', label: 'Solo — 1 DJ' },
+      { value: 'B2B', label: 'B2B — 2 DJs back to back' },
+      { value: 'B3B', label: 'B3B — 3 DJs back to back' },
+    ],
+  },
+  { id: 'dj_1', label: 'DJ', type: 'select', required: true, options: BOOKING_ARTIST_OPTIONS },
+  {
+    id: 'dj_2',
+    label: 'Second DJ',
     type: 'select',
     required: true,
     options: BOOKING_ARTIST_OPTIONS,
+    showIf: data => djSlots(data.set_type).dj2,
+  },
+  {
+    id: 'dj_3',
+    label: 'Third DJ',
+    type: 'select',
+    required: true,
+    options: BOOKING_ARTIST_OPTIONS,
+    showIf: data => djSlots(data.set_type).dj3,
   },
   { id: 'event_name', label: 'Event Name', type: 'text', required: true, placeholder: 'e.g. New Year\'s Eve Bash' },
   { id: 'event_date', label: 'Event Date', type: 'date', required: true },
@@ -163,7 +194,9 @@ export function normalizeUpcomingShows(data: unknown, limit?: number): UpcomingS
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export function validateBookingForm(formData: BookingFormData): Record<string, string> {
-  return BOOKING_FIELDS.reduce<Record<string, string>>((errors, field) => {
+  const data = formData as unknown as Record<string, string>
+  const errors = BOOKING_FIELDS.reduce<Record<string, string>>((errors, field) => {
+    if (field.showIf && !field.showIf(data)) return errors
     const value = String(formData[field.id] ?? '').trim()
 
     if (field.required && !value) {
@@ -190,12 +223,41 @@ export function validateBookingForm(formData: BookingFormData): Record<string, s
 
     return errors
   }, {})
+
+  // Every DJ in the set must be a distinct person.
+  const slots = djSlots(formData.set_type)
+  const picks = [
+    formData.dj_1,
+    slots.dj2 ? formData.dj_2 : '',
+    slots.dj3 ? formData.dj_3 : '',
+  ].map(s => s.trim()).filter(Boolean)
+  if (new Set(picks).size !== picks.length) {
+    if (slots.dj3 && !errors.dj_3) errors.dj_3 = 'Each DJ must be different'
+    else if (slots.dj2 && !errors.dj_2) errors.dj_2 = 'Each DJ must be different'
+  }
+
+  return errors
 }
 
 export function buildBookingPayload(formData: BookingFormData, token: string): BookingPayload {
+  const slots = djSlots(formData.set_type)
+  const slugs = [
+    formData.dj_1,
+    slots.dj2 ? formData.dj_2 : '',
+    slots.dj3 ? formData.dj_3 : '',
+  ].map(s => s.trim()).filter(Boolean)
+  const names = slugs.map(slug => getPublicArtistBySlug(slug)?.name ?? slug)
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { dj_1, dj_2, dj_3, ...rest } = formData
   return {
     type: 'booking',
-    ...formData,
+    ...rest,
+    // `artist` stays a single roster slug — the backend routes the WhatsApp
+    // alert by exact slug match, so a B2B/B3B set is attributed to the first DJ.
+    artist: slugs[0] ?? '',
+    // Full human-readable lineup, e.g. "SONAL B2B MAALIN" (same join the Shows admin uses).
+    set_lineup: names.join(' B2B '),
     set_duration_h: String(formData.set_duration_h || '').trim(),
     token,
   }

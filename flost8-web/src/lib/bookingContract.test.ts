@@ -1,19 +1,66 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from 'vitest'
 import {
   validateBookingForm,
+  buildBookingPayload,
   normalizeUpcomingShows,
   EMPTY_BOOKING_FORM,
   type BookingFormData,
 } from './bookingContract'
 
+describe('buildBookingPayload', () => {
+  it('keeps `artist` a single slug and names the full lineup for a B3B set', () => {
+    const payload = buildBookingPayload(
+      { ...EMPTY_BOOKING_FORM, set_type: 'B3B', dj_1: 'sonal', dj_2: 'maalin', dj_3: 'anush' },
+      'tok',
+    )
+    expect(payload.artist).toBe('sonal')
+    expect(payload.set_type).toBe('B3B')
+    expect(payload.set_lineup).toBe('SONAL B2B MAALIN B2B ANUSH')
+    expect(payload).not.toHaveProperty('dj_1')
+  })
+
+  it('drops extra DJ picks that the set type does not use', () => {
+    const payload = buildBookingPayload(
+      { ...EMPTY_BOOKING_FORM, set_type: 'Solo', dj_1: 'sonal', dj_2: 'maalin' },
+      'tok',
+    )
+    expect(payload.set_lineup).toBe('SONAL')
+  })
+})
+
 describe('validateBookingForm', () => {
   it('flags required fields when empty', () => {
     const errors = validateBookingForm(EMPTY_BOOKING_FORM)
-    expect(errors.artist).toBeTruthy()
+    expect(errors.dj_1).toBeTruthy()
     expect(errors.event_name).toBeTruthy()
     expect(errors.venue).toBeTruthy()
     expect(errors.organizer_email).toBeTruthy()
     expect(errors.event_date).toBeTruthy()
+  })
+
+  it('does not require dj_2 / dj_3 for a Solo set', () => {
+    const errors = validateBookingForm({ ...EMPTY_BOOKING_FORM, set_type: 'Solo' })
+    expect(errors.dj_2).toBeUndefined()
+    expect(errors.dj_3).toBeUndefined()
+  })
+
+  it('requires the second DJ for B2B and the third for B3B', () => {
+    const b2b = validateBookingForm({ ...EMPTY_BOOKING_FORM, set_type: 'B2B', dj_1: 'sonal' })
+    expect(b2b.dj_2).toBeTruthy()
+    expect(b2b.dj_3).toBeUndefined()
+
+    const b3b = validateBookingForm({ ...EMPTY_BOOKING_FORM, set_type: 'B3B', dj_1: 'sonal', dj_2: 'maalin' })
+    expect(b3b.dj_3).toBeTruthy()
+  })
+
+  it('rejects the same DJ picked twice in a set', () => {
+    const errors = validateBookingForm({
+      ...EMPTY_BOOKING_FORM,
+      set_type: 'B2B',
+      dj_1: 'sonal',
+      dj_2: 'sonal',
+    })
+    expect(errors.dj_2).toBe('Each DJ must be different')
   })
 
   it('rejects a malformed email and a past date', () => {

@@ -20,6 +20,8 @@ export interface FormFieldDef {
   min?: string
   max?: string
   step?: string
+  /** Field is only rendered when this returns true (the contract mirrors it in validation). */
+  showIf?: (data: Record<string, string>) => boolean
 }
 
 const INPUT_CLS =
@@ -202,7 +204,7 @@ export default function FormRenderer({
             whileInView={reduce ? undefined : 'visible'}
             viewport={reduce ? undefined : { once: true }}
           >
-            {fields.map(field => {
+            {fields.filter(field => !field.showIf || field.showIf(formData)).map(field => {
               const errId = `${field.id}-error`
               const describedBy = errors[field.id] ? errId : undefined
               const shared = {
@@ -213,11 +215,20 @@ export default function FormRenderer({
                 'aria-required': field.required || undefined,
                 required: field.required,
               }
+              // Conditional (showIf) fields mount after the parent's staggered
+              // reveal has already fired, so they can't ride its orchestration —
+              // give them a self-contained entrance instead.
+              const motionProps = field.showIf
+                ? {
+                    initial: reduce ? false : { opacity: 0, y: 8 },
+                    animate: reduce ? undefined : { opacity: 1, y: 0 },
+                  }
+                : { variants: reduce ? undefined : fadeUp }
               return (
                 <motion.div
                   key={field.id}
                   className={field.fullWidth ? 'md:col-span-2' : ''}
-                  variants={reduce ? undefined : fadeUp}
+                  {...motionProps}
                 >
                   <label
                     htmlFor={field.id}

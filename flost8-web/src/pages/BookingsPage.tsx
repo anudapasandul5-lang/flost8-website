@@ -13,7 +13,7 @@ import {
 function getInitialBookingForm(): BookingFormData {
   const requestedArtist = new URLSearchParams(window.location.search).get('artist')
   return requestedArtist
-    ? { ...EMPTY_BOOKING_FORM, artist: requestedArtist }
+    ? { ...EMPTY_BOOKING_FORM, dj_1: requestedArtist }
     : { ...EMPTY_BOOKING_FORM }
 }
 
