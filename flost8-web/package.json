@@ -14,7 +14,8 @@
     "deploy:dev": "npm run build && wrangler pages deploy dist --project-name flost8 --branch dev",
     "deploy:prod": "npm run build && wrangler pages deploy dist --project-name flost8 --branch v2 --commit-dirty=true",
     "photos:normalize": "node scripts/normalize-portraits.mjs",
-    "icons:build": "node scripts/build-favicons.mjs"
+    "icons:build": "node scripts/build-favicons.mjs",
+    "releases:sync": "node scripts/sync-releases.mjs"
   },
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",

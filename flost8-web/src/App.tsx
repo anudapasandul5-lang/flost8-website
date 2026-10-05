@@ -12,6 +12,7 @@ const JoinPage = lazy(() => import('./pages/JoinPage'))
 const ArtistPage = lazy(() => import('./pages/ArtistPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
 const LiveSessionsPage = lazy(() => import('./pages/LiveSessionsPage'))
+const MusicPage = lazy(() => import('./pages/MusicPage'))
 
 /**
  * Per-route scroll memory. On back/forward (POP) — e.g. returning from an artist page —
@@ -116,6 +117,7 @@ export default function App() {
             <Route path="/collaborate" element={<CollaboratePage />} />
             <Route path="/join" element={<JoinPage />} />
             <Route path="/live-sessions" element={<LiveSessionsPage />} />
+            <Route path="/music" element={<MusicPage />} />
             <Route path="/admin" element={<AdminPage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
