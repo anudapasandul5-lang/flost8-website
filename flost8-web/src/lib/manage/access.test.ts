@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { canEditInquiry, parseAuthError, isHttpUrl, isPlainEmail } from './access'
+import { canCommentOn, canEditInquiry, parseAuthError, isHttpUrl, isPlainEmail } from './access'
 import { KASUNI, makeInquiry, OWNER } from './testFixtures'
 
 describe('parseAuthError', () => {
@@ -45,7 +45,22 @@ describe('link safety', () => {
   })
   it('accepts only a plain email', () => {
     expect(isPlainEmail('a@b.co')).toBe(true)
+    expect(isPlainEmail('sales@studio.lk')).toBe(true)
+    expect(isPlainEmail('a b@c.co')).toBe(false)
+    expect(isPlainEmail('a@bco')).toBe(false)
     expect(isPlainEmail('a@b.co?bcc=x@y.co')).toBe(false)
     expect(isPlainEmail('a@b.co,c@d.co')).toBe(false)
+  })
+})
+
+describe('canCommentOn', () => {
+  const mySlugs = new Set(['sonal'])
+  it('allows anyone who can see the row, including read-only sheet rows', () => {
+    expect(canCommentOn(makeInquiry({ source: 'sheet_import', owner_id: 'other', artists: ['sonal'] }), KASUNI, mySlugs)).toBe(true)
+    expect(canCommentOn(makeInquiry({ owner_id: KASUNI.id, artists: ['anush'] }), KASUNI, mySlugs)).toBe(true)
+    expect(canCommentOn(makeInquiry({ owner_id: 'other', artists: ['anush'] }), OWNER, new Set())).toBe(true)
+  })
+  it('refuses a row the manager neither owns nor has an artist on', () => {
+    expect(canCommentOn(makeInquiry({ owner_id: 'other', artists: ['anush'] }), KASUNI, mySlugs)).toBe(false)
   })
 })

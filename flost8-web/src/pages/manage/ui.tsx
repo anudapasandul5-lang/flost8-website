@@ -112,3 +112,18 @@ export function ConfirmDialog({
     </div>
   )
 }
+
+/** Shown for 5 s after a one-tap action. The write is held until the timer ends, so Undo just cancels it. */
+export function UndoToast({ text, onUndo }: { text: string; onUndo: () => void }) {
+  return (
+    <div className="pointer-events-none fixed inset-x-0 bottom-4 z-[80] flex justify-center px-4">
+      <div role="status" className="pointer-events-auto flex w-full max-w-md items-center gap-3 rounded-2xl border border-[var(--accent-line)] bg-[#241433] py-1 pl-4 pr-2 font-grotesk text-[15px] text-ink shadow-[0_8px_30px_rgba(10,4,14,0.6)]">
+        <CheckCircle size={22} weight="fill" aria-hidden="true" className="shrink-0 text-[#86EFAC]" />
+        <span className="min-w-0 flex-1 truncate">{text}</span>
+        <button type="button" onClick={onUndo} className="inline-flex min-h-[44px] items-center px-3 font-semibold text-[var(--accent-ink)] hover:underline">
+          Undo
+        </button>
+      </div>
+    </div>
+  )
+}

@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { needsAction, REASON_RANK, type NeedsActionContext } from './needsAction'
+import { clashPartner, needsAction, nextBookedShow, nextStep, REASON_RANK, waLink, type NeedsActionContext } from './needsAction'
 import { makeInquiry, KASUNI, OWNER } from './testFixtures'
 
 const NOW = new Date('2026-10-10T12:00:00Z')
@@ -108,5 +108,68 @@ describe('ordering', () => {
     expect(REASON_RANK.double_booked).toBeLessThan(REASON_RANK.unpaid_soon)
     expect(REASON_RANK.unpaid_soon).toBeLessThan(REASON_RANK.no_reply)
     expect(REASON_RANK.no_reply).toBeLessThan(REASON_RANK.quote_quiet)
+  })
+})
+
+describe('waLink', () => {
+  it('turns a Sri Lankan local number into an international wa.me link', () => {
+    expect(waLink('077 123 4567')).toBe('https://wa.me/94771234567')
+    expect(waLink('0771234567')).toBe('https://wa.me/94771234567')
+  })
+  it('keeps numbers that already carry a country code', () => {
+    expect(waLink('+94 77 123 4567')).toBe('https://wa.me/94771234567')
+    expect(waLink('0094771234567')).toBe('https://wa.me/94771234567')
+    expect(waLink('+44 7700 900123')).toBe('https://wa.me/447700900123')
+  })
+  it('returns null for blank or junk numbers so the button can be hidden', () => {
+    expect(waLink(null)).toBeNull()
+    expect(waLink('')).toBeNull()
+    expect(waLink('call Ishara')).toBeNull()
+    expect(waLink('123')).toBeNull()
+  })
+})
+
+describe('clashPartner', () => {
+  it('finds the other confirmed booking that shares an artist and a date', () => {
+    const a = makeInquiry({ id: 'a', status: 'booking_confirmed', event_date: '2026-12-01', artists: ['dr-green'], event_name: 'Velvet Room' })
+    const b = makeInquiry({ id: 'b', status: 'booking_confirmed', event_date: '2026-12-01', artists: ['dr-green', 'sonal'], event_name: 'Kaos Night' })
+    const c = makeInquiry({ id: 'c', status: 'booking_confirmed', event_date: '2026-12-02', artists: ['dr-green'] })
+    expect(clashPartner(a, [a, b, c])?.id).toBe('b')
+    expect(clashPartner(c, [a, b, c])).toBeUndefined()
+  })
+})
+
+describe('nextStep wording', () => {
+  const c = ctx({ lastTouch: new Map([['n', hoursAgo(50)], ['q', hoursAgo(6 * 24 + 2)]]) })
+  it('double_booked names the other booking', () => {
+    const a = mine({ id: 'a', status: 'booking_confirmed', event_date: '2026-12-01', artists: ['dr-green'], event_name: 'Velvet Room' })
+    const b = mine({ id: 'b', status: 'booking_confirmed', event_date: '2026-12-01', artists: ['dr-green'], event_name: 'Kaos Night' })
+    expect(nextStep('double_booked', a, c, [a, b])).toBe('Fix clash with Kaos Night')
+    expect(nextStep('double_booked', a, c, [a])).toBe('Fix double booking')
+  })
+  it('unpaid_soon gives the amount and date', () => {
+    const i = mine({ status: 'booking_confirmed', event_date: '2026-10-09', money: money(45000) })
+    expect(nextStep('unpaid_soon', i, c, [i])).toBe('Chase 45,000 LKR before 9 Oct')
+  })
+  it('no_reply uses the organizer name and whole days', () => {
+    const i = mine({ id: 'n', status: 'new', organizer_name: 'Ishara' })
+    expect(nextStep('no_reply', i, c, [i])).toBe('Reply to Ishara (2 days)')
+    const j = mine({ id: 'x', status: 'new', organizer_name: 'Ishara', updated_at: hoursAgo(25) })
+    expect(nextStep('no_reply', j, c, [j])).toBe('Reply to Ishara (1 day)')
+  })
+  it('quote_quiet counts days', () => {
+    const i = mine({ id: 'q', status: 'quoted' })
+    expect(nextStep('quote_quiet', i, c, [i])).toBe('Follow up on quote (6 days)')
+  })
+})
+
+describe('nextBookedShow', () => {
+  it('returns the soonest upcoming booked show the viewer can see', () => {
+    const past = mine({ id: 'p', status: 'booking_confirmed', event_date: '2026-10-01' })
+    const later = mine({ id: 'l', status: 'booking_confirmed', event_date: '2026-12-01' })
+    const sooner = mine({ id: 's', status: 'deposit_paid', event_date: '2026-11-01' })
+    const quote = mine({ id: 'q', status: 'quoted', event_date: '2026-10-11' })
+    expect(nextBookedShow([past, later, sooner, quote], TODAY)?.id).toBe('s')
+    expect(nextBookedShow([past, quote], TODAY)).toBeUndefined()
   })
 })

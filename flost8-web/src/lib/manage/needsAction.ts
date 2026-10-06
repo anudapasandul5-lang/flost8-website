@@ -1,3 +1,4 @@
+import { inquiryTitle } from './labels'
 import type { Inquiry } from './types'
 
 export type Reason = 'double_booked' | 'unpaid_soon' | 'no_reply' | 'quote_quiet'
@@ -27,6 +28,10 @@ export interface NeedsActionContext {
   isOwner: boolean
 }
 
+function hoursQuiet(i: Inquiry, c: NeedsActionContext): number {
+  return (c.now.getTime() - new Date(c.lastTouch.get(i.id) ?? i.updated_at).getTime()) / 3_600_000
+}
+
 function addDays(iso: string, n: number): string {
   const [y, m, d] = iso.split('-').map(Number)
   return new Date(Date.UTC(y, m - 1, d + n)).toISOString().slice(0, 10)
@@ -51,10 +56,59 @@ export function needsAction(i: Inquiry, c: NeedsActionContext): Reason[] {
     out.push('unpaid_soon')
   }
 
-  const touchedMs = new Date(c.lastTouch.get(i.id) ?? i.updated_at).getTime()
-  const quietHours = (c.now.getTime() - touchedMs) / 3_600_000
+  const quietHours = hoursQuiet(i, c)
   if (i.status === 'new' && quietHours > NO_REPLY_HOURS) out.push('no_reply')
   if (i.status === 'quoted' && quietHours > QUOTE_QUIET_DAYS * 24) out.push('quote_quiet')
 
   return out
+}
+
+const MON = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+const shortDate = (iso: string) => { const [, m, d] = iso.split('-').map(Number); return `${d} ${MON[m - 1]}` }
+const plural = (n: number, w: string) => `${n} ${w}${n === 1 ? '' : 's'}`
+
+/** The other confirmed booking sharing an artist and a date with `i`, if any. */
+export function clashPartner(i: Inquiry, all: Inquiry[]): Inquiry | undefined {
+  return all.find(
+    (o) => o.id !== i.id && o.status === 'booking_confirmed' && o.event_date === i.event_date && o.artists.some((s) => i.artists.includes(s)),
+  )
+}
+
+/** The one line a manager reads on the card: a verb and what to do. */
+export function nextStep(reason: Reason, i: Inquiry, c: NeedsActionContext, all: Inquiry[]): string {
+  switch (reason) {
+    case 'double_booked': {
+      const other = clashPartner(i, all)
+      return other ? `Fix clash with ${inquiryTitle(other)}` : 'Fix double booking'
+    }
+    case 'unpaid_soon': {
+      const m = i.money
+      return `Chase ${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(m?.balance ?? 0)} ${m?.currency ?? 'LKR'} before ${shortDate(i.event_date ?? '')}`
+    }
+    case 'no_reply':
+      return `Reply to ${i.organizer_name?.trim() || inquiryTitle(i)} (${plural(Math.max(1, Math.floor(hoursQuiet(i, c) / 24)), 'day')})`
+    case 'quote_quiet':
+      return `Follow up on quote (${plural(Math.floor(hoursQuiet(i, c) / 24), 'day')})`
+  }
+}
+
+/**
+ * wa.me link for a phone number, or null when it is not a usable number (the button is then hidden).
+ * Sri Lankan local numbers (0771234567) get 94; anything with a + or 00 prefix is taken as international.
+ */
+export function waLink(phone: string | null | undefined): string | null {
+  if (!phone) return null
+  const raw = phone.trim()
+  let d = raw.replace(/\D/g, '')
+  if (raw.startsWith('+')) d = d.replace(/^0+/, '')
+  else if (d.startsWith('00')) d = d.slice(2)
+  else if (d.startsWith('0')) d = '94' + d.slice(1)
+  return d.length >= 9 && d.length <= 15 ? `https://wa.me/${d}` : null
+}
+
+/** Soonest upcoming booked show in the list (callers pass only what the viewer may see). */
+export function nextBookedShow(list: Inquiry[], today: string): Inquiry | undefined {
+  return list
+    .filter((i) => (i.status === 'booking_confirmed' || i.status === 'deposit_paid') && i.event_date && i.event_date >= today)
+    .sort((a, b) => (a.event_date! < b.event_date! ? -1 : 1))[0]
 }

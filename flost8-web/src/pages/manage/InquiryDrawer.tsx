@@ -1,11 +1,11 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { CheckCircle, Circle, FileArrowUp, X } from '@phosphor-icons/react'
+import { ArrowUpRight, CheckCircle, Circle, FileArrowUp, X } from '@phosphor-icons/react'
 import { addComment, fetchConfirmedOnDate, friendlyError, updateInquiry, type InquiryPatch } from '../../lib/manage/api'
-import { canEditInquiry, isHttpUrl, isPlainEmail } from '../../lib/manage/access'
+import { canCommentOn, canEditInquiry, isHttpUrl, isPlainEmail } from '../../lib/manage/access'
 import { formatDate } from '../../lib/manage/calendar'
 import { conflictsFor, describeBooked } from '../../lib/manage/conflicts'
-import { artistNames, inquiryTitle } from '../../lib/manage/labels'
+import { artistNames, inquiryTitle, SHEET_URLS } from '../../lib/manage/labels'
 import { STATUS_COLOR, STATUS_LABEL, STATUS_ORDER } from '../../lib/manage/status'
 import type { Inquiry, Manager, Status } from '../../lib/manage/types'
 import ActivityTimeline from './ActivityTimeline'
@@ -47,6 +47,9 @@ export default function InquiryDrawer({
   const imported = inquiry.source === 'sheet_import'
   const canEdit = canEditInquiry(inquiry, me)
   const ownerName = directory.managers.find((m) => m.id === inquiry.owner_id)?.name
+  const mySlugs = new Set(directory.artists.filter((a) => a.manager_id === me.id).map((a) => a.slug))
+  const canComment = canCommentOn(inquiry, me, mySlugs)
+  const sheetUrl = ownerName ? SHEET_URLS[ownerName] : undefined
   const [version, setVersion] = useState(0)
   const [busy, setBusy] = useState<'status' | 'fields' | 'comment' | null>(null)
   const [confirm, setConfirm] = useState<{ next: Status; lines: string[] } | null>(null)
@@ -143,7 +146,7 @@ export default function InquiryDrawer({
     try {
       await addComment(inquiry.id, me.id, text)
       setComment('')
-      setVersion((v) => v + 1)
+      changed()
     } catch (err) {
       notify({ kind: 'error', text: friendlyError(err) })
     } finally {
@@ -182,9 +185,17 @@ export default function InquiryDrawer({
 
         <div className="space-y-6 px-4 py-6 md:px-6">
           {imported && (
-            <p role="note" className={`${PANEL} border-[var(--accent-line)] p-4 font-grotesk text-[15px] leading-relaxed text-ink`}>
-              Imported from your Google Sheet. Edit it there; this page updates every 15 minutes.
-            </p>
+            <div role="note" className={`${PANEL} border-[var(--accent-line)] p-4 font-grotesk text-[15px] leading-relaxed text-ink`}>
+              <p>
+                <span className="font-medium">{ownerName ? `From ${ownerName}'s sheet.` : 'From a Google Sheet.'}</span> Change it there; it updates here within 15 min.
+              </p>
+              {sheetUrl && (
+                <a href={sheetUrl} target="_blank" rel="noreferrer noopener" className={`${BTN_GHOST} mt-3 w-full border-[var(--accent-line)] text-ink`}>
+                  <ArrowUpRight size={18} aria-hidden="true" />
+                  Edit in sheet
+                </a>
+              )}
+            </div>
           )}
           {!imported && !canEdit && (
             <p role="note" className={`${PANEL} p-4 font-grotesk text-[15px] leading-relaxed text-[var(--ink-72)]`}>
@@ -333,7 +344,7 @@ export default function InquiryDrawer({
 
           <section aria-label="Activity" className="space-y-4">
             <h3 className="font-display text-2xl text-ink">ACTIVITY</h3>
-            {canEdit && (
+            {canComment && (
               <div>
                 <label htmlFor="d-comment" className={LABEL}>
                   Add a comment

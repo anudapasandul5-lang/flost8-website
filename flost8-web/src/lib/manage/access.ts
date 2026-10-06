@@ -21,6 +21,11 @@ export function canEditInquiry(i: Inquiry, me: Manager): boolean {
   return me.role === 'owner' || i.owner_id === null || i.owner_id === me.id
 }
 
+/** Mirrors can_view(): the owner role, the inquiry owner, or a manager with one of their artists on it. Read-only sheet rows are fine; commenting is not editing. */
+export function canCommentOn(i: Inquiry, me: Manager, mySlugs: ReadonlySet<string>): boolean {
+  return me.role === 'owner' || i.owner_id === me.id || i.artists.some((s) => mySlugs.has(s))
+}
+
 /** Only ever put an http(s) address in an href: a javascript: link would run when someone clicks it. */
 export function isHttpUrl(value: string | null | undefined): boolean {
   if (!value) return false
@@ -34,5 +39,5 @@ export function isHttpUrl(value: string | null | undefined): boolean {
 
 /** A plain address only (no ?bcc= or extra recipients), so a mailto: link cannot be abused. */
 export function isPlainEmail(value: string | null | undefined): boolean {
-  return !!value && /^[^s@,;?&<>]+@[^s@,;?&<>]+.[^s@,;?&<>]+$/.test(value)
+  return !!value && /^[^\s@,;?&<>]+@[^\s@,;?&<>]+\.[^\s@,;?&<>]+$/.test(value)
 }
