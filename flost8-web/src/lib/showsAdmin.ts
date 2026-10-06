@@ -12,6 +12,7 @@ export interface AdminShow {
   city: string
   artist: string // roster slug (primary — first in a B2B/B3B lineup)
   artist_display: string // roster display name. B2B/B3B sets join names with " B2B " (see composeArtistDisplay)
+  ticket_link: string // external ticket-sale URL. Optional — '' means no link yet.
 }
 
 /** Build the stored display name for a show, joining 2+ artists as a B2B/B3B set. */
@@ -34,6 +35,7 @@ export const EMPTY_SHOW: AdminShow = {
   city: '',
   artist: '',
   artist_display: '',
+  ticket_link: '',
 }
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/
@@ -48,6 +50,10 @@ export function validateShow(show: AdminShow): Record<string, string> {
   if (!(show.venue ?? '').trim()) errors.venue = 'This field is required'
   if (!(show.city ?? '').trim()) errors.city = 'This field is required'
   if (!(show.artist_display ?? '').trim()) errors.artist = 'Select an artist'
+  const ticketLink = (show.ticket_link ?? '').trim()
+  if (ticketLink && !/^https?:\/\//i.test(ticketLink)) {
+    errors.ticket_link = 'Enter a valid link (starting with http:// or https://)'
+  }
   return errors
 }
 

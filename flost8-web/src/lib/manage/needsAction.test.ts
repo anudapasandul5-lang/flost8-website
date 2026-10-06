@@ -173,3 +173,13 @@ describe('nextBookedShow', () => {
     expect(nextBookedShow([past, quote], TODAY)).toBeUndefined()
   })
 })
+
+describe('tentative', () => {
+  it('never nags: no reminder even with an unpaid balance and a date this week', () => {
+    const i = mine({ id: 't', status: 'tentative', event_date: '2026-10-12', money: money(45000) })
+    expect(needsAction(i, ctx({ lastTouch: new Map([['t', hoursAgo(500)]]) }))).toEqual([])
+  })
+  it('is not a booked show', () => {
+    expect(nextBookedShow([mine({ id: 't', status: 'tentative', event_date: '2026-10-12' })], TODAY)).toBeUndefined()
+  })
+})

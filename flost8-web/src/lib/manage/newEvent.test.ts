@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { EMPTY_EVENT, ownerFor, toInquiryRow, toMoneyRow, validateNewEvent, type NewEventInput } from './newEvent'
-import { KASUNI, OWNER } from './testFixtures'
+import { EMPTY_EVENT, moneyForEdit, ownerFor, toEditInput, toEditPatch, toInquiryRow, toMoneyRow, validateNewEvent, type NewEventInput } from './newEvent'
+import { KASUNI, OWNER, makeInquiry } from './testFixtures'
 
 const ok: NewEventInput = {
   ...EMPTY_EVENT,
@@ -76,5 +76,73 @@ describe('ownerFor', () => {
   })
   it('the owner role leaves it unassigned when the artist has no manager', () => {
     expect(ownerFor(['ghost'], OWNER, artists)).toBeNull()
+  })
+})
+
+describe('editing an added event', () => {
+  const money = { currency: 'LKR' as const, fee: 100000, advance: 40000, balance: 60000, balance_note: 'cash', total: null, booking_fee: null }
+  const inq = makeInquiry({
+    source: 'manual',
+    event_name: 'Skyline',
+    event_date: '2026-10-17',
+    venue: 'Cloud Nine',
+    city: null,
+    set_time: '10:00 pm',
+    organizer_name: 'Dinesh',
+    organizer_phone: '0775550192',
+    artists: ['dr-green', 'anush'],
+    money,
+  })
+
+  it('toEditInput puts the saved event back into the form, blanks as empty strings', () => {
+    expect(toEditInput(inq)).toMatchObject({
+      artists: ['dr-green', 'anush'],
+      date: '2026-10-17',
+      name: 'Skyline',
+      venue: 'Cloud Nine',
+      city: '',
+      setTime: '10:00 pm',
+      fee: '100000',
+      currency: 'LKR',
+      organizer: 'Dinesh',
+      phone: '0775550192',
+    })
+    expect(toEditInput({ ...inq, money: null }).fee).toBe('')
+  })
+
+  it('toEditPatch never touches source, status or owner', () => {
+    const patch = toEditPatch({ ...toEditInput(inq), name: '  New name ', city: '' })
+    expect(patch).toEqual({
+      event_name: 'New name',
+      event_date: '2026-10-17',
+      venue: 'Cloud Nine',
+      city: null,
+      set_time: '10:00 pm',
+      organizer_name: 'Dinesh',
+      organizer_phone: '0775550192',
+    })
+    expect(patch).not.toHaveProperty('source')
+    expect(patch).not.toHaveProperty('status')
+    expect(patch).not.toHaveProperty('owner_id')
+  })
+
+  it('a new fee keeps what was already paid and recomputes the balance', () => {
+    expect(moneyForEdit({ ...toEditInput(inq), fee: '120,000' }, money)).toEqual({ ...money, fee: 120000, balance: 80000 })
+  })
+  it('a paid event stays paid when the fee is unchanged', () => {
+    const paid = { ...money, advance: 100000, balance: 0 }
+    expect(moneyForEdit(toEditInput({ ...inq, money: paid }), paid)).toEqual(paid)
+  })
+  it('changes the currency without touching the amounts', () => {
+    expect(moneyForEdit({ ...toEditInput(inq), currency: 'USD' }, money)).toEqual({ ...money, currency: 'USD' })
+  })
+  it('first fee on an event with no money row: whole fee is owed', () => {
+    expect(moneyForEdit({ ...ok, fee: '5000' }, null)).toMatchObject({ currency: 'LKR', fee: 5000, advance: null, balance: 5000 })
+  })
+  it('a blank fee leaves the money alone', () => {
+    expect(moneyForEdit({ ...toEditInput(inq), fee: '' }, money)).toBeNull()
+  })
+  it('never lets the balance go negative', () => {
+    expect(moneyForEdit({ ...toEditInput(inq), fee: '30000' }, money)?.balance).toBe(0)
   })
 })

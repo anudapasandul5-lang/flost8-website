@@ -1,7 +1,7 @@
 import { getSupabase } from './supabase'
 import type { BookedRow } from './conflicts'
 import type { FeedRow } from './activityFeed'
-import { toInquiryRow, toMoneyRow, type NewEventInput } from './newEvent'
+import { moneyForEdit, toEditPatch, toInquiryRow, toMoneyRow, type NewEventInput } from './newEvent'
 import type { ActivityRow, Artist, Currency, Inquiry, Manager, Money, Status } from './types'
 
 /** Thrown when the database refuses a write (row-level security). */
@@ -208,6 +208,27 @@ export async function createEvent(input: NewEventInput, ownerId: string | null, 
   const money = toMoneyRow(input)
   if (money) await saveMoney(id, money)
   return id
+}
+
+/**
+ * Saves edits to an event added in the app: the fields, then the lineup (replaced), then the money. Not one transaction,
+ * but every step is safe to repeat, so a failure part-way is fixed by saving again. An update the database filters out
+ * comes back as zero rows and is reported as not allowed.
+ */
+export async function updateEvent(id: string, input: NewEventInput, existingMoney: Money | null): Promise<void> {
+  const sb = getSupabase()
+  const done = await sb.from('inquiries').update(toEditPatch(input)).eq('id', id).select('id')
+  if (done.error) {
+    if (isRlsError(done.error)) throw new NotAllowedError()
+    throw done.error
+  }
+  if (!done.data || done.data.length === 0) throw new NotAllowedError()
+  const gone = await sb.from('inquiry_artists').delete().eq('inquiry_id', id)
+  if (gone.error) throw gone.error
+  const lineup = await sb.from('inquiry_artists').insert(input.artists.map((artist_slug, n) => ({ inquiry_id: id, position: n + 1, artist_slug })))
+  if (lineup.error) throw lineup.error
+  const money = moneyForEdit(input, existingMoney)
+  if (money) await saveMoney(id, money)
 }
 
 /** Permanent. Comments, lineup and money go with it (cascade). A delete the database filters out comes back as zero rows. */

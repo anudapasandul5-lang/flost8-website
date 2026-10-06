@@ -13,6 +13,7 @@ interface ShowRow {
   dateLabel: string
   title: string
   place: string
+  ticketLink: string
 }
 
 function showToRow(show: UpcomingShow): ShowRow {
@@ -29,6 +30,7 @@ function showToRow(show: UpcomingShow): ShowRow {
     dateLabel: show.date,
     title: show.artist,
     place: `${show.venue} · ${show.city}`,
+    ticketLink: show.ticketLink,
   }
 }
 
@@ -53,14 +55,22 @@ const chipPop: Variants = {
 }
 
 function ShowRowCard({ row, reduce }: { row: ShowRow; reduce: boolean }) {
+  // Ticket link, when set, makes the whole row a click-through to buy tickets —
+  // no link means the card stays a plain (non-interactive) row.
+  const Wrapper = row.ticketLink ? motion.a : motion.div
+  const linkProps = row.ticketLink
+    ? { href: row.ticketLink, target: '_blank', rel: 'noopener noreferrer' }
+    : {}
+
   return (
-    <motion.div
+    <Wrapper
+      {...linkProps}
       // Item F: whileInView slide — child of the staggerParent list wrapper.
       variants={reduce ? undefined : rowSlide}
       initial={reduce ? undefined : 'hidden'}
       whileInView={reduce ? undefined : 'visible'}
       viewport={{ once: true, margin: '0px 0px -48px 0px' }}
-      className="group relative flex min-h-[116px] items-stretch overflow-hidden rounded-xl edge-refract bg-base-raise md:min-h-[140px] md:rounded-2xl"
+      className={`group relative flex min-h-[116px] items-stretch overflow-hidden rounded-xl edge-refract bg-base-raise md:min-h-[140px] md:rounded-2xl ${row.ticketLink ? 'cursor-pointer transition-colors hover:bg-base-raise/80' : ''}`}
     >
       {/* Text block */}
       <div className="flex flex-1 flex-col justify-center gap-1.5 px-5 py-5 md:px-8">
@@ -92,15 +102,23 @@ function ShowRowCard({ row, reduce }: { row: ShowRow; reduce: boolean }) {
                 aria-hidden="true"
                 loading="lazy"
                 decoding="async"
-                className="h-full w-full object-cover object-top grayscale transition duration-500 group-hover:scale-105 group-hover:grayscale-0"
+                className="grade-portrait h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
               />
             </div>
           ))}
-          {/* blend the photo column's left edge into the card */}
-          <div className="pointer-events-none absolute inset-y-0 left-0 w-16 bg-gradient-to-r from-base-raise to-transparent" />
+          {/* blend the photo column's left edge into the card — a fixed seam width
+              regardless of photo count, so a 2-3-up B2B/B3B row doesn't wash out
+              each narrower strip the way a width sized for one photo would */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-base-raise to-transparent md:w-10" />
         </div>
       )}
-    </motion.div>
+
+      {row.ticketLink && (
+        <div className="pointer-events-none absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-accent text-ink opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <ArrowUpRight size={16} weight="bold" />
+        </div>
+      )}
+    </Wrapper>
   )
 }
 

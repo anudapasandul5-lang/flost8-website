@@ -98,14 +98,15 @@ describe('tiles', () => {
 describe('pipeline', () => {
   it('counts each status in order, leaves spam out, and reports the booked share', () => {
     const mk = (status: Inquiry['status'], n: number) => Array.from({ length: n }, (_, k) => makeInquiry({ id: `${status}${k}`, status }))
-    const list = [...mk('new', 2), ...mk('reached_out', 1), ...mk('quoted', 1), ...mk('booking_confirmed', 1), ...mk('lost', 1), ...mk('spam', 5)]
+    const list = [...mk('new', 2), ...mk('reached_out', 1), ...mk('quoted', 1), ...mk('tentative', 2), ...mk('booking_confirmed', 1), ...mk('lost', 1), ...mk('spam', 5)]
     expect(pipeline(list)).toEqual({
-      total: 6,
-      bookedPct: 17,
+      total: 8,
+      bookedPct: 13,
       stages: [
         { status: 'new', count: 2 },
         { status: 'reached_out', count: 1 },
         { status: 'quoted', count: 1 },
+        { status: 'tentative', count: 2 },
         { status: 'deposit_paid', count: 0 },
         { status: 'booking_confirmed', count: 1 },
         { status: 'lost', count: 1 },

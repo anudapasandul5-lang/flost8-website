@@ -30,6 +30,7 @@ export default function InquiryDrawer({
   directory,
   onClose,
   onChanged,
+  onEdit,
   notify,
 }: {
   inquiry: Inquiry
@@ -37,6 +38,8 @@ export default function InquiryDrawer({
   directory: Directory
   onClose: () => void
   onChanged: () => void
+  /** Opens the edit form; only offered for events added in the app. */
+  onEdit: () => void
   notify: (t: ToastMsg) => void
 }) {
   const reduce = useReducedMotion()
@@ -188,6 +191,21 @@ export default function InquiryDrawer({
             <p role="note" className={`${PANEL} p-4 font-grotesk text-[15px] leading-relaxed text-[var(--ink-72)]`}>
               You can view this but not change it{ownerName ? `. Only ${ownerName} (or Anuda) can edit it.` : '.'}
             </p>
+          )}
+
+          {canEdit && (inquiry.source === 'manual' || inquiry.status === 'tentative') && (
+            <div className="flex flex-wrap gap-2">
+              {inquiry.source === 'manual' && (
+                <button type="button" onClick={onEdit} disabled={busy !== null} className={`${BTN_GHOST} border-[var(--accent-line)] text-ink`}>
+                  Edit event
+                </button>
+              )}
+              {inquiry.status === 'tentative' && (
+                <button type="button" onClick={() => void applyStatus('booking_confirmed')} disabled={busy !== null} className={BTN_PRIMARY}>
+                  Confirm booking
+                </button>
+              )}
+            </div>
           )}
 
           <section aria-label="Details">

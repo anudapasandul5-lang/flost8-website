@@ -5,6 +5,8 @@ export interface UpcomingShow {
   date: string
   venue: string
   city: string
+  /** External ticket-sale URL. Empty when the show has no link yet. */
+  ticketLink: string
 }
 
 export interface BookingFieldDef {
@@ -53,6 +55,7 @@ interface ApiEvent {
   city?: unknown
   artist?: unknown
   artist_display?: unknown
+  ticket_link?: unknown
 }
 
 export const EMPTY_BOOKING_FORM: BookingFormData = {
@@ -156,12 +159,12 @@ export const BOOKING_FIELDS: BookingFieldDef[] = [
 ]
 
 export const PLACEHOLDER_SHOWS: UpcomingShow[] = [
-  { artist: 'DR. GREEN', date: 'Aug 8 2026', venue: 'The Factory', city: 'Colombo' },
-  { artist: 'SONAL', date: 'Aug 22 2026', venue: 'Arugam Bay Hotel', city: 'Arugam Bay' },
-  { artist: 'IMTHXD', date: 'Sep 5 2026', venue: 'Kama', city: 'Colombo' },
-  { artist: 'MAALIN', date: 'Sep 19 2026', venue: 'Hilton Rooftop', city: 'Colombo' },
-  { artist: 'THE PROFESSOR', date: 'Oct 3 2026', venue: 'Salt', city: 'Mirissa' },
-  { artist: 'ANUSH', date: 'Oct 17 2026', venue: 'Ministry of Crab', city: 'Colombo' },
+  { artist: 'DR. GREEN', date: 'Aug 8 2026', venue: 'The Factory', city: 'Colombo', ticketLink: '' },
+  { artist: 'SONAL', date: 'Aug 22 2026', venue: 'Arugam Bay Hotel', city: 'Arugam Bay', ticketLink: '' },
+  { artist: 'IMTHXD', date: 'Sep 5 2026', venue: 'Kama', city: 'Colombo', ticketLink: '' },
+  { artist: 'MAALIN', date: 'Sep 19 2026', venue: 'Hilton Rooftop', city: 'Colombo', ticketLink: '' },
+  { artist: 'THE PROFESSOR', date: 'Oct 3 2026', venue: 'Salt', city: 'Mirissa', ticketLink: '' },
+  { artist: 'ANUSH', date: 'Oct 17 2026', venue: 'Ministry of Crab', city: 'Colombo', ticketLink: '' },
 ]
 
 /** Today as `YYYY-MM-DD` in UTC — same key space the sheet's date cells use. */
@@ -293,13 +296,25 @@ function normalizeEvent(event: ApiEvent): UpcomingShow | null {
   const venue = stringValue(event.venue)
   const city = stringValue(event.city)
   const date = formatShowDate(stringValue(event.date), stringValue(event.time))
+  const ticketLink = safeTicketLink(stringValue(event.ticket_link))
 
   if (!artist || !venue || !date) return null
-  return { artist, date, venue, city }
+  return { artist, date, venue, city, ticketLink }
 }
 
 function stringValue(value: unknown): string {
   return typeof value === 'string' ? value.trim() : ''
+}
+
+/** Only ever hand an http(s) URL to an `href` — the sheet cell is admin-entered but a
+ * `javascript:` scheme would still execute if it slipped through. Anything else -> ''. */
+function safeTicketLink(value: string): string {
+  try {
+    const url = new URL(value)
+    return url.protocol === 'http:' || url.protocol === 'https:' ? url.toString() : ''
+  } catch {
+    return ''
+  }
 }
 
 function formatShowDate(date: string, time: string): string {

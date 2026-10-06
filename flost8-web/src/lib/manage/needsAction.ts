@@ -44,7 +44,8 @@ function addDays(iso: string, n: number): string {
  */
 export function needsAction(i: Inquiry, c: NeedsActionContext): Reason[] {
   if (!c.isOwner && i.owner_id !== c.meId) return []
-  if (i.status === 'lost' || i.status === 'spam') return []
+  // A tentative date is only being held: nothing is owed and nobody is waiting, so it never nags.
+  if (i.status === 'lost' || i.status === 'spam' || i.status === 'tentative') return []
   if (i.event_date && i.event_date < c.today) return []
 
   const out: Reason[] = []

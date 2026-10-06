@@ -100,11 +100,13 @@ function Dashboard({
   )
   const [openId, setOpenId] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
+  const [editingId, setEditingId] = useState<string | null>(null)
   const [toast, setToast] = useState<ToastMsg | null>(null)
   const clearToast = useCallback(() => setToast(null), [])
 
   const ctx = useMemo(() => ({ mySlugs, today: todayISO() }), [mySlugs])
   const open = inquiries.find((i) => i.id === openId) ?? null
+  const editing = inquiries.find((i) => i.id === editingId) ?? null
 
   // --- needs-action: flags, and one-tap actions whose write is held for 5 s so Undo never needs a delete ---
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set())
@@ -254,6 +256,10 @@ function Dashboard({
           directory={directory}
           onClose={() => setOpenId(null)}
           onChanged={reload}
+          onEdit={() => {
+            setEditingId(open.id)
+            setOpenId(null)
+          }}
           notify={setToast}
         />
       )}
@@ -267,6 +273,24 @@ function Dashboard({
           onSaved={(id) => {
             setAdding(false)
             setToast({ kind: 'ok', text: 'Event added' })
+            reload()
+            setOpenId(id)
+          }}
+        />
+      )}
+      {editing && (
+        <AddEventDialog
+          key={editing.id}
+          me={me}
+          // Anyone already on the event stays pickable, even another manager's artist, so saving never drops them.
+          artists={directory.artists.filter((a) => pickable.some((p) => p.slug === a.slug) || editing.artists.includes(a.slug))}
+          allArtists={directory.artists}
+          managers={directory.managers}
+          editing={editing}
+          onClose={() => setEditingId(null)}
+          onSaved={(id) => {
+            setEditingId(null)
+            setToast({ kind: 'ok', text: 'Event updated' })
             reload()
             setOpenId(id)
           }}

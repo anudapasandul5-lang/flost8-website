@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { X } from '@phosphor-icons/react'
-import { createEvent, friendlyError, newId } from '../../lib/manage/api'
-import { EMPTY_EVENT, ownerFor, validateNewEvent, type NewEventInput, type NewStatus } from '../../lib/manage/newEvent'
+import { createEvent, friendlyError, newId, updateEvent } from '../../lib/manage/api'
+import { EMPTY_EVENT, ownerFor, toEditInput, validateNewEvent, type NewEventInput, type NewStatus } from '../../lib/manage/newEvent'
 import { STATUS_LABEL } from '../../lib/manage/status'
-import type { Artist, Manager } from '../../lib/manage/types'
+import type { Artist, Inquiry, Manager } from '../../lib/manage/types'
 import { BTN_GHOST, BTN_PRIMARY, CHIP_BASE, CHIP_OFF, CHIP_ON, INPUT, LABEL } from './styles'
 import { useLockScroll } from './useLockScroll'
 
-const STATUSES: NewStatus[] = ['new', 'quoted', 'deposit_paid', 'booking_confirmed']
+const STATUSES: NewStatus[] = ['tentative', 'new', 'quoted', 'deposit_paid', 'booking_confirmed']
 
 /**
  * Quick "add event" form: bottom sheet on a phone, side drawer on a desktop. A manager picks from their own artists,
@@ -20,6 +20,7 @@ export default function AddEventDialog({
   managers,
   onClose,
   onSaved,
+  editing,
 }: {
   me: Manager
   /** Artists this person may pick. */
@@ -29,8 +30,10 @@ export default function AddEventDialog({
   managers: Manager[]
   onClose: () => void
   onSaved: (id: string) => void
+  /** Set to edit a saved event instead of adding one. Status is changed in the drawer, not here. */
+  editing?: Inquiry
 }) {
-  const [f, setF] = useState<NewEventInput>(EMPTY_EVENT)
+  const [f, setF] = useState<NewEventInput>(() => (editing ? toEditInput(editing) : EMPTY_EVENT))
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const eventId = useRef(newId()) // same id on every retry, so a retry never makes a duplicate
@@ -55,7 +58,10 @@ export default function AddEventDialog({
     setError(null)
     setBusy(true)
     try {
-      onSaved(await createEvent(f, ownerId, eventId.current))
+      if (editing) {
+        await updateEvent(editing.id, f, editing.money)
+        onSaved(editing.id)
+      } else onSaved(await createEvent(f, ownerId, eventId.current))
     } catch (err) {
       setError(friendlyError(err))
       setBusy(false)
@@ -69,18 +75,18 @@ export default function AddEventDialog({
       <div
         role="dialog"
         aria-modal="true"
-        aria-label="Add event"
+        aria-label={editing ? 'Edit event' : 'Add event'}
         data-lenis-prevent
         onClick={(e) => e.stopPropagation()}
         className="absolute inset-x-0 bottom-0 flex max-h-[92dvh] flex-col overflow-y-auto overscroll-contain rounded-t-3xl border border-b-0 border-[var(--bg-line)] bg-base md:inset-y-0 md:left-auto md:right-0 md:max-h-none md:w-[480px] md:rounded-none md:border-b md:border-r-0"
       >
         <div className="flex items-center justify-between px-4 pb-1 pt-4 md:px-6">
-          <h2 className="font-display text-3xl leading-none text-ink">ADD EVENT</h2>
+          <h2 className="font-display text-3xl leading-none text-ink">{editing ? 'EDIT EVENT' : 'ADD EVENT'}</h2>
           <button type="button" aria-label="Close" onClick={onClose} className={`${BTN_GHOST} !h-11 !w-11 !min-h-0 !p-0`}>
             <X size={22} aria-hidden="true" />
           </button>
         </div>
-        <p className="px-4 pb-4 font-grotesk text-[13.5px] text-[var(--ink-72)] md:px-6">A booking you took outside the sheet. It stays in this app only.</p>
+        <p className="px-4 pb-4 font-grotesk text-[13.5px] text-[var(--ink-72)] md:px-6">{editing ? 'Change anything below and save. Status is changed from the event itself.' : 'A booking you took outside the sheet. It stays in this app only.'}</p>
 
         <form
           className="space-y-4 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-6"
@@ -136,6 +142,7 @@ export default function AddEventDialog({
             </div>
           </div>
 
+          {!editing && (
           <fieldset>
             <legend className={LABEL}>Status</legend>
             <div className="flex flex-wrap gap-2">
@@ -146,6 +153,7 @@ export default function AddEventDialog({
               ))}
             </div>
           </fieldset>
+          )}
 
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -181,9 +189,11 @@ export default function AddEventDialog({
             </div>
           </div>
 
+          {!editing && (
           <p className="font-grotesk text-[13px] text-[var(--ink-50)]">
             {me.role === 'owner' ? (ownerName ? `Will be owned by ${ownerName}.` : 'Pick an artist to see who will own it.') : 'Will be added to your list.'} Money stays visible only to you and Anuda.
           </p>
+          )}
 
           {error && (
             <p role="alert" className="font-grotesk text-[14.5px] text-[var(--error)]">
@@ -196,7 +206,7 @@ export default function AddEventDialog({
               Cancel
             </button>
             <button type="submit" disabled={busy} className={`${BTN_PRIMARY} flex-1`}>
-              {busy ? 'Adding…' : 'Add event'}
+              {busy ? (editing ? 'Saving…' : 'Adding…') : editing ? 'Save changes' : 'Add event'}
             </button>
           </div>
         </form>

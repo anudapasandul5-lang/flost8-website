@@ -2,6 +2,7 @@ export type Status =
   | 'new'
   | 'reached_out'
   | 'quoted'
+  | 'tentative'
   | 'deposit_paid'
   | 'booking_confirmed'
   | 'lost'

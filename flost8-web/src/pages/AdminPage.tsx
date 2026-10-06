@@ -385,6 +385,17 @@ export default function AdminPage() {
                   className={INPUT_CLS}
                 />
               </Field>
+
+              <Field label="Ticket link (optional)" error={formErrors.ticket_link} htmlFor="f-ticket-link">
+                <input
+                  id="f-ticket-link"
+                  type="url"
+                  placeholder="https://tickets.example.com/..."
+                  value={editing.ticket_link}
+                  onChange={(e) => setField('ticket_link', e.target.value)}
+                  className={INPUT_CLS}
+                />
+              </Field>
             </div>
 
             {saveError && (

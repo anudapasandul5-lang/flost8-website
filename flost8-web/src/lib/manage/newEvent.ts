@@ -1,7 +1,7 @@
 import { parseAmountInput } from './money'
-import type { Artist, Currency, Manager, Money } from './types'
+import type { Artist, Currency, Inquiry, Manager, Money } from './types'
 
-export type NewStatus = 'new' | 'quoted' | 'deposit_paid' | 'booking_confirmed'
+export type NewStatus = 'new' | 'quoted' | 'tentative' | 'deposit_paid' | 'booking_confirmed'
 
 /** The quick "add event" form. Everything is a string because that is what the inputs hold. */
 export interface NewEventInput {
@@ -72,4 +72,46 @@ export function toMoneyRow(i: NewEventInput): Money | null {
 export function ownerFor(slugs: string[], me: Manager, artists: Artist[]): string | null {
   if (me.role !== 'owner') return me.id
   return artists.find((a) => a.slug === slugs[0])?.manager_id ?? null
+}
+
+/** The form's starting values when editing a saved event. Status is not part of the edit (the drawer owns it). */
+export function toEditInput(i: Inquiry): NewEventInput {
+  return {
+    artists: [...i.artists],
+    date: i.event_date ?? '',
+    name: i.event_name ?? '',
+    venue: i.venue ?? '',
+    city: i.city ?? '',
+    setTime: i.set_time ?? '',
+    status: i.status as NewStatus,
+    fee: i.money?.fee != null ? String(i.money.fee) : '',
+    currency: i.money?.currency ?? 'LKR',
+    organizer: i.organizer_name ?? '',
+    phone: i.organizer_phone ?? '',
+  }
+}
+
+/** Columns an edit may change. Never source, status or owner. */
+export function toEditPatch(i: NewEventInput) {
+  const row = toInquiryRow(i, null)
+  return {
+    event_name: row.event_name,
+    event_date: row.event_date,
+    venue: row.venue,
+    city: row.city,
+    set_time: row.set_time,
+    organizer_name: row.organizer_name,
+    organizer_phone: row.organizer_phone,
+  }
+}
+
+/**
+ * The money row after an edit, or null to leave it alone (no fee typed). What was already paid stays paid:
+ * the balance is the new fee minus the advance, never below zero.
+ */
+export function moneyForEdit(i: NewEventInput, existing: Money | null): Money | null {
+  const fee = parseAmountInput(i.fee)
+  if (fee === null || fee === undefined) return null
+  if (!existing) return toMoneyRow(i)
+  return { ...existing, currency: i.currency, fee, balance: Math.max(fee - (existing.advance ?? 0), 0) }
 }

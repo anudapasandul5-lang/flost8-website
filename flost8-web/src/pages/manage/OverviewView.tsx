@@ -52,6 +52,7 @@ const STATUS_DOT: Record<Exclude<Status, 'spam'>, string> = {
   new: '#E9D5FF',
   reached_out: '#C88BFF',
   quoted: '#A855F7',
+  tentative: '#FDBA74',
   deposit_paid: '#9D14FF',
   booking_confirmed: '#6EE7B7',
   lost: 'rgba(255,255,255,.3)',
