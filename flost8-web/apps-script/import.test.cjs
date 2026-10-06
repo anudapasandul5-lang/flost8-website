@@ -56,6 +56,12 @@ assert.strictEqual(r.rows[0].inquiry.sheet_key, 'Sonal|nodate|mystery')
 assert.strictEqual(r.rows[1].inquiry.sheet_key + '#2', r.rows[2].inquiry.sheet_key)
 assert.strictEqual(r.issues.length, 1)
 
+// a real date in the wrong year block is kept (history); an impossible one is not
+r = read('Sonal', [hdr('SEPTEMBER'), row({ ...base, 'Event Date': 'D:2025-09-12', 'Event Name': 'Atmosphere' }), row({ ...base, 'Event Date': 'POSTPONED', 'Event Name': 'Dark' })])
+assert.strictEqual(r.rows[0].inquiry.event_date, '2025-09-12')
+assert.strictEqual(r.rows[1].inquiry.event_date, null)
+assert.strictEqual(r.issues.length, 2)
+
 // every inquiry object has the same keys (PostgREST bulk upsert requirement)
 const keys = (x) => Object.keys(x.inquiry).sort().join()
 assert.strictEqual(new Set(ctx.fimp_build_([{ name: 'Sonal', values: [H, row({ ...base, 'Event Date': '1.8.2026', 'Event Name': 'A' })] },

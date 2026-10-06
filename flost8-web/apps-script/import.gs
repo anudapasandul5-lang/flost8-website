@@ -78,7 +78,10 @@ function fimp_readTab_(tabName, values) {
 
     var p = fsync_parseDate_(rawDate, secMonth, secYear);
     var date = p.error ? null : p.date;
-    if (p.error) out.issues.push({ tab: tabName, row: i + 1, show: label, problem: p.error + ' — imported without a date' });
+    // A real date in the wrong year block (2025 rows in the 2026 block) is history, not garbage: keep it.
+    var yr = p.error && p.error.match(/^year \d{4} inside .* \((\d{4}-\d{2}-\d{2})\)$/);
+    if (yr) date = yr[1];
+    if (p.error) out.issues.push({ tab: tabName, row: i + 1, show: label, problem: p.error + (date ? ' — imported with that date' : ' — imported without a date') });
 
     var balance = get(r, 'balance (lkr)');
     var flags = [balance, get(r, 'notes')].join(' ');
