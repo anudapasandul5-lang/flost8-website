@@ -72,6 +72,9 @@ export default function InquiryList({
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1.5">
                 <StatusBadge status={i.status} />
+                {i.source === 'manual' && (
+                  <span className="rounded-full border border-[var(--accent-line)] px-2 py-0.5 font-grotesk text-[11.5px] text-[var(--accent-ink)]">Added in app</span>
+                )}
                 {conflicts.has(i.id) && (
                   <span className="inline-flex items-center gap-1 font-grotesk text-[12px] text-[#FCD34D]">
                     <Warning size={14} weight="fill" aria-hidden="true" />

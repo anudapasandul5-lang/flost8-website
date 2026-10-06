@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { SignOut } from '@phosphor-icons/react'
+import { Plus, SignOut } from '@phosphor-icons/react'
 import { addComment, fetchDirectory, fetchInquiries, fetchLastTouch, friendlyError, saveMoney, updateInquiry } from '../../lib/manage/api'
 import { conflictIds } from '../../lib/manage/conflicts'
 import { applyFilters, DEFAULT_FILTERS, todayISO, type Filters } from '../../lib/manage/filters'
@@ -7,14 +7,17 @@ import { signOut, useLoad } from '../../lib/manage/hooks'
 import { inquiryTitle } from '../../lib/manage/labels'
 import { formatAmount, totalsByCurrency } from '../../lib/manage/money'
 import { needsAction, nextBookedShow, REASON_RANK } from '../../lib/manage/needsAction'
+import { summarise } from '../../lib/manage/summaries'
 import type { Artist, Inquiry, Manager } from '../../lib/manage/types'
 import CalendarView from './CalendarView'
+import AddEventDialog from './AddEventDialog'
 import FilterBar from './FilterBar'
 import InquiryDrawer from './InquiryDrawer'
 import InquiryList from './InquiryList'
 import NeedsList, { type AdvanceKind, type NeedsRow } from './NeedsList'
+import SummaryStrip, { type StripCard } from './SummaryStrip'
 import TotalsBar from './TotalsBar'
-import { BTN_GHOST } from './styles'
+import { BTN_GHOST, BTN_PRIMARY } from './styles'
 import { ErrorPanel, Skeleton, Toast, UndoToast, type ToastMsg } from './ui'
 
 export interface Directory {
@@ -104,12 +107,16 @@ function Dashboard({
   }))
   const [view, setView] = useState<'needs' | 'all' | 'calendar'>('needs')
   const [openId, setOpenId] = useState<string | null>(null)
+  // Owner taps a manager's card to look at just that manager's rows.
+  const [managerFilter, setManagerFilter] = useState<string | null>(null)
+  const [adding, setAdding] = useState(false)
   const [toast, setToast] = useState<ToastMsg | null>(null)
   const clearToast = useCallback(() => setToast(null), [])
 
   const ctx = useMemo(() => ({ mySlugs, today: todayISO() }), [mySlugs])
-  const filtered = useMemo(() => applyFilters(inquiries, filters, ctx), [inquiries, filters, ctx])
-  const forCalendar = useMemo(() => applyFilters(inquiries, filters, ctx, { ignoreTimeframe: true }), [inquiries, filters, ctx])
+  const byManager = useCallback((i: Inquiry) => !managerFilter || i.owner_id === managerFilter, [managerFilter])
+  const filtered = useMemo(() => applyFilters(inquiries, filters, ctx).filter(byManager), [inquiries, filters, ctx, byManager])
+  const forCalendar = useMemo(() => applyFilters(inquiries, filters, ctx, { ignoreTimeframe: true }).filter(byManager), [inquiries, filters, ctx, byManager])
   const totals = useMemo(() => totalsByCurrency(filtered), [filtered])
   const conflicts = useMemo(() => conflictIds(inquiries), [inquiries])
   const open = inquiries.find((i) => i.id === openId) ?? null
@@ -135,7 +142,20 @@ function Dashboard({
         ),
     [inquiries, naCtx],
   )
-  const needsRows = useMemo(() => needsAll.filter((r) => !hidden.has(r.inquiry.id)), [needsAll, hidden])
+  const needsRows = useMemo(() => needsAll.filter((r) => !hidden.has(r.inquiry.id) && byManager(r.inquiry)), [needsAll, hidden, byManager])
+  // The strip counts what is still waiting (cards leave it the moment they are actioned) for everyone, not just the filtered manager.
+  const waiting = useMemo(() => needsAll.filter((r) => !hidden.has(r.inquiry.id)), [needsAll, hidden])
+  const stripCards = useMemo<StripCard[]>(
+    () =>
+      (me.role === 'owner' ? directory.managers.filter((m) => m.role === 'manager') : [me]).map((m) => ({
+        managerId: m.id,
+        name: m.name,
+        artists: directory.artists.filter((a) => a.manager_id === m.id).map((a) => a.name).join(' · '),
+        summary: summarise(m.id, inquiries, waiting, ctx.today),
+      })),
+    [me, directory, inquiries, waiting, ctx.today],
+  )
+  const pickable = me.role === 'owner' ? directory.artists : directory.artists.filter((a) => mySlugs.has(a.slug))
   const nextShow = useMemo(
     () => nextBookedShow(inquiries.filter((i) => me.role === 'owner' || i.owner_id === me.id), ctx.today),
     [inquiries, me.id, me.role, ctx.today],
@@ -210,6 +230,15 @@ function Dashboard({
 
   return (
     <>
+      <SummaryStrip cards={stripCards} selectedId={managerFilter} onSelect={me.role === 'owner' ? setManagerFilter : undefined} />
+      {pickable.length > 0 && (
+        <div className="mb-4">
+          <button type="button" onClick={() => setAdding(true)} className={BTN_PRIMARY}>
+            <Plus size={18} weight="bold" aria-hidden="true" />
+            Add event
+          </button>
+        </div>
+      )}
       <div role="tablist" aria-label="View" className="mb-5 flex gap-1 rounded-full border border-[var(--bg-line)] bg-[var(--bg-raise)] p-1 md:max-w-[460px]">
         {tabs.map((t) => (
           <button
@@ -292,6 +321,21 @@ function Dashboard({
           onClose={() => setOpenId(null)}
           onChanged={reload}
           notify={setToast}
+        />
+      )}
+      {adding && (
+        <AddEventDialog
+          me={me}
+          artists={pickable}
+          allArtists={directory.artists}
+          managers={directory.managers}
+          onClose={() => setAdding(false)}
+          onSaved={(id) => {
+            setAdding(false)
+            setToast({ kind: 'ok', text: 'Event added' })
+            reload()
+            setOpenId(id)
+          }}
         />
       )}
       <Toast toast={toast} onDone={clearToast} />

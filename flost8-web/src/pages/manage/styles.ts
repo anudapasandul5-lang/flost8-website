@@ -1,3 +1,5 @@
+import type { Reason } from '../../lib/manage/needsAction'
+
 // Shared class strings for the /manage screens. Shape rule: pills for buttons and chips,
 // 12px for inputs, 16px for panels. Every tap target is at least 44px tall.
 const FOCUS =
@@ -18,3 +20,11 @@ export const CHIP_ON = 'border-[var(--accent-line)] bg-[var(--accent-soft)] text
 export const CHIP_OFF = 'border-[var(--bg-line)] text-[var(--ink-72)] hover:bg-[var(--bg-raise)]'
 
 export const FOCUS_RING = FOCUS
+
+/** Colour is reserved for urgency: the card edge and the next-step line. */
+export const REASON_COLOR: Record<Reason, string> = {
+  double_booked: '#FF6B6B',
+  unpaid_soon: '#FCD34D',
+  no_reply: '#C88BFF',
+  quote_quiet: '#7DD3FC',
+}

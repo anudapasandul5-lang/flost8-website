@@ -6,7 +6,7 @@ import { formatDate } from '../../lib/manage/calendar'
 import { artistNames, inquiryTitle, SHEET_URLS } from '../../lib/manage/labels'
 import { nextStep, waLink, type NeedsActionContext, type Reason } from '../../lib/manage/needsAction'
 import type { Artist, Inquiry, Manager } from '../../lib/manage/types'
-import { FOCUS_RING } from './styles'
+import { FOCUS_RING, REASON_COLOR } from './styles'
 
 export interface NeedsRow {
   inquiry: Inquiry
@@ -15,13 +15,6 @@ export interface NeedsRow {
 
 export type AdvanceKind = 'reached_out' | 'paid'
 
-/** Colour is reserved for urgency: the card edge and the next-step line. */
-const REASON_COLOR: Record<Reason, string> = {
-  double_booked: '#FF6B6B',
-  unpaid_soon: '#FCD34D',
-  no_reply: '#C88BFF',
-  quote_quiet: '#7DD3FC',
-}
 
 const PILL = `inline-flex min-h-[48px] items-center justify-center gap-2 rounded-full px-5 font-grotesk text-[15.5px] font-medium transition active:scale-[0.98] ${FOCUS_RING}`
 
@@ -191,6 +184,7 @@ function NeedsCard({
             {i.city ? ` · ${i.city}` : ''}
           </span>
           {sheet && <span className="rounded-full border border-[var(--bg-line)] px-2 py-0.5 text-[11.5px]">From sheet</span>}
+          {i.source === 'manual' && <span className="rounded-full border border-[var(--accent-line)] px-2 py-0.5 text-[11.5px] text-[var(--accent-ink)]">Added in app</span>}
           {me.role === 'owner' && ownerName && (
             <span className="rounded-full bg-[var(--accent-soft)] px-2 py-0.5 text-[11.5px] text-[var(--accent-ink)]">{ownerName}</span>
           )}

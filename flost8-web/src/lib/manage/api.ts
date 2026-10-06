@@ -1,5 +1,6 @@
 import { getSupabase } from './supabase'
 import type { BookedRow } from './conflicts'
+import { toInquiryRow, toMoneyRow, type NewEventInput } from './newEvent'
 import type { ActivityRow, Artist, Currency, Inquiry, Manager, Money, Status } from './types'
 
 /** Thrown when the database refuses a write (row-level security). */
@@ -156,4 +157,25 @@ export async function saveMoney(inquiryId: string, money: Money): Promise<void> 
     if (isRlsError(error)) throw new NotAllowedError()
     throw error
   }
+}
+
+/**
+ * Saves an event added from the app: the inquiry, its lineup, then its money. Three inserts, so a failure part-way leaves a
+ * partial row (managers cannot delete); it is reported and the manager can open the row and finish it.
+ */
+export async function createEvent(input: NewEventInput, ownerId: string | null): Promise<string> {
+  const sb = getSupabase()
+  const made = await sb.from('inquiries').insert(toInquiryRow(input, ownerId)).select('id').single()
+  if (made.error) {
+    if (isRlsError(made.error)) throw new NotAllowedError()
+    throw made.error
+  }
+  const id = (made.data as { id: string }).id
+  const lineup = await sb
+    .from('inquiry_artists')
+    .insert(input.artists.map((artist_slug, n) => ({ inquiry_id: id, position: n + 1, artist_slug })))
+  if (lineup.error) throw lineup.error
+  const money = toMoneyRow(input)
+  if (money) await saveMoney(id, money)
+  return id
 }
