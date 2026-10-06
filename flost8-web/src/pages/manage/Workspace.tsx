@@ -78,7 +78,7 @@ function Dashboard({
   // Someone who looks after no artists (the owner) would see an empty "My artists" list.
   const [filters, setFilters] = useState<Filters>(() => ({
     ...DEFAULT_FILTERS,
-    scope: mySlugs.size === 0 ? 'everyone' : 'mine',
+    scope: me.role === 'owner' && mySlugs.size === 0 ? 'everyone' : 'mine',
   }))
   const [view, setView] = useState<'list' | 'calendar'>('list')
   const [openId, setOpenId] = useState<string | null>(null)
@@ -109,9 +109,10 @@ function Dashboard({
       <FilterBar
         filters={filters}
         onChange={setFilters}
-        artists={directory.artists}
+        artists={me.role === 'owner' ? directory.artists : directory.artists.filter((a) => mySlugs.has(a.slug))}
         hideTimeframe={view === 'calendar'}
         noOwnArtists={mySlugs.size === 0}
+        showEveryone={me.role === 'owner'}
       />
 
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">

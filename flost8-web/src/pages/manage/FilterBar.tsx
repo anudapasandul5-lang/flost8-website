@@ -16,12 +16,14 @@ export default function FilterBar({
   artists,
   hideTimeframe,
   noOwnArtists,
+  showEveryone,
 }: {
   filters: Filters
   onChange: (f: Filters) => void
   artists: Artist[]
   hideTimeframe: boolean
   noOwnArtists: boolean
+  showEveryone: boolean
 }) {
   const set = (patch: Partial<Filters>) => onChange({ ...filters, ...patch })
   const toggleStatus = (s: Status) =>
@@ -31,14 +33,16 @@ export default function FilterBar({
 
   return (
     <section aria-label="Filters" className="mb-5 space-y-4">
-      <div className="flex flex-wrap gap-2">
-        <button type="button" aria-pressed={filters.scope === 'mine'} className={chip(filters.scope === 'mine')} onClick={() => set({ scope: 'mine' })}>
-          My artists
-        </button>
-        <button type="button" aria-pressed={filters.scope === 'everyone'} className={chip(filters.scope === 'everyone')} onClick={() => set({ scope: 'everyone' })}>
-          Everyone&apos;s
-        </button>
-      </div>
+      {showEveryone && (
+        <div className="flex flex-wrap gap-2">
+          <button type="button" aria-pressed={filters.scope === 'mine'} className={chip(filters.scope === 'mine')} onClick={() => set({ scope: 'mine' })}>
+            My artists
+          </button>
+          <button type="button" aria-pressed={filters.scope === 'everyone'} className={chip(filters.scope === 'everyone')} onClick={() => set({ scope: 'everyone' })}>
+            Everyone&apos;s
+          </button>
+        </div>
+      )}
       {noOwnArtists && filters.scope === 'mine' && (
         <p className="font-grotesk text-sm text-[var(--ink-50)]">No artists are assigned to you yet, so this list is empty.</p>
       )}
