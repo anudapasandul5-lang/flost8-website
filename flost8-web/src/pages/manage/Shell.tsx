@@ -1,5 +1,5 @@
 import { useState, type ReactNode } from 'react'
-import { BellRinging, CalendarBlank, ListBullets, Plus, SignOut, SquaresFour, X } from '@phosphor-icons/react'
+import { BellRinging, CalendarBlank, ListBullets, Plus, SignOut, SquaresFour } from '@phosphor-icons/react'
 import { signOut } from '../../lib/manage/hooks'
 import type { Reason } from '../../lib/manage/needsAction'
 import type { Manager } from '../../lib/manage/types'
@@ -43,7 +43,6 @@ export default function Shell({ me, team, needCount, totalCount, onAdd, children
   const [managerFilter, setManagerFilter] = useState<string | null>(null)
   const owner = me.role === 'owner'
   const needsLabel = owner ? 'Team follow-ups' : 'Needs you'
-  const filterName = team.find((t) => t.id === managerFilter)?.name
 
   const items: { id: View; label: string; short: string; Icon: typeof SquaresFour; count?: number }[] = [
     { id: 'overview', label: 'Overview', short: 'Overview', Icon: SquaresFour },
@@ -128,12 +127,6 @@ export default function Shell({ me, team, needCount, totalCount, onAdd, children
           <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
             <h1 className="font-display text-5xl leading-none text-ink md:text-6xl">{title}</h1>
             <div className="flex items-center gap-2">
-              {filterName && (
-                <button type="button" onClick={() => setManagerFilter(null)} className={`${BTN_GHOST} border-[var(--accent-line)] bg-[var(--accent-soft)] text-ink`}>
-                  Showing {filterName}
-                  <X size={14} weight="bold" aria-label="Clear filter" />
-                </button>
-              )}
               {onAdd && (
                 <button type="button" onClick={onAdd} className={`${BTN_GHOST} lg:hidden`}>
                   <Plus size={18} weight="bold" aria-hidden="true" />
@@ -142,6 +135,32 @@ export default function Shell({ me, team, needCount, totalCount, onAdd, children
               )}
             </div>
           </div>
+          {team.length > 0 && (
+            <div role="group" aria-label="Show whose events" className="-mx-4 mb-5 flex gap-2 overflow-x-auto px-4 pb-1 md:mx-0 md:px-0">
+              {[{ id: null, name: 'Everyone', open: 0, top: null }, ...team].map((t) => {
+                const on = managerFilter === t.id
+                return (
+                  <button
+                    key={t.id ?? 'all'}
+                    type="button"
+                    aria-pressed={on}
+                    onClick={() => setManagerFilter(t.id)}
+                    className={`inline-flex min-h-[44px] shrink-0 items-center gap-2 rounded-full border px-5 font-grotesk text-[15px] transition ${
+                      on ? 'border-transparent bg-accent font-medium text-ink' : 'border-[var(--bg-line)] bg-[var(--bg-raise)] text-[var(--ink-72)] hover:border-[var(--accent-line)]'
+                    } ${FOCUS_RING}`}
+                  >
+                    {t.name}
+                    {t.open > 0 && t.top && (
+                      <span className="grid h-5 min-w-[20px] place-items-center rounded-full px-1.5 text-[12px] font-semibold text-black/80" style={{ background: REASON_COLOR[t.top] }}>
+                        {t.open}
+                        <span className="sr-only"> open</span>
+                      </span>
+                    )}
+                  </button>
+                )
+              })}
+            </div>
+          )}
           {children({ view, setView, managerFilter, setManagerFilter })}
         </main>
 
