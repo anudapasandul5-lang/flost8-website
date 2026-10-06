@@ -256,6 +256,9 @@ export function buildBookingPayload(formData: BookingFormData, token: string): B
     // `artist` stays a single roster slug — the backend routes the WhatsApp
     // alert by exact slug match, so a B2B/B3B set is attributed to the first DJ.
     artist: slugs[0] ?? '',
+    // Every roster slug in order, comma-joined (payload values are strings). The booking
+    // database maps a B2B/B3B set to all its artists from this.
+    lineup_slugs: slugs.join(','),
     // Full human-readable lineup, e.g. "SONAL B2B MAALIN" (same join the Shows admin uses).
     set_lineup: names.join(' B2B '),
     set_duration_h: String(formData.set_duration_h || '').trim(),

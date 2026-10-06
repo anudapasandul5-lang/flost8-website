@@ -1,9 +1,15 @@
-interface Env {
+import { saveInquiry, type IntakeEnv } from './_intake'
+
+interface Env extends IntakeEnv {
   APPS_SCRIPT_URL: string
   TURNSTILE_SECRET?: string
 }
 
-export const onRequest = async (context: { request: Request; env: Env }): Promise<Response> => {
+export const onRequest = async (context: {
+  request: Request
+  env: Env
+  waitUntil: (p: Promise<unknown>) => void
+}): Promise<Response> => {
   const { request, env } = context
 
   if (!env.APPS_SCRIPT_URL) {
@@ -75,6 +81,21 @@ export const onRequest = async (context: { request: Request; env: Env }): Promis
     })
 
     const responseBody = await upstream.text()
+
+    // Dual-write confirmed bookings to Supabase. Runs after the response is sent; a failure is
+    // logged and never reaches the visitor (the Sheet row + alerts already happened).
+    try {
+      const payload = JSON.parse(body)
+      const accepted = upstream.ok && JSON.parse(responseBody)?.ok !== false
+      if (accepted && payload?.type === 'booking') {
+        context.waitUntil(
+          saveInquiry(env, payload).catch(err => console.error('supabase intake failed', err))
+        )
+      }
+    } catch {
+      // unparseable body/response: nothing to mirror
+    }
+
     return new Response(responseBody, {
       status: upstream.status,
       headers: { 'content-type': 'application/json' },

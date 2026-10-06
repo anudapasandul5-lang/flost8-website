@@ -16,6 +16,7 @@ describe('buildBookingPayload', () => {
     expect(payload.artist).toBe('sonal')
     expect(payload.set_type).toBe('B3B')
     expect(payload.set_lineup).toBe('SONAL B2B MAALIN B2B ANUSH')
+    expect(payload.lineup_slugs).toBe('sonal,maalin,anush')
     expect(payload).not.toHaveProperty('dj_1')
   })
 
