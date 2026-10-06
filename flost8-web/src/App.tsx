@@ -13,6 +13,7 @@ const ArtistPage = lazy(() => import('./pages/ArtistPage'))
 const AdminPage = lazy(() => import('./pages/AdminPage'))
 const LiveSessionsPage = lazy(() => import('./pages/LiveSessionsPage'))
 const MusicPage = lazy(() => import('./pages/MusicPage'))
+const ManagePage = lazy(() => import('./pages/manage/ManagePage'))
 
 /**
  * Per-route scroll memory. On back/forward (POP) — e.g. returning from an artist page —
@@ -88,10 +89,10 @@ function ScrollRestorer() {
   return null
 }
 
-/** The public marketing nav — hidden on the standalone /admin tool. */
+/** The public marketing nav — hidden on the standalone /admin and /manage tools. */
 function SiteChrome() {
   const { pathname } = useLocation()
-  if (pathname.startsWith('/admin')) return null
+  if (pathname.startsWith('/admin') || pathname.startsWith('/manage')) return null
   return <TopNav />
 }
 
@@ -119,6 +120,7 @@ export default function App() {
             <Route path="/live-sessions" element={<LiveSessionsPage />} />
             <Route path="/music" element={<MusicPage />} />
             <Route path="/admin" element={<AdminPage />} />
+            <Route path="/manage" element={<ManagePage />} />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
