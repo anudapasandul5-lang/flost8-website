@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>/manage needs-action — static mock (sample data)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#120917; --raise:#1B0F24; --line:rgba(255,255,255,.10);
+  --ink:#fff; --ink72:rgba(255,255,255,.72); --ink50:rgba(255,255,255,.5);
+  --accent:#9D14FF; --accent-ink:#C88BFF; --accent-soft:rgba(157,20,255,.14); --accent-line:rgba(157,20,255,.45);
+  /* urgency colours: the ONLY colour on the list */
+  --clash:#FF6B6B; --unpaid:#FCD34D; --noreply:#C88BFF; --quote:#7DD3FC;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#0A050E;color:var(--ink);font-family:'Space Grotesk',system-ui,sans-serif;padding:32px 24px 80px;line-height:1.4}
+h1{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.04em;font-size:34px}
+.read{color:var(--ink72);max-width:760px;margin:6px 0 20px;font-size:15px}
+.legend{display:flex;flex-wrap:wrap;gap:10px 18px;margin-bottom:28px;font-size:13px;color:var(--ink72)}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.frames{display:flex;flex-wrap:wrap;gap:36px;align-items:flex-start}
+.frame h2{font-size:13px;font-weight:500;color:var(--ink50);margin-bottom:10px;letter-spacing:.02em}
+.frame p.note{font-size:12.5px;color:var(--ink50);margin-top:10px;max-width:390px}
+.scroll{overflow-x:auto;max-width:100%}
+
+/* device shells */
+#f-phone{min-height:1010px}
+.phone{width:390px;border:1px solid var(--line);border-radius:28px;background:var(--bg);overflow:hidden;position:relative;min-height:760px}
+.desk{width:1040px;border:1px solid var(--line);border-radius:14px;background:var(--bg);overflow:hidden;position:relative}
+.bar{display:flex;align-items:center;justify-content:space-between;padding:16px 16px 10px}
+.desk .bar{padding:18px 28px 12px}
+.brand{font-family:'Bebas Neue',sans-serif;font-size:26px;letter-spacing:.06em}
+.me{font-size:13px;color:var(--ink72)}
+.pad{padding:0 16px 20px}.desk .pad{padding:0 28px 28px}
+
+/* segmented tabs */
+.tabs{display:flex;gap:4px;padding:4px;margin:6px 16px 14px;border:1px solid var(--line);border-radius:999px;background:var(--raise)}
+.desk .tabs{margin:6px 28px 16px;max-width:420px}
+.tab{flex:1;text-align:center;min-height:44px;display:flex;align-items:center;justify-content:center;border-radius:999px;font-size:14.5px;color:var(--ink72);white-space:nowrap}
+.tab.on{background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent-line);color:var(--ink);font-weight:500}
+.tab b{display:inline-grid;place-items:center;min-width:22px;height:22px;padding:0 6px;margin-left:8px;border-radius:999px;background:var(--accent);font-size:12.5px;font-weight:600}
+
+.search{display:flex;align-items:center;gap:10px;min-height:48px;border:1px solid var(--line);background:var(--raise);border-radius:12px;padding:0 14px;color:var(--ink50);font-size:15px;margin-bottom:10px}
+.pills{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.chip{display:inline-flex;align-items:center;min-height:36px;padding:0 14px;border:1px solid var(--line);border-radius:999px;font-size:13.5px;color:var(--ink72)}
+.chip.on{border-color:var(--accent-line);background:var(--accent-soft);color:var(--ink)}
+.chip.rm::after{content:"×";margin-left:8px;color:var(--ink50)}
+
+.listhead{display:flex;justify-content:space-between;align-items:baseline;margin:2px 0 12px}
+.listhead h3{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:22px;letter-spacing:.05em}
+.listhead span{font-size:13px;color:var(--ink50)}
+
+/* the card */
+.card{position:relative;display:grid;grid-template-columns:auto 1fr;gap:4px 14px;padding:14px 14px 14px 18px;margin-bottom:12px;border:1px solid var(--line);background:var(--raise);border-radius:16px;overflow:visible}
+.card::before{content:"";position:absolute;left:0;top:12px;bottom:12px;width:4px;border-radius:0 4px 4px 0;background:var(--edge)}
+.card.clash{--edge:var(--clash)}.card.unpaid{--edge:var(--unpaid)}.card.noreply{--edge:var(--noreply)}.card.quote{--edge:var(--quote)}
+.av{display:flex;grid-row:1 / span 3}
+.av img{width:46px;height:46px;border-radius:50%;object-fit:cover;object-position:center 22%;border:2px solid var(--raise);background:#2a1a36}
+.av img+img{margin-left:-14px}
+.l1{font-size:13px;color:var(--ink72);display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.l2{font-size:17px;font-weight:600;line-height:1.25}
+.step{font-size:15px;font-weight:500;color:var(--edge)}
+.tag{font-size:11.5px;padding:2px 9px;border-radius:999px;border:1px solid var(--line);color:var(--ink72)}
+.mgr{font-size:11.5px;padding:2px 9px;border-radius:999px;background:var(--accent-soft);color:var(--accent-ink)}
+.acts{grid-column:1 / -1;display:flex;gap:10px;margin-top:10px;position:relative}
+.btn{flex:1;min-height:48px;display:inline-flex;align-items:center;justify-content:center;gap:8px;border-radius:999px;background:var(--accent);font-size:15.5px;font-weight:500}
+.btn.alt{background:transparent;border:1px solid var(--accent-line);color:var(--ink)}
+.more{width:48px;min-height:48px;display:grid;place-items:center;border:1px solid var(--line);border-radius:999px;font-size:20px;color:var(--ink72)}
+.desk .btn{flex:0 0 auto;padding:0 26px}
+.desk .acts{grid-column:3;grid-row:1 / span 3;margin:0;align-self:center}
+.desk .card{grid-template-columns:auto 1fr auto;padding-right:18px}
+
+.menu{position:absolute;right:0;top:54px;z-index:5;min-width:230px;padding:6px;border:1px solid var(--line);background:#24142F;border-radius:14px;box-shadow:0 12px 36px rgba(10,4,14,.7)}
+.menu div{display:flex;align-items:center;min-height:44px;padding:0 14px;border-radius:10px;font-size:14.5px;color:var(--ink72)}
+.menu div:first-child{background:rgba(255,255,255,.05);color:var(--ink)}
+.menu small{margin-left:auto;font-size:12px;color:var(--ink50)}
+
+.toast{position:absolute;left:12px;right:12px;bottom:14px;display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);background:#24142F;border-radius:16px;box-shadow:0 8px 30px rgba(10,4,14,.6);font-size:14.5px}
+.toast u{margin-left:auto;color:var(--accent-ink);text-decoration:none;font-weight:600;min-height:44px;display:inline-flex;align-items:center;padding:0 6px}
+.toast .t{width:30px;height:30px;border-radius:50%;border:2px solid var(--accent-line);position:relative;flex:none}
+
+/* all clear */
+.clear{padding:70px 24px 0;text-align:center}
+.clear .ring{width:84px;height:84px;margin:0 auto 22px;border-radius:50%;display:grid;place-items:center;background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent-line);font-size:38px;color:var(--accent-ink)}
+.clear h3{font-family:'Bebas Neue',sans-serif;font-weight:400;letter-spacing:.05em;font-size:40px}
+.clear p{color:var(--ink72);font-size:15px;margin-top:6px}
+.next{margin:30px 0 0;text-align:left;padding:16px;border:1px solid var(--line);background:var(--raise);border-radius:16px}
+.next small{display:block;color:var(--ink50);font-size:12.5px;margin-bottom:8px;letter-spacing:.04em;text-transform:uppercase}
+
+/* drawer */
+.drawer{padding:16px}
+.drawer .top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:14px}
+.drawer h3{font-size:21px;font-weight:600;line-height:1.2}
+.x{width:44px;height:44px;display:grid;place-items:center;border:1px solid var(--line);border-radius:50%;color:var(--ink72);flex:none}
+.banner{padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--raise);font-size:14.5px;color:var(--ink72);margin-bottom:12px}
+.banner b{color:var(--ink);font-weight:500}
+.banner .btn{margin-top:12px;width:100%}
+.flag{padding:12px 14px 12px 16px;border-radius:14px;border:1px solid var(--line);background:var(--raise);margin-bottom:12px;position:relative;font-size:14.5px}
+.flag::before{content:"";position:absolute;left:0;top:10px;bottom:10px;width:4px;border-radius:0 4px 4px 0;background:var(--clash)}
+.flag b{color:var(--clash);font-weight:500;display:block}
+.row{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-top:1px solid var(--line);font-size:14.5px}
+.row span:first-child{color:var(--ink50)}
+.sec{font-family:'Bebas Neue',sans-serif;font-weight:400;font-size:19px;letter-spacing:.05em;margin:18px 0 8px}
+.ta{min-height:76px;border:1px solid var(--line);background:var(--raise);border-radius:12px;padding:12px 14px;color:var(--ink50);font-size:15px}
+.log{font-size:13.5px;color:var(--ink72);padding:9px 0;border-top:1px solid var(--line)}
+.log small{display:block;color:var(--ink50);font-size:12px}
+
+@media (max-width:600px){
+  body{padding:16px 0 60px}
+  h1,.read,.legend{padding:0 16px}
+  .phone{width:100%;border-radius:0;border-left:0;border-right:0}
+  .frame h2,.frame p.note{padding:0 16px}
+  .frames{gap:28px}
+}
+</style>
+</head>
+<body>
+<h1>/manage — needs-action inbox (Drop 1)</h1>
+<p class="read"><b>Design read:</b> internal tool for two managers and the owner, FLOST8 dark-purple language, calm, Bebas for headings only, Space Grotesk for everything else. Colour is reserved for urgency: the only colour on a card is its edge and its one next-step line. Sample data only; "today" in this mock is Tue 6 Oct.</p>
+<div class="legend">
+  <span><i style="background:var(--clash)"></i>Double-booked</span>
+  <span><i style="background:var(--unpaid)"></i>Balance owed, show within 14 days</span>
+  <span><i style="background:var(--noreply)"></i>New, unanswered over 24 h</span>
+  <span><i style="background:var(--quote)"></i>Quote quiet over 5 days</span>
+</div>
+
+<div class="frames">
+  <div class="frame"><h2>1 · Manager (Kasuni), phone — Needs you</h2><div class="phone" id="f-phone"></div>
+    <p class="note">Default landing view. One big button matches the flag; ⋯ holds the rest. Toast shows after "Chased today"; the write is held 5 s so Undo never needs a delete.</p></div>
+  <div class="frame"><h2>2 · Manager, phone — All clear</h2><div class="phone" id="f-clear"></div>
+    <p class="note">Reward state: the card slides out, the count ticks down, this appears. Shows the next booked show. Reduced-motion: no slide, just the swap.</p></div>
+  <div class="frame"><h2>3 · Sheet-row drawer, phone</h2><div class="phone" id="f-drawer"></div>
+    <p class="note">Sheet rows are read-only here until cutover. They still get flags and comments; "Edit in sheet" opens the manager's workbook.</p></div>
+</div>
+
+<div class="frames" style="margin-top:44px">
+  <div class="frame"><h2>4 · Manager, desktop — ⋯ menu open</h2><div class="scroll"><div class="desk" id="f-desk"></div></div></div>
+  <div class="frame"><h2>5 · Owner (Anuda), desktop — everyone's flags</h2><div class="scroll"><div class="desk" id="f-owner"></div></div>
+    <p class="note" style="max-width:none">Owner lands on Needs you across both managers. Each card carries the row owner's name. The per-manager summary cards come in Drop 2.</p></div>
+</div>
+
+<script>
+const P = '../../../public/photos/';
+const ph = s => `<img src="${P}${s}.webp" alt="">`;
+const svgWa = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 11.5a8.4 8.4 0 0 1-12.4 7.4L3 21l2.2-5.4A8.4 8.4 0 1 1 21 11.5z"/></svg>';
+const svgCheck = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7"/></svg>';
+const svgOpen = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 17L17 7M9 7h8v8"/></svg>';
+
+const BTN = {clash:['Open',svgOpen,''], unpaid:['Chase on WhatsApp',svgWa,''], noreply:['Reply on WhatsApp',svgWa,''], quote:['Chased today',svgCheck,'alt']};
+function card(c, opts={}){
+  const [label, icon, alt] = BTN[c.k];
+  const menu = opts.menu ? `<div class="menu">
+      <div>Call ${c.phone||'0771 234 567'}</div><div>Chased today</div>
+      <div>${c.sheet ? 'Edit in sheet' : (c.k==='unpaid' ? 'Mark paid' : 'Mark reached out')}<small>${c.sheet?'opens workbook':'advance status'}</small></div>
+      <div>Open details</div></div>` : '';
+  return `<div class="card ${c.k}">
+    <div class="av">${c.a.map(ph).join('')}</div>
+    <div class="l1"><span>${c.when}</span>${c.sheet?'<span class="tag">From sheet</span>':''}${c.mgr?`<span class="mgr">${c.mgr}</span>`:''}</div>
+    <div class="l2">${c.ev}</div>
+    <div class="step">${c.step}</div>
+    <div class="acts"><a class="btn ${alt}">${icon}${label}</a><span class="more" aria-label="More">⋯</span>${menu}</div>
+  </div>`;
+}
+const K = [
+  {k:'clash', a:['dr-green'], when:'Dr. Green · Sat 17 Oct · Colombo', ev:'Velvet Room Launch', step:'Fix clash with Kaos Night', sheet:true, mgr:''},
+  {k:'unpaid', a:['sonal'], when:'Sonal · Fri 9 Oct · Kandy', ev:'Wild Air 1.0', step:'Chase 45,000 LKR before 9 Oct', sheet:true},
+  {k:'noreply', a:['maalin'], when:'Maalin · Sat 21 Nov · Colombo', ev:'Hilton Corporate Gala', step:'Reply to Hilton (2 days)'},
+  {k:'quote', a:['sonal','maalin'], when:'Sonal + Maalin · Sat 31 Oct · Galle', ev:'Beach Sundowner', step:'Follow up on quote (6 days)', sheet:true},
+];
+const tabs = (n, on='needs') => `<div class="tabs"><div class="tab ${on==='needs'?'on':''}">Needs you${n?`<b>${n}</b>`:' ✓'}</div><div class="tab">All</div><div class="tab">Calendar</div></div>`;
+const head = who => `<div class="bar"><span class="brand">FLOST8 · Bookings</span><span class="me">${who}</span></div>`;
+
+document.getElementById('f-phone').innerHTML = head('Kasuni') + tabs(4) +
+  `<div class="pad"><div class="listhead"><h3>Needs you</h3><span>most urgent first</span></div>${K.map(c=>card(c)).join('')}</div>
+   <div class="toast"><span class="t"></span>Marked chased · Beach Sundowner<u>Undo</u></div>`;
+
+document.getElementById('f-clear').innerHTML = head('Kasuni') + tabs(0) +
+  `<div class="clear"><div class="ring">✓</div><h3>Nothing needs you right now</h3><p>Everything is answered, paid on time, and clash-free.</p>
+   <div class="next"><small>Next booked show</small><div class="l2">Wild Air 1.0</div><div class="l1" style="margin-top:4px">Sonal · Fri 9 Oct · Kandy · balance paid</div></div></div>`;
+
+document.getElementById('f-drawer').innerHTML = `<div class="drawer">
+  <div class="top"><div><div class="l1" style="margin-bottom:6px"><span>Dr. Green · Sat 17 Oct · Colombo</span></div><h3>Velvet Room Launch</h3></div><span class="x">✕</span></div>
+  <div class="flag"><b>Double-booked</b>Dr. Green is also confirmed for Kaos Night the same day.</div>
+  <div class="banner"><b>From Kasuni's sheet.</b> Change it there; it updates here within 15 min.<a class="btn alt">${svgOpen}Edit in sheet</a></div>
+  <div class="row"><span>Status</span><span>Booked</span></div>
+  <div class="row"><span>Fee</span><span>LKR 150,000</span></div>
+  <div class="row"><span>Balance</span><span>LKR 95,000</span></div>
+  <div class="sec">Comment</div>
+  <div class="ta">Add a note for the team…</div>
+  <div class="sec">Activity</div>
+  <div class="log">Imported from sheet<small>Today, 09:15</small></div>
+</div>`;
+
+document.getElementById('f-desk').innerHTML = head('Kasuni') + tabs(4) +
+  `<div class="pad"><div class="search">Search events, venues, organisers</div>
+   <div class="pills"><span class="chip">Filters (2)</span><span class="chip on rm">Dr. Green</span><span class="chip on rm">Upcoming</span></div>
+   <div class="listhead"><h3>Needs you</h3><span>4 of 23 inquiries</span></div>
+   ${K.map((c,i)=>card(c,{menu:i===1})).join('')}</div>`;
+
+const O = [
+  {...K[0], mgr:'Kasuni'}, {...K[1], mgr:'Kasuni'},
+  {k:'unpaid', a:['anush'], when:'Anush · Fri 16 Oct · Negombo', ev:'Pool Party 3', step:'Chase 120,000 LKR before 16 Oct', mgr:'Nirbheeth', sheet:true},
+  {...K[2], mgr:'Kasuni'},
+  {k:'noreply', a:['the-professor'], when:'The Professor · Sat 5 Dec · Colombo', ev:'Year-End Warehouse', step:'Reply to Sandun (3 days)', mgr:'Nirbheeth'},
+  {...K[3], mgr:'Kasuni'},
+];
+document.getElementById('f-owner').innerHTML = head('Anuda · owner') + tabs(6) +
+  `<div class="pad"><div class="listhead"><h3>Needs you</h3><span>6 across Kasuni and Nirbheeth</span></div>${O.map(c=>card(c)).join('')}</div>`;
+</script>
+</body>
+</html>
