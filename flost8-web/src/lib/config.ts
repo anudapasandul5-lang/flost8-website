@@ -5,6 +5,13 @@ export const TURNSTILE_SITE_KEY = import.meta.env.VITE_TURNSTILE_SITE_KEY ?? '';
 export const CONTACT_EMAIL = 'bookings@flost8.lk';
 export const ADMIN_EMAIL = 'admin@flost8.lk';
 
+// Booking manager (/manage). The publishable key is designed to ship in the bundle; every
+// access rule is enforced by row-level security in the database, never by this key.
+export const SUPABASE_URL =
+  import.meta.env.VITE_SUPABASE_URL ?? 'https://ybeenrpelytyohpyurzn.supabase.co';
+export const SUPABASE_PUBLISHABLE_KEY =
+  import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ?? 'sb_publishable_9n5PNe97WD9m6NyNw12XMA_jdMnz-8m';
+
 // Partner logos — rendered by the Partners section, counted by the Metrics section.
 // Each slug maps to /logos/color/<slug>.jpg.
 export const PARTNERS = [

@@ -1,0 +1,36 @@
+import { describe, it, expect } from 'vitest'
+import { canEditInquiry, parseAuthError } from './access'
+import { KASUNI, makeInquiry, OWNER } from './testFixtures'
+
+describe('parseAuthError', () => {
+  it('reads the PKCE query form', () => {
+    expect(
+      parseAuthError('?error=server_error&error_description=Database+error+saving+new+user', ''),
+    ).toBe('Database error saving new user')
+  })
+  it('reads the implicit hash form', () => {
+    expect(parseAuthError('', '#error=access_denied&error_description=This+email+is+not+allowed+to+sign+in')).toBe(
+      'This email is not allowed to sign in',
+    )
+  })
+  it('falls back to the error code and returns null for a clean URL', () => {
+    expect(parseAuthError('?error=access_denied', '')).toBe('access_denied')
+    expect(parseAuthError('', '')).toBeNull()
+    expect(parseAuthError('?code=abc', '')).toBeNull()
+  })
+})
+
+describe('canEditInquiry', () => {
+  it('never allows editing sheet-imported rows, even for the owner', () => {
+    expect(canEditInquiry(makeInquiry({ source: 'sheet_import', owner_id: KASUNI.id }), KASUNI)).toBe(false)
+    expect(canEditInquiry(makeInquiry({ source: 'sheet_import' }), OWNER)).toBe(false)
+  })
+  it('allows the owner role, the inquiry owner, and anyone when nobody owns it', () => {
+    expect(canEditInquiry(makeInquiry({ owner_id: 'someone-else' }), OWNER)).toBe(true)
+    expect(canEditInquiry(makeInquiry({ owner_id: KASUNI.id }), KASUNI)).toBe(true)
+    expect(canEditInquiry(makeInquiry({ owner_id: null }), KASUNI)).toBe(true)
+  })
+  it("refuses another manager's inquiry", () => {
+    expect(canEditInquiry(makeInquiry({ owner_id: 'someone-else' }), KASUNI)).toBe(false)
+  })
+})
