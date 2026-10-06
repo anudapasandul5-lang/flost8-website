@@ -15,6 +15,13 @@ const ok: NewEventInput = {
 }
 
 describe('validateNewEvent', () => {
+  it('rejects unsafe or oversized ticket links and persists valid links through edits', () => {
+    expect(validateNewEvent({ ...ok, ticketLink: 'javascript:alert(1)' })).toMatch(/ticket/i)
+    expect(validateNewEvent({ ...ok, ticketLink: 'https://x.test/' + 'x'.repeat(2000) })).toMatch(/ticket/i)
+    expect(toInquiryRow({ ...ok, ticketLink: ' https://tickets.test/a ' }, null).ticket_link).toBe('https://tickets.test/a')
+    expect(toEditPatch({ ...ok, ticketLink: '' }).ticket_link).toBeNull()
+    expect(toEditInput(makeInquiry({ ticket_link: 'https://tickets.test/a' })).ticketLink).toBe('https://tickets.test/a')
+  })
   it('accepts a complete entry', () => {
     expect(validateNewEvent(ok)).toBeNull()
   })
@@ -45,6 +52,7 @@ describe('toInquiryRow', () => {
       set_time: '10 pm',
       organizer_name: 'Dinesh',
       organizer_phone: '077 555 0192',
+      ticket_link: null,
     })
   })
   it('keeps the chosen status', () => {
@@ -120,6 +128,7 @@ describe('editing an added event', () => {
       set_time: '10:00 pm',
       organizer_name: 'Dinesh',
       organizer_phone: '0775550192',
+      ticket_link: null,
     })
     expect(patch).not.toHaveProperty('source')
     expect(patch).not.toHaveProperty('status')

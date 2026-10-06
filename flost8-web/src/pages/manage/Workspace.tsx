@@ -8,6 +8,7 @@ import { formatAmount, totalsByCurrency } from '../../lib/manage/money'
 import { needsAction, nextBookedShow, REASON_RANK, type NeedsActionContext } from '../../lib/manage/needsAction'
 import { summarise } from '../../lib/manage/summaries'
 import type { Artist, Inquiry, Manager } from '../../lib/manage/types'
+import { publishShow, resyncWebsite } from '../../lib/manage/publishShow'
 import CalendarView from './CalendarView'
 import AddEventDialog from './AddEventDialog'
 import FilterBar from './FilterBar'
@@ -103,6 +104,27 @@ function Dashboard({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [toast, setToast] = useState<ToastMsg | null>(null)
   const clearToast = useCallback(() => setToast(null), [])
+  const [resyncBusy, setResyncBusy] = useState(false)
+  const onPublish = useCallback(async (id: string) => {
+    try {
+      const outcome = await publishShow(id)
+      if (outcome === 'already_synced') setToast({ kind: 'ok', text: 'Already on the site from the sheet' })
+    } catch (error) {
+      setToast({ kind: 'error', text: 'Saved, but the website list was not updated', retry: () => {
+        setToast({ kind: 'ok', text: 'Retrying website update…' })
+        void publishShow(id).then(outcome => setToast({ kind: 'ok', text: outcome === 'already_synced' ? 'Already on the site from the sheet' : 'Website list updated' })).catch(err => setToast({ kind: 'error', text: err instanceof Error ? err.message : 'Website update failed', retry: () => void onPublish(id) }))
+      } })
+      // Failure details stay available without leaking any private event values.
+      console.warn('Website update failed', id, error instanceof Error ? error.message : 'request failed')
+    }
+  }, [])
+  async function resync() {
+    if (resyncBusy) return
+    setResyncBusy(true)
+    try { await resyncWebsite(); setToast({ kind: 'ok', text: 'Website list updated' }); reload() }
+    catch (error) { setToast({ kind: 'error', text: error instanceof Error ? error.message : 'Website update failed', retry: () => void resync() }) }
+    finally { setResyncBusy(false) }
+  }
 
   const ctx = useMemo(() => ({ mySlugs, today: todayISO() }), [mySlugs])
   const open = inquiries.find((i) => i.id === openId) ?? null
@@ -211,7 +233,10 @@ function Dashboard({
 
   const onAdvance = (i: Inquiry, kind: AdvanceKind) => {
     if (kind === 'reached_out')
-      return schedule(i.id, `Marked reached out · ${inquiryTitle(i)}`, () => updateInquiry(i.id, { status: 'reached_out' }))
+      return schedule(i.id, `Marked reached out · ${inquiryTitle(i)}`, async () => {
+        await updateInquiry(i.id, { status: 'reached_out' })
+        if (i.source === 'manual') await onPublish(i.id)
+      })
     const m = i.money
     if (!m || !m.balance) return
     schedule(i.id, `Marked paid · ${inquiryTitle(i)}`, async () => {
@@ -224,7 +249,7 @@ function Dashboard({
 
   return (
     <>
-      <Shell me={me} team={team} needCount={waiting.length} totalCount={inquiries.length} onAdd={pickable.length > 0 ? () => setAdding(true) : undefined}>
+      <Shell me={me} team={team} needCount={waiting.length} totalCount={inquiries.length} onAdd={pickable.length > 0 ? () => setAdding(true) : undefined} onResync={me.role === 'owner' ? () => void resync() : undefined} resyncBusy={resyncBusy}>
         {({ view, setView, managerFilter, setManagerFilter }) => (
           <Views
             me={me}
@@ -261,6 +286,7 @@ function Dashboard({
             setOpenId(null)
           }}
           notify={setToast}
+          onPublish={onPublish}
         />
       )}
       {adding && (
@@ -275,6 +301,7 @@ function Dashboard({
             setToast({ kind: 'ok', text: 'Event added' })
             reload()
             setOpenId(id)
+            void onPublish(id)
           }}
         />
       )}
@@ -293,6 +320,7 @@ function Dashboard({
             setToast({ kind: 'ok', text: 'Event updated' })
             reload()
             setOpenId(id)
+            void onPublish(id)
           }}
         />
       )}

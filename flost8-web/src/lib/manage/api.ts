@@ -47,7 +47,7 @@ export async function fetchDirectory(): Promise<{ managers: Manager[]; artists: 
 }
 
 const INQUIRY_COLUMNS =
-  'id,created_at,updated_at,status,source,owner_id,sheet_updated_at,set_type,event_name,event_date,venue,city,event_type,set_duration_h,set_time,deal_type,lead_source,platform,brand,collab_type,invoice_no,organizer_name,organizer_phone,organizer_email,other_artists,notes,contract_signed,contract_url,travel_notes,lost_reason'
+  'id,created_at,updated_at,status,source,owner_id,sheet_updated_at,set_type,event_name,event_date,venue,city,event_type,set_duration_h,set_time,ticket_link,website_show_id,deal_type,lead_source,platform,brand,collab_type,invoice_no,organizer_name,organizer_phone,organizer_email,other_artists,notes,contract_signed,contract_url,travel_notes,lost_reason'
 
 interface RawInquiry extends Omit<Inquiry, 'artists' | 'money'> {
   inquiry_artists: { position: number; artist_slug: string }[] | null

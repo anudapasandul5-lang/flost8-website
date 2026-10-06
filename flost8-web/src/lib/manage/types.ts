@@ -50,6 +50,8 @@ export interface Inquiry {
   event_type: string | null
   set_duration_h: number | null
   set_time: string | null
+  ticket_link: string | null
+  website_show_id: string | null
   deal_type: string | null
   lead_source: string | null
   platform: string | null

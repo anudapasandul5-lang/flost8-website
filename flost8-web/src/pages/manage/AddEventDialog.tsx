@@ -11,7 +11,7 @@ const STATUSES: NewStatus[] = ['tentative', 'new', 'quoted', 'deposit_paid', 'bo
 
 /**
  * Quick "add event" form: bottom sheet on a phone, side drawer on a desktop. A manager picks from their own artists,
- * the owner from everyone's. Saved rows are app-only (source 'manual') until the cutover.
+ * the owner from everyone's. Booked and deposit-paid events also publish to the website.
  */
 export default function AddEventDialog({
   me,
@@ -86,7 +86,7 @@ export default function AddEventDialog({
             <X size={22} aria-hidden="true" />
           </button>
         </div>
-        <p className="px-4 pb-4 font-grotesk text-[13.5px] text-[var(--ink-72)] md:px-6">{editing ? 'Change anything below and save. Status is changed from the event itself.' : 'A booking you took outside the sheet. It stays in this app only.'}</p>
+        <p className="px-4 pb-4 font-grotesk text-[13.5px] text-[var(--ink-72)] md:px-6">{editing ? 'Change anything below and save. Status is changed from the event itself.' : 'A booking you took outside the sheet. Booked and deposit-paid events appear on the website.'}</p>
 
         <form
           className="space-y-4 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-6"
@@ -140,6 +140,11 @@ export default function AddEventDialog({
               </label>
               <input id="ae-city" name="city" autoComplete="off" value={f.city} onChange={(e) => set({ city: e.target.value })} className={INPUT} />
             </div>
+          </div>
+
+          <div>
+            <label htmlFor="ae-ticket" className={LABEL}>Ticket link (optional)</label>
+            <input id="ae-ticket" name="ticket_link" type="url" maxLength={2000} value={f.ticketLink} onChange={(e) => set({ ticketLink: e.target.value })} placeholder="https://" className={INPUT} />
           </div>
 
           {!editing && (

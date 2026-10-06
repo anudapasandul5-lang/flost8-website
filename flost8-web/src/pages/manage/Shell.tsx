@@ -32,13 +32,15 @@ export interface ShellProps {
   totalCount: number
   /** Omit when this person cannot add events. */
   onAdd?: () => void
+  onResync?: () => void
+  resyncBusy?: boolean
   children: (s: ShellState) => ReactNode
 }
 
 const MAX_W = 'max-w-[1440px]'
 
 /** Sidebar from 1024px up, bottom tab bar below. Owns which view is open and the manager filter. */
-export default function Shell({ me, team, needCount, totalCount, onAdd, children }: ShellProps) {
+export default function Shell({ me, team, needCount, totalCount, onAdd, onResync, resyncBusy, children }: ShellProps) {
   const [view, setView] = useState<View>('overview')
   const [managerFilter, setManagerFilter] = useState<string | null>(null)
   const owner = me.role === 'owner'
@@ -61,6 +63,7 @@ export default function Shell({ me, team, needCount, totalCount, onAdd, children
 
   return (
     <div className="min-h-[100dvh] bg-base">
+      {owner && onResync && <div className={`mx-auto flex justify-end px-4 pt-3 ${MAX_W}`}><button type="button" onClick={onResync} disabled={resyncBusy} className={BTN_GHOST}>{resyncBusy ? 'Updating website…' : 'Resync website'}</button></div>}
       <div className={`mx-auto min-h-[100dvh] ${MAX_W} lg:grid lg:grid-cols-[232px_minmax(0,1fr)]`}>
         <aside className="sticky top-0 hidden h-[100dvh] flex-col gap-1.5 overflow-y-auto border-r border-[var(--bg-line)] px-4 py-6 lg:flex">
           <p className="px-2 pb-2 font-display text-[28px] leading-none tracking-[0.08em] text-ink">

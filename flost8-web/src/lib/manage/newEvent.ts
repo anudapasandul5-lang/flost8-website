@@ -1,4 +1,5 @@
 import { parseAmountInput } from './money'
+import { isHttpUrl } from './access'
 import type { Artist, Currency, Inquiry, Manager, Money } from './types'
 
 export type NewStatus = 'new' | 'quoted' | 'tentative' | 'deposit_paid' | 'booking_confirmed'
@@ -16,6 +17,7 @@ export interface NewEventInput {
   currency: Currency
   organizer: string
   phone: string
+  ticketLink: string
 }
 
 export const EMPTY_EVENT: NewEventInput = {
@@ -30,10 +32,13 @@ export const EMPTY_EVENT: NewEventInput = {
   currency: 'LKR',
   organizer: '',
   phone: '',
+  ticketLink: '',
 }
 
 /** The first problem in plain English, or null when the entry can be saved. */
 export function validateNewEvent(i: NewEventInput): string | null {
+  const ticket = i.ticketLink.trim()
+  if (ticket && (ticket.length > 2000 || !isHttpUrl(ticket))) return 'The ticket link must be an http(s) address, at most 2000 characters.'
   if (i.artists.length === 0) return 'Pick at least one artist.'
   if (!/^\d{4}-\d{2}-\d{2}$/.test(i.date)) return 'Pick the event date.'
   if (!i.name.trim() && !i.venue.trim()) return 'Add an event name or a venue.'
@@ -58,6 +63,7 @@ export function toInquiryRow(i: NewEventInput, ownerId: string | null) {
     set_time: nul(i.setTime),
     organizer_name: nul(i.organizer),
     organizer_phone: nul(i.phone),
+    ticket_link: nul(i.ticketLink),
   }
 }
 
@@ -88,6 +94,7 @@ export function toEditInput(i: Inquiry): NewEventInput {
     currency: i.money?.currency ?? 'LKR',
     organizer: i.organizer_name ?? '',
     phone: i.organizer_phone ?? '',
+    ticketLink: i.ticket_link ?? '',
   }
 }
 
@@ -102,6 +109,7 @@ export function toEditPatch(i: NewEventInput) {
     set_time: row.set_time,
     organizer_name: row.organizer_name,
     organizer_phone: row.organizer_phone,
+    ticket_link: row.ticket_link,
   }
 }
 

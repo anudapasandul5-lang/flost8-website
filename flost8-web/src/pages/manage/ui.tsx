@@ -43,11 +43,12 @@ export function Skeleton({ rows = 5 }: { rows?: number }) {
 export interface ToastMsg {
   kind: 'ok' | 'error'
   text: string
+  retry?: () => void
 }
 
 export function Toast({ toast, onDone }: { toast: ToastMsg | null; onDone: () => void }) {
   useEffect(() => {
-    if (!toast) return
+    if (!toast || toast.retry) return
     const t = window.setTimeout(onDone, 4500)
     return () => window.clearTimeout(t)
   }, [toast, onDone])
@@ -63,6 +64,8 @@ export function Toast({ toast, onDone }: { toast: ToastMsg | null; onDone: () =>
       >
         <Icon size={22} weight="fill" aria-hidden="true" className={toast.kind === 'ok' ? 'text-[#86EFAC]' : 'text-[var(--error)]'} />
         {toast.text}
+        {toast.retry && <button type="button" onClick={toast.retry} className={`${BTN_GHOST} shrink-0`}>Retry</button>}
+        {toast.retry && <button type="button" onClick={onDone} aria-label="Dismiss notification" className={BTN_GHOST}>Dismiss</button>}
       </div>
     </div>
   )

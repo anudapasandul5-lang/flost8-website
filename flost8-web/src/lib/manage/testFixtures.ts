@@ -17,6 +17,8 @@ export function makeInquiry(over: Partial<Inquiry> = {}): Inquiry {
     event_type: null,
     set_duration_h: null,
     set_time: null,
+    ticket_link: null,
+    website_show_id: null,
     deal_type: null,
     lead_source: null,
     platform: null,

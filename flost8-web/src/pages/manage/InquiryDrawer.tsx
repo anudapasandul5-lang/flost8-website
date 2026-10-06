@@ -32,6 +32,7 @@ export default function InquiryDrawer({
   onChanged,
   onEdit,
   notify,
+  onPublish,
 }: {
   inquiry: Inquiry
   me: Manager
@@ -41,6 +42,7 @@ export default function InquiryDrawer({
   /** Opens the edit form; only offered for events added in the app. */
   onEdit: () => void
   notify: (t: ToastMsg) => void
+  onPublish: (id: string) => Promise<void>
 }) {
   const reduce = useReducedMotion()
 
@@ -85,6 +87,7 @@ export default function InquiryDrawer({
       await updateInquiry(inquiry.id, { status: next })
       notify({ kind: 'ok', text: `Status set to ${STATUS_LABEL[next]}` })
       changed()
+      if (inquiry.source === 'manual') void onPublish(inquiry.id)
     } catch (err) {
       notify({ kind: 'error', text: friendlyError(err) })
     } finally {
@@ -138,6 +141,7 @@ export default function InquiryDrawer({
       notify({ kind: 'ok', text: 'Event deleted' })
       onChanged()
       onClose()
+      void onPublish(inquiry.id)
     } catch (err) {
       notify({ kind: 'error', text: friendlyError(err) })
       setBusy(null)
@@ -215,6 +219,7 @@ export default function InquiryDrawer({
               <Row label="Set type">{inquiry.set_type}</Row>
               <Row label="Venue and city">{place}</Row>
               <Row label="Set time">{inquiry.set_time}</Row>
+              <Row label="Ticket link">{isHttpUrl(inquiry.ticket_link) ? <a href={inquiry.ticket_link!} target="_blank" rel="noreferrer noopener" className="text-accent underline">Open ticket link</a> : null}</Row>
               <Row label="Set length">{inquiry.set_duration_h ? `${inquiry.set_duration_h} hours` : null}</Row>
               <Row label="Event type">{inquiry.event_type}</Row>
               <Row label="Deal type">{inquiry.deal_type}</Row>
