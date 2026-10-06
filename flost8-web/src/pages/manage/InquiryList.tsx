@@ -1,5 +1,6 @@
 import { Warning } from '@phosphor-icons/react'
 import { formatDate } from '../../lib/manage/calendar'
+import { todayISO } from '../../lib/manage/filters'
 import { artistNames, inquiryTitle } from '../../lib/manage/labels'
 import { formatAmount } from '../../lib/manage/money'
 import type { Artist, Inquiry } from '../../lib/manage/types'
@@ -8,6 +9,7 @@ import { StatusBadge } from './ui'
 
 const MON3 = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
+const TODAY = todayISO()
 const THIS_YEAR = new Date().getFullYear()
 
 function DateBlock({ date }: { date: string | null }) {
@@ -60,14 +62,16 @@ export default function InquiryList({
   return (
     <ul className="space-y-2">
       {items.map((i, n) => {
-        const year = i.event_date?.slice(0, 4)
-        const prev = n > 0 ? items[n - 1].event_date?.slice(0, 4) : undefined
+        // Upcoming years come first, then past ones; a section label changes when the year or the upcoming/past side changes.
+        const section = (x: Inquiry | undefined) => (x?.event_date ? `${x.event_date < TODAY ? 'Past · ' : ''}${x.event_date.slice(0, 4)}` : undefined)
+        const year = section(i)
+        const prev = n > 0 ? section(items[n - 1]) : undefined
         const place = [i.venue, i.city].filter(Boolean).join(', ')
         const fee = i.money?.fee
         return (
           <li key={i.id}>
             {year && year !== prev && (
-              <h3 className={`mb-2 font-display text-2xl leading-none ${n > 0 ? 'mt-5' : ''} ${Number(year) === THIS_YEAR ? 'text-ink' : 'text-[#FCD34D]'}`}>{year}</h3>
+              <h3 className={`mb-2 font-display text-2xl leading-none ${n > 0 ? 'mt-5' : ''} ${year.endsWith(String(THIS_YEAR)) ? 'text-ink' : 'text-[#FCD34D]'}`}>{year}</h3>
             )}
             <button
               type="button"

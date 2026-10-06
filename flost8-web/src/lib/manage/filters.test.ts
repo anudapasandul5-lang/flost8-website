@@ -14,12 +14,24 @@ describe('applyFilters', () => {
     makeInquiry({ id: 'e', event_date: null, artists: ['dr-green'], created_at: '2026-09-20T00:00:00Z' }),
   ]
 
-  it('My artists keeps only lineups that include one of my artists, spam hidden, newest first, undated last', () => {
+  it('My artists keeps only lineups that include one of my artists, spam hidden, soonest upcoming first, then past (latest first), undated last', () => {
     expect(applyFilters(list, f(), ctx).map((i) => i.id)).toEqual(['a', 'c', 'e'])
   })
 
+  it('orders closest first: upcoming ascending, then past latest-first, then undated', () => {
+    const t = [
+      makeInquiry({ id: 'far', event_date: '2027-08-29', artists: ['dr-green'] }),
+      makeInquiry({ id: 'old', event_date: '2026-01-10', artists: ['dr-green'] }),
+      makeInquiry({ id: 'today', event_date: '2026-10-06', artists: ['dr-green'] }),
+      makeInquiry({ id: 'soon', event_date: '2026-10-20', artists: ['dr-green'] }),
+      makeInquiry({ id: 'recent', event_date: '2026-09-30', artists: ['dr-green'] }),
+      makeInquiry({ id: 'nodate', event_date: null, artists: ['dr-green'] }),
+    ]
+    expect(applyFilters(t, f(), ctx).map((i) => i.id)).toEqual(['today', 'soon', 'far', 'recent', 'old', 'nodate'])
+  })
+
   it("Everyone's includes other managers' artists", () => {
-    expect(applyFilters(list, f({ scope: 'everyone' }), ctx).map((i) => i.id)).toEqual(['b', 'a', 'c', 'e'])
+    expect(applyFilters(list, f({ scope: 'everyone' }), ctx).map((i) => i.id)).toEqual(['a', 'b', 'c', 'e'])
   })
 
   it('status chips narrow the list and spam only shows when asked for', () => {
@@ -29,7 +41,7 @@ describe('applyFilters', () => {
 
   it('upcoming and past split on today, and exclude undated rows', () => {
     const all = { scope: 'everyone' as const }
-    expect(applyFilters(list, f({ ...all, timeframe: 'upcoming' }), ctx).map((i) => i.id)).toEqual(['b', 'a'])
+    expect(applyFilters(list, f({ ...all, timeframe: 'upcoming' }), ctx).map((i) => i.id)).toEqual(['a', 'b'])
     expect(applyFilters(list, f({ ...all, timeframe: 'past' }), ctx).map((i) => i.id)).toEqual(['c'])
   })
 
@@ -49,7 +61,7 @@ describe('applyFilters', () => {
     expect(applyFilters(list, f({ scope: 'everyone', artist: 'imthxd' }), ctx).map((i) => i.id)).toEqual(['b', 'c'])
     expect(
       applyFilters(list, f({ scope: 'everyone', timeframe: 'past' }), ctx, { ignoreTimeframe: true }).map((i) => i.id),
-    ).toEqual(['b', 'a', 'c', 'e'])
+    ).toEqual(['a', 'b', 'c', 'e'])
   })
 })
 

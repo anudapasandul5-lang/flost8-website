@@ -63,13 +63,19 @@ export function matchesFilters(
   return true
 }
 
-/** Newest event date first; inquiries without a date go last, newest-created first. */
-export function sortNewestFirst(list: Inquiry[]): Inquiry[] {
+/**
+ * Closest first: upcoming events soonest-first, then past events most-recent-first, then undated ones (newest-created first).
+ * "Upcoming" includes today.
+ */
+export function sortByCloseness(list: Inquiry[], today: string): Inquiry[] {
+  const band = (i: Inquiry) => (!i.event_date ? 2 : i.event_date >= today ? 0 : 1)
   return [...list].sort((a, b) => {
-    if (a.event_date && b.event_date) {
-      if (a.event_date !== b.event_date) return a.event_date < b.event_date ? 1 : -1
-    } else if (a.event_date || b.event_date) {
-      return a.event_date ? -1 : 1
+    const ba = band(a)
+    const bb = band(b)
+    if (ba !== bb) return ba - bb
+    if (a.event_date && b.event_date && a.event_date !== b.event_date) {
+      const earlier = a.event_date < b.event_date ? -1 : 1
+      return ba === 0 ? earlier : -earlier
     }
     return a.created_at < b.created_at ? 1 : a.created_at > b.created_at ? -1 : 0
   })
@@ -81,5 +87,5 @@ export function applyFilters(
   ctx: FilterContext,
   opts: { ignoreTimeframe?: boolean } = {},
 ): Inquiry[] {
-  return sortNewestFirst(all.filter((i) => matchesFilters(i, f, ctx, opts)))
+  return sortByCloseness(all.filter((i) => matchesFilters(i, f, ctx, opts)), ctx.today)
 }
