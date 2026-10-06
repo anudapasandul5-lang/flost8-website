@@ -1,22 +1,18 @@
 -- Verifies migration 006 (inquiry_last_touch view + activity_comment can_view check).
 -- Run AFTER applying 006, as one script (Supabase SQL editor or Composio). It rolls back at the end,
--- so it leaves no users, comments or email changes behind.
--- A failed check raises 'FAIL: ...' and aborts. Success ends with NOTICE 'ALL CHECKS PASSED'.
+-- so it leaves nothing behind.
+-- A failed check raises 'FAIL: ...' and aborts. Success returns one row: ALL CHECKS PASSED.
 -- Run BEFORE 006 and it must fail (no view; the stranger comment is not blocked) - failing test first.
 
 begin;
 
--- Stand-in users. Nirbheeth has no email yet, so give him a throwaway one inside this transaction.
-update public.managers set email = 'verify-nirbheeth@test.invalid' where name = 'Nirbheeth';
-insert into auth.users (id, email, email_confirmed_at, aud, role)
-  values ('00000000-0000-0000-0000-0000000000b1', 'verify-nirbheeth@test.invalid', now(), 'authenticated', 'authenticated');
-insert into auth.users (id, email, email_confirmed_at, aud, role)
-  select '00000000-0000-0000-0000-0000000000b2', email, now(), 'authenticated', 'authenticated'
-    from public.managers where role = 'owner';
+-- Uses the real owner and Nirbheeth auth users (managers.user_id); nothing is inserted except one rolled-back comment.
 
 -- Ground truth, computed as the table owner before any role switch.
 create temp table facts as
 select
+  (select user_id from public.managers where role = 'owner') as owner_uid,
+  (select user_id from public.managers where name = 'Nirbheeth') as nirb_uid,
   (select count(*) from public.inquiries) as total,
   (select count(distinct i.id) from public.inquiries i
      left join public.inquiry_artists ia on ia.inquiry_id = i.id
@@ -35,7 +31,7 @@ grant select on facts to authenticated, anon;
 
 -- 1. Owner sees a last_touch row for every inquiry.
 set local role authenticated;
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b2","role":"authenticated"}', true);
+select set_config('request.jwt.claims', json_build_object('sub', (select owner_uid from facts), 'role', 'authenticated')::text, true);
 do $$ begin
   if (select count(*) from public.inquiry_last_touch) <> (select total from facts) then
     raise exception 'FAIL: owner should see % last_touch rows, saw %', (select total from facts), (select count(*) from public.inquiry_last_touch);
@@ -43,7 +39,7 @@ do $$ begin
 end $$;
 
 -- 2. Nirbheeth sees only his own inquiries (plan says 6), never one he cannot see.
-select set_config('request.jwt.claims', '{"sub":"00000000-0000-0000-0000-0000000000b1","role":"authenticated"}', true);
+select set_config('request.jwt.claims', json_build_object('sub', (select nirb_uid from facts), 'role', 'authenticated')::text, true);
 do $$ begin
   if (select count(*) from public.inquiry_last_touch) <> (select nirb_visible from facts) then
     raise exception 'FAIL: Nirbheeth should see % rows, saw %', (select nirb_visible from facts), (select count(*) from public.inquiry_last_touch);
@@ -88,5 +84,5 @@ do $$ begin
 end $$;
 
 reset role;
-do $$ begin raise notice 'ALL CHECKS PASSED'; end $$;
 rollback;
+select 'ALL CHECKS PASSED' as result;
