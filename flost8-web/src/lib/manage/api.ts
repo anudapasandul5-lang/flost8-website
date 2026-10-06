@@ -88,6 +88,13 @@ export async function fetchInquiries(): Promise<Inquiry[]> {
   return (data as unknown as RawInquiry[]).map(normalise)
 }
 
+/** inquiry id -> last_touch (latest of updated_at and newest comment/status activity). RLS limits it to rows this user can see. */
+export async function fetchLastTouch(): Promise<Map<string, string>> {
+  const { data, error } = await getSupabase().from('inquiry_last_touch').select('inquiry_id,last_touch').limit(1000)
+  if (error) throw error
+  return new Map((data as { inquiry_id: string; last_touch: string }[]).map((r) => [r.inquiry_id, r.last_touch]))
+}
+
 export async function fetchActivity(inquiryId: string): Promise<ActivityRow[]> {
   const { data, error } = await getSupabase()
     .from('activity')
