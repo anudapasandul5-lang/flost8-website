@@ -1,10 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight, CheckCircle, Circle, FileArrowUp, Trash, X } from '@phosphor-icons/react'
-import { addComment, deleteInquiry, fetchConfirmedOnDate, friendlyError, updateInquiry, type InquiryPatch } from '../../lib/manage/api'
+import { addComment, deleteInquiry, friendlyError, updateInquiry, type InquiryPatch } from '../../lib/manage/api'
 import { canCommentOn, canDeleteInquiry, canEditInquiry, isHttpUrl, isPlainEmail } from '../../lib/manage/access'
 import { formatDate } from '../../lib/manage/calendar'
-import { conflictsFor, describeBooked } from '../../lib/manage/conflicts'
 import { artistNames, inquiryTitle, SHEET_URLS } from '../../lib/manage/labels'
 import { STATUS_COLOR, STATUS_LABEL, STATUS_ORDER } from '../../lib/manage/status'
 import type { Inquiry, Manager, Status } from '../../lib/manage/types'
@@ -29,7 +28,6 @@ export default function InquiryDrawer({
   inquiry,
   me,
   directory,
-  conflicts,
   onClose,
   onChanged,
   notify,
@@ -37,7 +35,6 @@ export default function InquiryDrawer({
   inquiry: Inquiry
   me: Manager
   directory: Directory
-  conflicts: ReadonlySet<string>
   onClose: () => void
   onChanged: () => void
   notify: (t: ToastMsg) => void
@@ -54,15 +51,13 @@ export default function InquiryDrawer({
   const [busy, setBusy] = useState<'status' | 'fields' | 'comment' | 'delete' | null>(null)
   const [askDelete, setAskDelete] = useState(false)
   const canDelete = canDeleteInquiry(inquiry, me)
-  const [confirm, setConfirm] = useState<{ next: Status; lines: string[] } | null>(null)
 
   useLockScroll(true)
   useEffect(() => {
-    // While the double-booking question is open, Escape belongs to that dialog.
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !confirm && !askDelete && onClose()
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !askDelete && onClose()
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onClose, confirm, askDelete])
+  }, [onClose, askDelete])
 
   const [notes, setNotes] = useState(inquiry.notes ?? '')
   const [travel, setTravel] = useState(inquiry.travel_notes ?? '')
@@ -82,7 +77,6 @@ export default function InquiryDrawer({
   }
 
   async function applyStatus(next: Status) {
-    setConfirm(null)
     setBusy('status')
     try {
       await updateInquiry(inquiry.id, { status: next })
@@ -93,29 +87,6 @@ export default function InquiryDrawer({
     } finally {
       setBusy(null)
     }
-  }
-
-  async function requestStatus(next: Status) {
-    if (next === inquiry.status || !canEdit || busy) return
-    if (next === 'booking_confirmed' && inquiry.event_date && inquiry.artists.length > 0) {
-      setBusy('status')
-      try {
-        const booked = await fetchConfirmedOnDate(inquiry.event_date, inquiry.id)
-        const hits = conflictsFor(inquiry.artists, booked)
-        if (hits.length > 0) {
-          const name = (slug: string) => directory.artists.find((a) => a.slug === slug)?.name ?? slug
-          setConfirm({ next, lines: hits.map((h) => `${name(h.slug)} already has ${describeBooked(h.row)} on this date.`) })
-          setBusy(null)
-          return
-        }
-      } catch (err) {
-        notify({ kind: 'error', text: friendlyError(err) })
-        setBusy(null)
-        return
-      }
-      setBusy(null)
-    }
-    await applyStatus(next)
   }
 
   async function saveFields() {
@@ -255,9 +226,6 @@ export default function InquiryDrawer({
               <Row label="Came from">{inquiry.source.replace('_', ' ')}</Row>
               {inquiry.status === 'lost' && <Row label="Why it was lost">{inquiry.lost_reason}</Row>}
             </dl>
-            {conflicts.has(inquiry.id) && (
-              <p className="mt-4 font-grotesk text-sm text-[#FCD34D]">Another confirmed booking has the same artist on this date.</p>
-            )}
           </section>
 
           <section aria-label="Status">
@@ -272,7 +240,7 @@ export default function InquiryDrawer({
                       type="button"
                       aria-pressed={on}
                       disabled={busy !== null}
-                      onClick={() => void requestStatus(s)}
+                      onClick={() => void applyStatus(s)}
                       className={`min-h-[48px] rounded-full border px-3 font-grotesk text-sm font-medium transition active:scale-[0.98] disabled:opacity-60 ${FOCUS_RING}`}
                       style={
                         on
@@ -391,24 +359,6 @@ export default function InquiryDrawer({
         </div>
       </motion.aside>
 
-      {confirm && (
-        <ConfirmDialog
-          title="DOUBLE BOOKING?"
-          body={
-            <>
-              {confirm.lines.map((l) => (
-                <span key={l} className="block">
-                  {l}
-                </span>
-              ))}
-              <span className="mt-2 block font-medium text-ink">Book anyway?</span>
-            </>
-          }
-          confirmLabel="Book anyway"
-          onConfirm={() => void applyStatus(confirm.next)}
-          onCancel={() => setConfirm(null)}
-        />
-      )}
       {askDelete && (
         <ConfirmDialog
           title="DELETE EVENT?"

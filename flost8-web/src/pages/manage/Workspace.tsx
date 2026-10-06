@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { SignOut } from '@phosphor-icons/react'
 import { addComment, fetchDirectory, fetchInquiries, fetchLastTouch, friendlyError, saveMoney, updateInquiry } from '../../lib/manage/api'
-import { conflictIds } from '../../lib/manage/conflicts'
 import { applyFilters, DEFAULT_FILTERS, todayISO, type Filters } from '../../lib/manage/filters'
 import { signOut, useLoad } from '../../lib/manage/hooks'
 import { inquiryTitle } from '../../lib/manage/labels'
@@ -24,6 +23,9 @@ import { ErrorPanel, Skeleton, Toast, UndoToast, type ToastMsg } from './ui'
 
 // If the last-touch lookup fails, flags fall back to each row's updated_at instead of blocking the page.
 const NO_TOUCH: ReadonlyMap<string, string> = new Map()
+
+// Clash flags are off: a DJ can have two or three events on one day. The views still take the set, so it can come back.
+const conflicts: ReadonlySet<string> = new Set()
 
 export interface Directory {
   managers: Manager[]
@@ -102,7 +104,6 @@ function Dashboard({
   const clearToast = useCallback(() => setToast(null), [])
 
   const ctx = useMemo(() => ({ mySlugs, today: todayISO() }), [mySlugs])
-  const conflicts = useMemo(() => conflictIds(inquiries), [inquiries])
   const open = inquiries.find((i) => i.id === openId) ?? null
 
   // --- needs-action: flags, and one-tap actions whose write is held for 5 s so Undo never needs a delete ---
@@ -112,7 +113,7 @@ function Dashboard({
 
   const naCtx = useMemo(
     () => ({ today: ctx.today, now: new Date(), lastTouch, conflicts, meId: me.id, isOwner: me.role === 'owner' }),
-    [ctx.today, lastTouch, conflicts, me.id, me.role],
+    [ctx.today, lastTouch, me.id, me.role],
   )
   const needsAll = useMemo<NeedsRow[]>(
     () =>
@@ -251,7 +252,6 @@ function Dashboard({
           inquiry={open}
           me={me}
           directory={directory}
-          conflicts={conflicts}
           onClose={() => setOpenId(null)}
           onChanged={reload}
           notify={setToast}

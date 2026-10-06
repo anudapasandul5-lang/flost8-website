@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { X } from '@phosphor-icons/react'
-import { createEvent, fetchConfirmedOnDate, friendlyError, newId } from '../../lib/manage/api'
-import { conflictsFor, describeBooked } from '../../lib/manage/conflicts'
+import { createEvent, friendlyError, newId } from '../../lib/manage/api'
 import { EMPTY_EVENT, ownerFor, validateNewEvent, type NewEventInput, type NewStatus } from '../../lib/manage/newEvent'
 import { STATUS_LABEL } from '../../lib/manage/status'
 import type { Artist, Manager } from '../../lib/manage/types'
@@ -9,7 +8,6 @@ import { BTN_GHOST, BTN_PRIMARY, CHIP_BASE, CHIP_OFF, CHIP_ON, INPUT, LABEL } fr
 import { useLockScroll } from './useLockScroll'
 
 const STATUSES: NewStatus[] = ['new', 'quoted', 'deposit_paid', 'booking_confirmed']
-const NO_ID = '00000000-0000-0000-0000-000000000000'
 
 /**
  * Quick "add event" form: bottom sheet on a phone, side drawer on a desktop. A manager picks from their own artists,
@@ -26,14 +24,13 @@ export default function AddEventDialog({
   me: Manager
   /** Artists this person may pick. */
   artists: Artist[]
-  /** Everyone's, to name the owner and the clash. */
+  /** Everyone's, to name the owner. */
   allArtists: Artist[]
   managers: Manager[]
   onClose: () => void
   onSaved: (id: string) => void
 }) {
   const [f, setF] = useState<NewEventInput>(EMPTY_EVENT)
-  const [clashRes, setClashRes] = useState<{ key: string; lines: string[] }>({ key: '', lines: [] })
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const eventId = useRef(newId()) // same id on every retry, so a retry never makes a duplicate
@@ -45,25 +42,6 @@ export default function AddEventDialog({
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
   }, [onClose, busy])
-
-  // A confirmed show on the same day with the same artist: warn before saving, same rule as the status change.
-  const clashKey = `${f.status}|${f.date}|${f.artists.join(',')}`
-  const clash = clashRes.key === clashKey ? clashRes.lines : []
-  useEffect(() => {
-    if (f.status !== 'booking_confirmed' || !/^\d{4}-\d{2}-\d{2}$/.test(f.date) || f.artists.length === 0) return
-    let alive = true
-    fetchConfirmedOnDate(f.date, NO_ID).then(
-      (booked) => {
-        if (!alive) return
-        const name = (slug: string) => allArtists.find((a) => a.slug === slug)?.name ?? slug
-        setClashRes({ key: clashKey, lines: conflictsFor(f.artists, booked).map((h) => `${name(h.slug)} already has ${describeBooked(h.row)} on this date.`) })
-      },
-      () => undefined, // the check is a courtesy; saving still works if it cannot run
-    )
-    return () => {
-      alive = false
-    }
-  }, [clashKey, f.status, f.date, f.artists, allArtists])
 
   const ownerId = useMemo(() => ownerFor(f.artists, me, allArtists), [f.artists, me, allArtists])
   const ownerName = managers.find((m) => m.id === ownerId)?.name
@@ -136,17 +114,6 @@ export default function AddEventDialog({
               <input id="ae-time" name="set_time" autoComplete="off" value={f.setTime} onChange={(e) => set({ setTime: e.target.value })} placeholder="10:00 pm" className={INPUT} />
             </div>
           </div>
-
-          {clash.length > 0 && (
-            <p role="alert" className="rounded-2xl border border-[var(--bg-line)] border-l-4 border-l-[#FF6B6B] bg-[var(--bg-raise)] p-3 font-grotesk text-[14.5px] text-ink">
-              <span className="block font-medium text-[#FF6B6B]">Double booking</span>
-              {clash.map((l) => (
-                <span key={l} className="block">
-                  {l}
-                </span>
-              ))}
-            </p>
-          )}
 
           <div>
             <label htmlFor="ae-name" className={LABEL}>
@@ -229,7 +196,7 @@ export default function AddEventDialog({
               Cancel
             </button>
             <button type="submit" disabled={busy} className={`${BTN_PRIMARY} flex-1`}>
-              {busy ? 'Adding…' : clash.length > 0 ? 'Add anyway' : 'Add event'}
+              {busy ? 'Adding…' : 'Add event'}
             </button>
           </div>
         </form>

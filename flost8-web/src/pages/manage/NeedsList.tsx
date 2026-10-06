@@ -239,7 +239,7 @@ export default function NeedsList({
           <Check size={38} weight="bold" />
         </div>
         <h2 className="font-display text-4xl leading-none text-ink md:text-5xl">NOTHING NEEDS YOU RIGHT NOW</h2>
-        <p className="mt-2 font-grotesk text-[15px] text-[var(--ink-72)]">Everything is answered, paid on time and clash-free.</p>
+        <p className="mt-2 font-grotesk text-[15px] text-[var(--ink-72)]">Everything is answered and paid on time.</p>
         {nextShow && (
           <div className="mx-auto mt-8 max-w-md rounded-2xl border border-[var(--bg-line)] bg-[var(--bg-raise)] p-4 text-left">
             <p className="mb-2 font-grotesk text-xs uppercase tracking-wide text-[var(--ink-50)]">Next booked show</p>
