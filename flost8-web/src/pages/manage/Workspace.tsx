@@ -322,6 +322,11 @@ function Views({
     scope: me.role === 'owner' && mySlugs.size === 0 ? 'everyone' : 'mine',
   }))
   const ctx = useMemo(() => ({ mySlugs, today }), [mySlugs, today])
+  // A manager's own shows: ones they own, plus any carrying one of their artists (joint bills owned by another manager).
+  const mine = useMemo(
+    () => (me.role === 'owner' ? inquiries : inquiries.filter((i) => i.owner_id === me.id || i.artists.some((s) => mySlugs.has(s)))),
+    [inquiries, me.role, me.id, mySlugs],
+  )
   const byManager = useCallback((i: Inquiry) => !managerFilter || i.owner_id === managerFilter, [managerFilter])
   const filtered = useMemo(() => applyFilters(inquiries, filters, ctx).filter(byManager), [inquiries, filters, ctx, byManager])
   const forCalendar = useMemo(() => applyFilters(inquiries, filters, ctx, { ignoreTimeframe: true }).filter(byManager), [inquiries, filters, ctx, byManager])
@@ -329,7 +334,7 @@ function Views({
   const needsRows = useMemo(() => waiting.filter((r) => byManager(r.inquiry)), [waiting, byManager])
   const pickable = me.role === 'owner' ? directory.artists : directory.artists.filter((a) => mySlugs.has(a.slug))
   // The owner sees every show; a manager sees only their own artists' shows. The manager filter narrows both.
-  const showsFor = useMemo(() => inquiries.filter((i) => (me.role === 'owner' || i.owner_id === me.id) && byManager(i)), [inquiries, me.role, me.id, byManager])
+  const showsFor = useMemo(() => mine.filter(byManager), [mine, byManager])
   const managerRows = useMemo(
     () => team.map((t) => ({ ...t, artistCount: directory.artists.filter((a) => a.manager_id === t.id).length })),
     [team, directory.artists],
@@ -339,7 +344,7 @@ function Views({
     return (
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
         <OverviewView
-          inquiries={me.role === 'owner' ? inquiries : inquiries.filter((i) => i.owner_id === me.id)}
+          inquiries={mine}
           waiting={waiting}
           today={today}
           role={me.role}

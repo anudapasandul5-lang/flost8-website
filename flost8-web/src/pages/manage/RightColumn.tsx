@@ -29,7 +29,7 @@ export default function RightColumn(p: RightColumnProps) {
     <aside aria-label="Shows, activity and managers" className="space-y-6 xl:space-y-7">
       <NextShows list={p.inquiries} today={p.today} artists={p.artists} conflicts={p.conflicts} onOpen={p.onOpen} />
       <hr className="border-[var(--bg-line)]" />
-      <ActivityFeed managers={p.managers} version={p.version} />
+      <ActivityFeed managers={p.managers} version={p.version} managerFilter={p.managerFilter} />
       {p.me.role === 'owner' && (
         <>
           <hr className="border-[var(--bg-line)]" />

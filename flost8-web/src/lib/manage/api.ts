@@ -112,7 +112,7 @@ export async function fetchActivity(inquiryId: string): Promise<ActivityRow[]> {
 export async function fetchRecentActivity(limit: number): Promise<FeedRow[]> {
   const { data, error } = await getSupabase()
     .from('activity')
-    .select('id,inquiry_id,actor_id,kind,data,created_at,inquiries(event_name,venue)')
+    .select('id,inquiry_id,actor_id,kind,data,created_at,inquiries(event_name,venue,owner_id)')
     .order('created_at', { ascending: false })
     .order('id', { ascending: false })
     .limit(limit)

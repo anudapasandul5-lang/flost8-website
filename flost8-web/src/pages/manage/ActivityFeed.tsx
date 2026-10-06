@@ -27,9 +27,9 @@ function Dot({ children }: { children: string }) {
 }
 
 /** Latest activity on events this person can see. `version` changes after a reload so the feed re-reads. */
-export default function ActivityFeed({ managers, version }: { managers: Manager[]; version: unknown }) {
-  // 40 raw rows is plenty: the sheet importer's rows collapse into one line per run.
-  const load = useCallback(() => fetchRecentActivity(40).then((rows) => ({ rows, version })), [version])
+export default function ActivityFeed({ managers, version, managerFilter }: { managers: Manager[]; version: unknown; managerFilter: string | null }) {
+  // 80 raw rows is plenty: the sheet importer's rows collapse into one line per run.
+  const load = useCallback(() => fetchRecentActivity(80).then((rows) => ({ rows, version })), [version])
   const { state, retry } = useLoad(load)
 
   return (
@@ -43,7 +43,7 @@ export default function ActivityFeed({ managers, version }: { managers: Manager[
         <ErrorPanel message={state.message} onRetry={retry} />
       ) : (
         (() => {
-          const items = collapseFeed(state.data.rows).slice(0, SHOWN)
+          const items = collapseFeed(state.data.rows.filter((r) => !managerFilter || r.inquiry?.owner_id === managerFilter)).slice(0, SHOWN)
           if (items.length === 0) return <p className="font-grotesk text-sm text-[var(--ink-50)]">No activity yet.</p>
           return (
             <ol>

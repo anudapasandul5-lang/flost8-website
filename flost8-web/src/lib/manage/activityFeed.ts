@@ -3,7 +3,7 @@ import type { ActivityRow } from './types'
 /** An activity row plus the event it belongs to (embedded by fetchRecentActivity). */
 export interface FeedRow extends ActivityRow {
   inquiry_id: string
-  inquiry: { event_name: string | null; venue: string | null } | null
+  inquiry: { event_name: string | null; venue: string | null; owner_id: string | null } | null
 }
 
 export type FeedItem = { kind: 'row'; row: FeedRow } | { kind: 'sync'; count: number; at: string; oldest: string }

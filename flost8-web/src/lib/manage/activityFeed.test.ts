@@ -9,7 +9,7 @@ const row = (over: Partial<FeedRow>): FeedRow => ({
   kind: 'comment',
   data: {},
   created_at: '2026-10-06T10:00:00Z',
-  inquiry: { event_name: 'Wild Air', venue: null },
+  inquiry: { event_name: 'Wild Air', venue: null, owner_id: null },
   ...over,
 })
 const sync = (iso: string, over: Partial<FeedRow> = {}) => row({ actor_id: null, kind: 'money', created_at: iso, ...over })
