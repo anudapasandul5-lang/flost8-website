@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { canEditInquiry, parseAuthError } from './access'
+import { canEditInquiry, parseAuthError, isHttpUrl, isPlainEmail } from './access'
 import { KASUNI, makeInquiry, OWNER } from './testFixtures'
 
 describe('parseAuthError', () => {
@@ -32,5 +32,20 @@ describe('canEditInquiry', () => {
   })
   it("refuses another manager's inquiry", () => {
     expect(canEditInquiry(makeInquiry({ owner_id: 'someone-else' }), KASUNI)).toBe(false)
+  })
+})
+
+describe('link safety', () => {
+  it('accepts only http(s) addresses', () => {
+    expect(isHttpUrl('https://drive.google.com/x')).toBe(true)
+    expect(isHttpUrl('javascript:alert(1)')).toBe(false)
+    expect(isHttpUrl('data:text/html,x')).toBe(false)
+    expect(isHttpUrl('not a url')).toBe(false)
+    expect(isHttpUrl(null)).toBe(false)
+  })
+  it('accepts only a plain email', () => {
+    expect(isPlainEmail('a@b.co')).toBe(true)
+    expect(isPlainEmail('a@b.co?bcc=x@y.co')).toBe(false)
+    expect(isPlainEmail('a@b.co,c@d.co')).toBe(false)
   })
 })

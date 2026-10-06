@@ -14,6 +14,7 @@ export class NotAllowedError extends Error {
 export function friendlyError(err: unknown): string {
   if (err instanceof NotAllowedError) return err.message
   const msg = err instanceof Error ? err.message : typeof err === 'object' && err && 'message' in err ? String((err as { message: unknown }).message) : ''
+  if (typeof err === 'object' && err && 'code' in err && (err as { code: unknown }).code === '23514') return 'That link is not allowed. Use an address that starts with https://'
   if (/failed to fetch|networkerror|load failed/i.test(msg)) return 'Could not reach the server. Check your internet and try again.'
   return 'Something went wrong. Please try again.'
 }

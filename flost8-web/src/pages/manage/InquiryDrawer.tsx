@@ -2,7 +2,7 @@ import { useEffect, useState, type ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { CheckCircle, Circle, FileArrowUp, X } from '@phosphor-icons/react'
 import { addComment, fetchConfirmedOnDate, friendlyError, updateInquiry, type InquiryPatch } from '../../lib/manage/api'
-import { canEditInquiry } from '../../lib/manage/access'
+import { canEditInquiry, isHttpUrl, isPlainEmail } from '../../lib/manage/access'
 import { formatDate } from '../../lib/manage/calendar'
 import { conflictsFor, describeBooked } from '../../lib/manage/conflicts'
 import { artistNames, inquiryTitle } from '../../lib/manage/labels'
@@ -114,6 +114,10 @@ export default function InquiryDrawer({
   }
 
   async function saveFields() {
+    if (contractUrl.trim() && !isHttpUrl(contractUrl.trim())) {
+      notify({ kind: 'error', text: 'The contract link must start with https://' })
+      return
+    }
     const patch: InquiryPatch = {
       notes: notes.trim() || null,
       travel_notes: travel.trim() || null,
@@ -207,11 +211,14 @@ export default function InquiryDrawer({
                 )}
               </Row>
               <Row label="Email">
-                {inquiry.organizer_email && (
-                  <a className="underline" href={`mailto:${inquiry.organizer_email}`}>
-                    {inquiry.organizer_email}
-                  </a>
-                )}
+                {inquiry.organizer_email &&
+                  (isPlainEmail(inquiry.organizer_email) ? (
+                    <a className="underline" href={`mailto:${inquiry.organizer_email}`}>
+                      {inquiry.organizer_email}
+                    </a>
+                  ) : (
+                    <span>{inquiry.organizer_email}</span>
+                  ))}
               </Row>
               <Row label="Brand">{inquiry.brand}</Row>
               <Row label="Collaboration">{inquiry.collab_type}</Row>
@@ -310,7 +317,7 @@ export default function InquiryDrawer({
                 </Row>
                 <Row label="Contract">{inquiry.contract_signed ? 'Signed' : 'Not signed yet'}</Row>
                 <Row label="Contract link">
-                  {inquiry.contract_url && (
+                  {inquiry.contract_url && isHttpUrl(inquiry.contract_url) && (
                     <a className="inline-flex items-center gap-1.5 underline" href={inquiry.contract_url} target="_blank" rel="noreferrer noopener">
                       <FileArrowUp size={18} aria-hidden="true" />
                       Open contract

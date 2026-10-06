@@ -20,3 +20,19 @@ export function canEditInquiry(i: Inquiry, me: Manager): boolean {
   if (i.source === 'sheet_import') return false
   return me.role === 'owner' || i.owner_id === null || i.owner_id === me.id
 }
+
+/** Only ever put an http(s) address in an href: a javascript: link would run when someone clicks it. */
+export function isHttpUrl(value: string | null | undefined): boolean {
+  if (!value) return false
+  try {
+    const u = new URL(value)
+    return u.protocol === 'http:' || u.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
+/** A plain address only (no ?bcc= or extra recipients), so a mailto: link cannot be abused. */
+export function isPlainEmail(value: string | null | undefined): boolean {
+  return !!value && /^[^s@,;?&<>]+@[^s@,;?&<>]+.[^s@,;?&<>]+$/.test(value)
+}

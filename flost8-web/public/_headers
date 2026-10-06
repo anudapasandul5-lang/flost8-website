@@ -1,0 +1,14 @@
+# /manage holds the booking dashboard: keep it out of search results (also when JavaScript is off),
+# stop it being framed, and lock scripts to this site. The session lives in localStorage, so a
+# script injection is the main risk. connect-src is the booking database only.
+/manage
+  X-Robots-Tag: noindex, nofollow
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+  Content-Security-Policy: default-src 'self'; connect-src 'self' https://ybeenrpelytyohpyurzn.supabase.co; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'
+
+/manage/*
+  X-Robots-Tag: noindex, nofollow
+  X-Frame-Options: DENY
+  Referrer-Policy: no-referrer
+  Content-Security-Policy: default-src 'self'; connect-src 'self' https://ybeenrpelytyohpyurzn.supabase.co; img-src 'self' data:; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; frame-ancestors 'none'; base-uri 'none'; form-action 'self'
