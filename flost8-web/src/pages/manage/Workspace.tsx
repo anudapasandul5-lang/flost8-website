@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Plus, SignOut } from '@phosphor-icons/react'
+import { SignOut } from '@phosphor-icons/react'
 import { addComment, fetchDirectory, fetchInquiries, fetchLastTouch, friendlyError, saveMoney, updateInquiry } from '../../lib/manage/api'
 import { conflictIds } from '../../lib/manage/conflicts'
 import { applyFilters, DEFAULT_FILTERS, todayISO, type Filters } from '../../lib/manage/filters'
 import { signOut, useLoad } from '../../lib/manage/hooks'
 import { inquiryTitle } from '../../lib/manage/labels'
 import { formatAmount, totalsByCurrency } from '../../lib/manage/money'
-import { needsAction, nextBookedShow, REASON_RANK } from '../../lib/manage/needsAction'
+import { needsAction, nextBookedShow, REASON_RANK, type NeedsActionContext } from '../../lib/manage/needsAction'
 import { summarise } from '../../lib/manage/summaries'
 import type { Artist, Inquiry, Manager } from '../../lib/manage/types'
 import CalendarView from './CalendarView'
@@ -15,9 +15,11 @@ import FilterBar from './FilterBar'
 import InquiryDrawer from './InquiryDrawer'
 import InquiryList from './InquiryList'
 import NeedsList, { type AdvanceKind, type NeedsRow } from './NeedsList'
-import SummaryStrip, { type StripCard } from './SummaryStrip'
+import RightColumn from './RightColumn'
+import Shell, { type TeamItem, type View } from './Shell'
+import OverviewView from './OverviewView'
 import TotalsBar from './TotalsBar'
-import { BTN_GHOST, BTN_PRIMARY } from './styles'
+import { BTN_GHOST } from './styles'
 import { ErrorPanel, Skeleton, Toast, UndoToast, type ToastMsg } from './ui'
 
 // If the last-touch lookup fails, flags fall back to each row's updated_at instead of blocking the page.
@@ -43,24 +45,10 @@ export default function Workspace({ me }: { me: Manager }) {
     refreshTouch()
   }, [refreshInq, refreshTouch])
 
-  const body =
-    dir.state.status === 'error' || inq.state.status === 'error' ? (
-      <ErrorPanel
-        message={
-          dir.state.status === 'error' ? dir.state.message : inq.state.status === 'error' ? inq.state.message : ''
-        }
-        onRetry={() => {
-          dir.retry()
-          inq.retry()
-          touch.retry()
-        }}
-      />
-    ) : dir.state.status === 'loading' || inq.state.status === 'loading' || touch.state.status === 'loading' ? (
-      <Skeleton />
-    ) : (
-      <Dashboard me={me} directory={dir.state.data} inquiries={inq.state.data} lastTouch={touch.state.status === 'ok' ? touch.state.data : NO_TOUCH} reload={reload} />
-    )
+  if (dir.state.status === 'ok' && inq.state.status === 'ok' && touch.state.status !== 'loading')
+    return <Dashboard me={me} directory={dir.state.data} inquiries={inq.state.data} lastTouch={touch.state.status === 'ok' ? touch.state.data : NO_TOUCH} reload={reload} />
 
+  const failed = dir.state.status === 'error' ? dir.state.message : inq.state.status === 'error' ? inq.state.message : null
   return (
     <main id="main-content" tabIndex={-1} className="min-h-[100dvh] bg-base px-4 pb-24 pt-6 outline-none md:px-8 md:pt-10">
       <div className="mx-auto max-w-[1100px]">
@@ -74,7 +62,18 @@ export default function Workspace({ me }: { me: Manager }) {
             Sign out
           </button>
         </header>
-        {body}
+        {failed !== null ? (
+          <ErrorPanel
+            message={failed}
+            onRetry={() => {
+              dir.retry()
+              inq.retry()
+              touch.retry()
+            }}
+          />
+        ) : (
+          <Skeleton />
+        )}
       </div>
     </main>
   )
@@ -97,24 +96,12 @@ function Dashboard({
     () => new Set(directory.artists.filter((a) => a.manager_id === me.id).map((a) => a.slug)),
     [directory.artists, me.id],
   )
-  // Someone who looks after no artists (the owner) would see an empty "My artists" list.
-  const [filters, setFilters] = useState<Filters>(() => ({
-    ...DEFAULT_FILTERS,
-    scope: me.role === 'owner' && mySlugs.size === 0 ? 'everyone' : 'mine',
-  }))
-  const [view, setView] = useState<'needs' | 'all' | 'calendar'>('needs')
   const [openId, setOpenId] = useState<string | null>(null)
-  // Owner taps a manager's card to look at just that manager's rows.
-  const [managerFilter, setManagerFilter] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
   const [toast, setToast] = useState<ToastMsg | null>(null)
   const clearToast = useCallback(() => setToast(null), [])
 
   const ctx = useMemo(() => ({ mySlugs, today: todayISO() }), [mySlugs])
-  const byManager = useCallback((i: Inquiry) => !managerFilter || i.owner_id === managerFilter, [managerFilter])
-  const filtered = useMemo(() => applyFilters(inquiries, filters, ctx).filter(byManager), [inquiries, filters, ctx, byManager])
-  const forCalendar = useMemo(() => applyFilters(inquiries, filters, ctx, { ignoreTimeframe: true }).filter(byManager), [inquiries, filters, ctx, byManager])
-  const totals = useMemo(() => totalsByCurrency(filtered), [filtered])
   const conflicts = useMemo(() => conflictIds(inquiries), [inquiries])
   const open = inquiries.find((i) => i.id === openId) ?? null
 
@@ -139,18 +126,19 @@ function Dashboard({
         ),
     [inquiries, naCtx],
   )
-  const needsRows = useMemo(() => needsAll.filter((r) => !hidden.has(r.inquiry.id) && byManager(r.inquiry)), [needsAll, hidden, byManager])
-  // The strip counts what is still waiting (cards leave it the moment they are actioned) for everyone, not just the filtered manager.
+  // What is still waiting (cards leave it the moment they are actioned) for everyone, not just the filtered manager.
   const waiting = useMemo(() => needsAll.filter((r) => !hidden.has(r.inquiry.id)), [needsAll, hidden])
-  const stripCards = useMemo<StripCard[]>(
+  const team = useMemo<TeamItem[]>(
     () =>
-      (me.role === 'owner' ? directory.managers.filter((m) => m.role === 'manager') : [me]).map((m) => ({
-        managerId: m.id,
-        name: m.name,
-        artists: directory.artists.filter((a) => a.manager_id === m.id).map((a) => a.name).join(' · '),
-        summary: summarise(m.id, inquiries, waiting, ctx.today),
-      })),
-    [me, directory, inquiries, waiting, ctx.today],
+      me.role !== 'owner'
+        ? []
+        : directory.managers
+            .filter((m) => m.role === 'manager')
+            .map((m) => {
+              const s = summarise(m.id, inquiries, waiting, ctx.today)
+              return { id: m.id, name: m.name, open: s.need, top: s.top }
+            }),
+    [me.role, directory.managers, inquiries, waiting, ctx.today],
   )
   const pickable = me.role === 'owner' ? directory.artists : directory.artists.filter((a) => mySlugs.has(a.slug))
   const nextShow = useMemo(
@@ -231,94 +219,31 @@ function Dashboard({
     })
   }
 
-  const tabs: { id: typeof view; label: string }[] = [
-    { id: 'needs', label: 'Needs you' },
-    { id: 'all', label: 'All' },
-    { id: 'calendar', label: 'Calendar' },
-  ]
-
   return (
     <>
-      <SummaryStrip cards={stripCards} selectedId={managerFilter} onSelect={me.role === 'owner' ? setManagerFilter : undefined} />
-      {pickable.length > 0 && (
-        <div className="mb-4">
-          <button type="button" onClick={() => setAdding(true)} className={BTN_PRIMARY}>
-            <Plus size={18} weight="bold" aria-hidden="true" />
-            Add event
-          </button>
-        </div>
-      )}
-      <div role="group" aria-label="View" className="mb-5 flex gap-1 rounded-full border border-[var(--bg-line)] bg-[var(--bg-raise)] p-1 md:max-w-[460px]">
-        {tabs.map((t) => (
-          <button
-            key={t.id}
-            type="button"
-            aria-pressed={view === t.id}
-            onClick={() => setView(t.id)}
-            className={`flex min-h-[44px] flex-1 items-center justify-center rounded-full font-grotesk text-[14.5px] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent-ink)] ${
-              view === t.id ? 'bg-[var(--accent-soft)] font-medium text-ink shadow-[inset_0_0_0_1px_var(--accent-line)]' : 'text-[var(--ink-72)]'
-            }`}
-          >
-            {t.label}
-            {t.id === 'needs' &&
-              (needsRows.length > 0 ? (
-                <b className="ml-2 inline-grid h-[22px] min-w-[22px] place-items-center rounded-full bg-accent px-1.5 text-[12.5px] font-semibold text-ink">{needsRows.length}</b>
-              ) : (
-                <span className="ml-1.5">
-                  <span aria-hidden="true">✓</span>
-                  <span className="sr-only"> nothing waiting</span>
-                </span>
-              ))}
-          </button>
-        ))}
-      </div>
-
-      {view === 'needs' ? (
-        <NeedsList
-          rows={needsRows}
-          all={inquiries}
-          artists={directory.artists}
-          managers={directory.managers}
-          me={me}
-          ctx={naCtx}
-          nextShow={nextShow}
-          onOpen={setOpenId}
-          onChased={onChased}
-          onAdvance={onAdvance}
-        />
-      ) : (
-        <>
-          <FilterBar
-            filters={filters}
-            onChange={setFilters}
-            artists={me.role === 'owner' ? directory.artists : directory.artists.filter((a) => mySlugs.has(a.slug))}
-            hideTimeframe={view === 'calendar'}
-            noOwnArtists={mySlugs.size === 0}
-            showEveryone={me.role === 'owner'}
+      <Shell me={me} team={team} needCount={waiting.length} totalCount={inquiries.length} onAdd={pickable.length > 0 ? () => setAdding(true) : undefined}>
+        {({ view, setView, managerFilter, setManagerFilter }) => (
+          <Views
+            me={me}
+            directory={directory}
+            inquiries={inquiries}
+            mySlugs={mySlugs}
+            today={ctx.today}
+            view={view}
+            managerFilter={managerFilter}
+            setManagerFilter={setManagerFilter}
+            setView={setView}
+            team={team}
+            waiting={waiting}
+            conflicts={conflicts}
+            naCtx={naCtx}
+            nextShow={nextShow}
+            onOpen={setOpenId}
+            onChased={onChased}
+            onAdvance={onAdvance}
           />
-
-          {view === 'calendar' && (
-            <p className="mb-4 font-grotesk text-sm text-[var(--ink-72)]" aria-live="polite">
-              {forCalendar.filter((i) => i.event_date).length} dated
-            </p>
-          )}
-
-          {view === 'all' ? (
-            <>
-              <TotalsBar count={filtered.length} totals={totals} />
-              <InquiryList
-                items={filtered}
-                artists={directory.artists}
-                conflicts={conflicts}
-                onOpen={setOpenId}
-                onClear={() => setFilters({ ...DEFAULT_FILTERS, scope: 'everyone' })}
-              />
-            </>
-          ) : (
-            <CalendarView items={forCalendar} artists={directory.artists} conflicts={conflicts} onOpen={setOpenId} />
-          )}
-        </>
-      )}
+        )}
+      </Shell>
 
       {open && (
         <InquiryDrawer
@@ -349,6 +274,147 @@ function Dashboard({
       )}
       <Toast toast={toast} onDone={clearToast} />
       {undoText && <UndoToast text={undoText} onUndo={undo} />}
+    </>
+  )
+}
+
+/** The open view's content. Lives inside Shell so it can read the view and manager filter Shell holds; owns the list filters. */
+function Views({
+  me,
+  directory,
+  inquiries,
+  mySlugs,
+  today,
+  view,
+  managerFilter,
+  setManagerFilter,
+  setView,
+  team,
+  waiting,
+  conflicts,
+  naCtx,
+  nextShow,
+  onOpen,
+  onChased,
+  onAdvance,
+}: {
+  me: Manager
+  directory: Directory
+  inquiries: Inquiry[]
+  mySlugs: ReadonlySet<string>
+  today: string
+  view: View
+  managerFilter: string | null
+  setManagerFilter: (id: string | null) => void
+  setView: (v: View) => void
+  team: TeamItem[]
+  waiting: NeedsRow[]
+  conflicts: ReadonlySet<string>
+  naCtx: NeedsActionContext
+  nextShow: Inquiry | undefined
+  onOpen: (id: string) => void
+  onChased: (i: Inquiry) => void
+  onAdvance: (i: Inquiry, kind: AdvanceKind) => void
+}) {
+  // Someone who looks after no artists (the owner) would see an empty "My artists" list.
+  const [filters, setFilters] = useState<Filters>(() => ({
+    ...DEFAULT_FILTERS,
+    scope: me.role === 'owner' && mySlugs.size === 0 ? 'everyone' : 'mine',
+  }))
+  const ctx = useMemo(() => ({ mySlugs, today }), [mySlugs, today])
+  const byManager = useCallback((i: Inquiry) => !managerFilter || i.owner_id === managerFilter, [managerFilter])
+  const filtered = useMemo(() => applyFilters(inquiries, filters, ctx).filter(byManager), [inquiries, filters, ctx, byManager])
+  const forCalendar = useMemo(() => applyFilters(inquiries, filters, ctx, { ignoreTimeframe: true }).filter(byManager), [inquiries, filters, ctx, byManager])
+  const totals = useMemo(() => totalsByCurrency(filtered), [filtered])
+  const needsRows = useMemo(() => waiting.filter((r) => byManager(r.inquiry)), [waiting, byManager])
+  const pickable = me.role === 'owner' ? directory.artists : directory.artists.filter((a) => mySlugs.has(a.slug))
+  // The owner sees every show; a manager sees only their own artists' shows. The manager filter narrows both.
+  const showsFor = useMemo(() => inquiries.filter((i) => (me.role === 'owner' || i.owner_id === me.id) && byManager(i)), [inquiries, me.role, me.id, byManager])
+  const managerRows = useMemo(
+    () => team.map((t) => ({ ...t, artistCount: directory.artists.filter((a) => a.manager_id === t.id).length })),
+    [team, directory.artists],
+  )
+
+  if (view === 'overview')
+    return (
+      <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
+        <OverviewView
+          inquiries={me.role === 'owner' ? inquiries : inquiries.filter((i) => i.owner_id === me.id)}
+          waiting={waiting}
+          today={today}
+          role={me.role}
+          managerFilter={managerFilter}
+          managers={directory.managers}
+          artists={directory.artists}
+          me={me}
+          ctx={naCtx}
+          onOpen={onOpen}
+          onChased={onChased}
+          onViewAll={() => setView('needs')}
+        />
+        <RightColumn
+          me={me}
+          managers={directory.managers}
+          artists={directory.artists}
+          inquiries={showsFor}
+          today={today}
+          conflicts={conflicts}
+          managerRows={managerRows}
+          managerFilter={managerFilter}
+          onSelectManager={setManagerFilter}
+          onOpen={onOpen}
+          version={inquiries}
+        />
+      </div>
+    )
+
+  if (view === 'needs')
+    return (
+      <NeedsList
+        rows={needsRows}
+        all={inquiries}
+        artists={directory.artists}
+        managers={directory.managers}
+        me={me}
+        ctx={naCtx}
+        nextShow={nextShow}
+        onOpen={onOpen}
+        onChased={onChased}
+        onAdvance={onAdvance}
+      />
+    )
+
+  return (
+    <>
+      <FilterBar
+        filters={filters}
+        onChange={setFilters}
+        artists={pickable}
+        hideTimeframe={view === 'calendar'}
+        noOwnArtists={mySlugs.size === 0}
+        showEveryone={me.role === 'owner'}
+      />
+
+      {view === 'calendar' && (
+        <p className="mb-4 font-grotesk text-sm text-[var(--ink-72)]" aria-live="polite">
+          {forCalendar.filter((i) => i.event_date).length} dated
+        </p>
+      )}
+
+      {view === 'all' ? (
+        <>
+          <TotalsBar count={filtered.length} totals={totals} />
+          <InquiryList
+            items={filtered}
+            artists={directory.artists}
+            conflicts={conflicts}
+            onOpen={onOpen}
+            onClear={() => setFilters({ ...DEFAULT_FILTERS, scope: 'everyone' })}
+          />
+        </>
+      ) : (
+        <CalendarView items={forCalendar} artists={directory.artists} conflicts={conflicts} onOpen={onOpen} />
+      )}
     </>
   )
 }

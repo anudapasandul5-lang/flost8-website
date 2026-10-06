@@ -106,9 +106,14 @@ export function waLink(phone: string | null | undefined): string | null {
   return d.length >= 9 && d.length <= 15 ? `https://wa.me/${d}` : null
 }
 
-/** Soonest upcoming booked show in the list (callers pass only what the viewer may see). */
-export function nextBookedShow(list: Inquiry[], today: string): Inquiry | undefined {
+/** Upcoming booked or deposit-paid shows, soonest first (callers pass only what the viewer may see). */
+export function upcomingBooked(list: Inquiry[], today: string): Inquiry[] {
   return list
     .filter((i) => (i.status === 'booking_confirmed' || i.status === 'deposit_paid') && i.event_date && i.event_date >= today)
-    .sort((a, b) => (a.event_date! < b.event_date! ? -1 : 1))[0]
+    .sort((a, b) => (a.event_date! < b.event_date! ? -1 : 1))
+}
+
+/** Soonest upcoming booked show in the list. */
+export function nextBookedShow(list: Inquiry[], today: string): Inquiry | undefined {
+  return upcomingBooked(list, today)[0]
 }

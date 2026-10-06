@@ -1,33 +1,12 @@
-import { useCallback, type ReactNode } from 'react'
+import { useCallback } from 'react'
 import { fetchActivity } from '../../lib/manage/api'
+import { describeActivity } from '../../lib/manage/describeActivity'
 import { useLoad } from '../../lib/manage/hooks'
-import { statusLabel } from '../../lib/manage/status'
-import type { ActivityRow, Manager } from '../../lib/manage/types'
+import type { Manager } from '../../lib/manage/types'
 import { ErrorPanel } from './ui'
 
 function when(iso: string): string {
   return new Intl.DateTimeFormat('en-GB', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
-}
-
-function describe(a: ActivityRow, managers: Manager[]): ReactNode {
-  const d = a.data
-  const name = (id: unknown) => (typeof id === 'string' ? (managers.find((m) => m.id === id)?.name ?? 'someone') : 'nobody')
-  switch (a.kind) {
-    case 'comment':
-      return <span className="whitespace-pre-wrap break-words">{String(d.text ?? '')}</span>
-    case 'status':
-      return `Status changed from ${statusLabel(String(d.from))} to ${statusLabel(String(d.to))}`
-    case 'owner':
-      return `Owner changed from ${name(d.from)} to ${name(d.to)}`
-    case 'contract':
-      return d.signed ? 'Contract marked as signed' : 'Contract marked as not signed'
-    case 'money':
-      return 'Money details updated' // the database never stores amounts here
-    case 'created':
-      return `Inquiry added (${String(d.source ?? 'unknown source').replace('_', ' ')})`
-    default:
-      return a.kind
-  }
 }
 
 export default function ActivityTimeline({ inquiryId, managers, version }: { inquiryId: string; managers: Manager[]; version: number }) {
@@ -47,7 +26,7 @@ export default function ActivityTimeline({ inquiryId, managers, version }: { inq
           <p className="font-grotesk text-[12px] text-[var(--ink-50)]">
             {a.actor_id ? (managers.find((m) => m.id === a.actor_id)?.name ?? 'Someone') : 'System'}, {when(a.created_at)}
           </p>
-          <p className={`font-grotesk text-[15px] ${a.kind === 'comment' ? 'text-ink' : 'text-[var(--ink-72)]'}`}>{describe(a, managers)}</p>
+          <p className={`font-grotesk text-[15px] ${a.kind === 'comment' ? 'text-ink' : 'text-[var(--ink-72)]'}`}>{describeActivity(a, managers)}</p>
         </li>
       ))}
     </ol>

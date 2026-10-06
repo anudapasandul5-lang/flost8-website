@@ -1,5 +1,6 @@
 import { getSupabase } from './supabase'
 import type { BookedRow } from './conflicts'
+import type { FeedRow } from './activityFeed'
 import { toInquiryRow, toMoneyRow, type NewEventInput } from './newEvent'
 import type { ActivityRow, Artist, Currency, Inquiry, Manager, Money, Status } from './types'
 
@@ -105,6 +106,19 @@ export async function fetchActivity(inquiryId: string): Promise<ActivityRow[]> {
     .order('id', { ascending: false })
   if (error) throw error
   return data as ActivityRow[]
+}
+
+/** Newest activity across every event this user can see (RLS: activity_read = can_view(inquiry)), with each event's name. */
+export async function fetchRecentActivity(limit: number): Promise<FeedRow[]> {
+  const { data, error } = await getSupabase()
+    .from('activity')
+    .select('id,inquiry_id,actor_id,kind,data,created_at,inquiries(event_name,venue)')
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(limit)
+  if (error) throw error
+  type Raw = Omit<FeedRow, 'inquiry'> & { inquiries: FeedRow['inquiry'] | FeedRow['inquiry'][] }
+  return (data as unknown as Raw[]).map(({ inquiries, ...r }) => ({ ...r, inquiry: (Array.isArray(inquiries) ? inquiries[0] : inquiries) ?? null }))
 }
 
 /** Confirmed inquiries on one date, fresh from the database, for the double-booking check. */
