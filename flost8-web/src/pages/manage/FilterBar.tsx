@@ -2,6 +2,7 @@ import { MagnifyingGlass } from '@phosphor-icons/react'
 import type { Filters, Timeframe } from '../../lib/manage/filters'
 import { STATUS_LABEL, STATUS_ORDER } from '../../lib/manage/status'
 import type { Artist, Status } from '../../lib/manage/types'
+import SelectMenu from './SelectMenu'
 import { CHIP_BASE, CHIP_OFF, CHIP_ON, INPUT, LABEL } from './styles'
 
 const TIMEFRAMES: { id: Timeframe; label: string }[] = [
@@ -79,20 +80,12 @@ export default function FilterBar({
           <label htmlFor="m-artist" className={LABEL}>
             Artist
           </label>
-          <select
+          <SelectMenu
             id="m-artist"
             value={filters.artist}
-            onChange={(e) => set({ artist: e.target.value })}
-            className={`${INPUT} appearance-none`}
-            style={{ colorScheme: 'dark' }}
-          >
-            <option value="">All artists</option>
-            {artists.map((a) => (
-              <option key={a.slug} value={a.slug}>
-                {a.name}
-              </option>
-            ))}
-          </select>
+            onChange={(artist) => set({ artist })}
+            options={[{ value: '', label: 'All artists' }, ...artists.map((a) => ({ value: a.slug, label: a.name }))]}
+          />
         </div>
         {!hideTimeframe && (
           <div className="flex flex-wrap gap-2" role="group" aria-label="Dates">

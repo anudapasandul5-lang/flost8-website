@@ -3,6 +3,7 @@ import { Lock } from '@phosphor-icons/react'
 import { friendlyError, saveMoney } from '../../lib/manage/api'
 import { formatAmount, parseAmountInput } from '../../lib/manage/money'
 import type { Currency, Inquiry, Money } from '../../lib/manage/types'
+import SelectMenu from './SelectMenu'
 import { BTN_GHOST, BTN_PRIMARY, INPUT, LABEL, PANEL } from './styles'
 import type { ToastMsg } from './ui'
 
@@ -110,10 +111,15 @@ export default function MoneyPanel({
             <label htmlFor="mo-cur" className={LABEL}>
               Currency
             </label>
-            <select id="mo-cur" value={currency} onChange={(e) => setCurrency(e.target.value as Currency)} className={`${INPUT} appearance-none`} style={{ colorScheme: 'dark' }}>
-              <option value="LKR">LKR (rupees)</option>
-              <option value="USD">USD (dollars)</option>
-            </select>
+            <SelectMenu
+              id="mo-cur"
+              value={currency}
+              onChange={(v) => setCurrency(v as Currency)}
+              options={[
+                { value: 'LKR', label: 'LKR (rupees)' },
+                { value: 'USD', label: 'USD (dollars)' },
+              ]}
+            />
           </div>
           {FIELDS.map((f) => (
             <div key={f.key}>
