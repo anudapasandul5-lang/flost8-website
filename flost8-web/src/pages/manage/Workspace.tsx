@@ -297,15 +297,15 @@ function Dashboard({
             showEveryone={me.role === 'owner'}
           />
 
-          <p className="mb-4 font-grotesk text-sm text-[var(--ink-72)]" aria-live="polite">
-            {view === 'all'
-              ? `${filtered.length} ${filtered.length === 1 ? 'inquiry' : 'inquiries'}`
-              : `${forCalendar.filter((i) => i.event_date).length} dated`}
-          </p>
+          {view === 'calendar' && (
+            <p className="mb-4 font-grotesk text-sm text-[var(--ink-72)]" aria-live="polite">
+              {forCalendar.filter((i) => i.event_date).length} dated
+            </p>
+          )}
 
           {view === 'all' ? (
             <>
-              <TotalsBar totals={totals} />
+              <TotalsBar count={filtered.length} totals={totals} />
               <InquiryList
                 items={filtered}
                 artists={directory.artists}
