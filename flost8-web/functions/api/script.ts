@@ -1,4 +1,4 @@
-import { saveInquiry, type IntakeEnv } from './_intake'
+import { MAX_BODY_BYTES, saveInquiry, type IntakeEnv } from './_intake'
 
 interface Env extends IntakeEnv {
   APPS_SCRIPT_URL: string
@@ -44,7 +44,14 @@ export const onRequest = async (context: {
     }
 
     // POST
+    const tooBig = () =>
+      new Response(JSON.stringify({ ok: false, errors: [{ message: 'Request too large' }] }), {
+        status: 413,
+        headers: { 'content-type': 'application/json' },
+      })
+    if (Number(request.headers.get('content-length') ?? 0) > MAX_BODY_BYTES) return tooBig()
     const body = await request.text()
+    if (body.length > MAX_BODY_BYTES) return tooBig()
 
     if (env.TURNSTILE_SECRET) {
       let token: string | undefined
@@ -86,10 +93,13 @@ export const onRequest = async (context: {
     // logged and never reaches the visitor (the Sheet row + alerts already happened).
     try {
       const payload = JSON.parse(body)
-      const accepted = upstream.ok && JSON.parse(responseBody)?.ok !== false
+      const accepted = upstream.ok && JSON.parse(responseBody)?.ok === true
       if (accepted && payload?.type === 'booking') {
         context.waitUntil(
-          saveInquiry(env, payload).catch(err => console.error('supabase intake failed', err))
+          // message only: it carries status codes/ids, never the key or the visitor's details
+          saveInquiry(env, payload).catch(err =>
+            console.error('supabase intake failed:', err instanceof Error ? err.message : 'unknown')
+          )
         )
       }
     } catch {
@@ -101,7 +111,7 @@ export const onRequest = async (context: {
       headers: { 'content-type': 'application/json' },
     })
   } catch (err) {
-    console.error('apps script proxy failed', err)
+    console.error('apps script proxy failed:', err instanceof Error ? err.message : 'unknown')
     return new Response(
       JSON.stringify({ ok: false, errors: [{ message: 'Upstream error' }] }),
       { status: 502, headers: { 'content-type': 'application/json' } }
