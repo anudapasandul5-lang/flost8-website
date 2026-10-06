@@ -8,10 +8,12 @@ import { StatusBadge } from './ui'
 
 const MON3 = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
+const THIS_YEAR = new Date().getFullYear()
+
 function DateBlock({ date }: { date: string | null }) {
   if (!date)
     return (
-      <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl border border-dashed border-[var(--bg-line)] text-center font-grotesk text-[11px] leading-tight text-[var(--ink-50)]">
+      <div className="flex h-14 w-16 shrink-0 flex-col items-center justify-center rounded-xl border border-dashed border-[var(--bg-line)] text-center font-grotesk text-[11px] leading-tight text-[var(--ink-50)]">
         No
         <br />
         date
@@ -19,10 +21,13 @@ function DateBlock({ date }: { date: string | null }) {
     )
   const [y, m, d] = date.split('-').map(Number)
   return (
-    <div className="flex h-14 w-14 shrink-0 flex-col items-center justify-center rounded-xl bg-[var(--accent-soft)] text-center" aria-label={formatDate(date)}>
+    <div
+      className={`flex h-14 w-16 shrink-0 flex-col items-center justify-center rounded-xl text-center ${y === THIS_YEAR ? 'bg-[var(--accent-soft)]' : 'border border-[#FCD34D]/50 bg-[#FCD34D]/10'}`}
+      aria-label={formatDate(date)}
+    >
       <span className="font-display text-2xl leading-none text-ink">{d}</span>
-      <span className="font-grotesk text-[11px] font-medium tracking-wide text-[var(--accent-ink)]">
-        {MON3[m - 1]} {String(y).slice(2)}
+      <span className={`font-grotesk text-[11px] font-medium tracking-wide ${y === THIS_YEAR ? 'text-[var(--accent-ink)]' : 'text-[#FCD34D]'}`}>
+        {MON3[m - 1]} {y}
       </span>
     </div>
   )
@@ -54,11 +59,16 @@ export default function InquiryList({
 
   return (
     <ul className="space-y-2">
-      {items.map((i) => {
+      {items.map((i, n) => {
+        const year = i.event_date?.slice(0, 4)
+        const prev = n > 0 ? items[n - 1].event_date?.slice(0, 4) : undefined
         const place = [i.venue, i.city].filter(Boolean).join(', ')
         const fee = i.money?.fee
         return (
           <li key={i.id}>
+            {year && year !== prev && (
+              <h3 className={`mb-2 font-display text-2xl leading-none ${n > 0 ? 'mt-5' : ''} ${Number(year) === THIS_YEAR ? 'text-ink' : 'text-[#FCD34D]'}`}>{year}</h3>
+            )}
             <button
               type="button"
               onClick={() => onOpen(i.id)}
