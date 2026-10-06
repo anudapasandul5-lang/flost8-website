@@ -163,19 +163,33 @@ export async function saveMoney(inquiryId: string, money: Money): Promise<void> 
  * Saves an event added from the app: the inquiry, its lineup, then its money. Three inserts, so a failure part-way leaves a
  * partial row (managers cannot delete); it is reported and the manager can open the row and finish it.
  */
-export async function createEvent(input: NewEventInput, ownerId: string | null): Promise<string> {
+/** crypto.randomUUID only exists on https and localhost; fall back so the form still works over plain http. */
+export function newId(): string {
+  if (typeof crypto.randomUUID === 'function') return crypto.randomUUID()
+  const b = crypto.getRandomValues(new Uint8Array(16))
+  b[6] = (b[6] & 0x0f) | 0x40
+  b[8] = (b[8] & 0x3f) | 0x80
+  const h = Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('')
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-${h.slice(12, 16)}-${h.slice(16, 20)}-${h.slice(20)}`
+}
+
+export async function createEvent(input: NewEventInput, ownerId: string | null, id: string): Promise<string> {
   const sb = getSupabase()
   // The id is made here and the insert asks for nothing back: a manager's "can I read the new row" check
   // (can_view) cannot see a row created in the same statement, so insert ... returning is refused for managers.
-  const id = crypto.randomUUID()
+  // The caller keeps the same id across retries, so a retry after a partial failure finishes the same row instead of making a second one:
+  // 23505 (duplicate key) means an earlier attempt already created it.
   const made = await sb.from('inquiries').insert({ id, ...toInquiryRow(input, ownerId) })
-  if (made.error) {
+  if (made.error && made.error.code !== '23505') {
     if (isRlsError(made.error)) throw new NotAllowedError()
     throw made.error
   }
   const lineup = await sb
     .from('inquiry_artists')
-    .insert(input.artists.map((artist_slug, n) => ({ inquiry_id: id, position: n + 1, artist_slug })))
+    .upsert(
+      input.artists.map((artist_slug, n) => ({ inquiry_id: id, position: n + 1, artist_slug })),
+      { onConflict: 'inquiry_id,position', ignoreDuplicates: true },
+    )
   if (lineup.error) throw lineup.error
   const money = toMoneyRow(input)
   if (money) await saveMoney(id, money)

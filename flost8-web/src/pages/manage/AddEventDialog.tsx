@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { X } from '@phosphor-icons/react'
-import { createEvent, fetchConfirmedOnDate, friendlyError } from '../../lib/manage/api'
+import { createEvent, fetchConfirmedOnDate, friendlyError, newId } from '../../lib/manage/api'
 import { conflictsFor, describeBooked } from '../../lib/manage/conflicts'
 import { EMPTY_EVENT, ownerFor, validateNewEvent, type NewEventInput, type NewStatus } from '../../lib/manage/newEvent'
 import { STATUS_LABEL } from '../../lib/manage/status'
@@ -36,6 +36,7 @@ export default function AddEventDialog({
   const [clashRes, setClashRes] = useState<{ key: string; lines: string[] }>({ key: '', lines: [] })
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const eventId = useRef(newId()) // same id on every retry, so a retry never makes a duplicate
   const set = (patch: Partial<NewEventInput>) => setF((p) => ({ ...p, ...patch }))
 
   useLockScroll(true)
@@ -76,7 +77,7 @@ export default function AddEventDialog({
     setError(null)
     setBusy(true)
     try {
-      onSaved(await createEvent(f, ownerId))
+      onSaved(await createEvent(f, ownerId, eventId.current))
     } catch (err) {
       setError(friendlyError(err))
       setBusy(false)

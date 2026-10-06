@@ -28,6 +28,7 @@ describe('validateNewEvent', () => {
   it('rejects a fee that is not a number, allows it blank', () => {
     expect(validateNewEvent({ ...ok, fee: 'lots' })).toMatch(/fee/i)
     expect(validateNewEvent({ ...ok, fee: '' })).toBeNull()
+    expect(validateNewEvent({ ...ok, fee: '-5' })).toMatch(/negative/i)
   })
 })
 

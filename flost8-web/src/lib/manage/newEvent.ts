@@ -37,7 +37,9 @@ export function validateNewEvent(i: NewEventInput): string | null {
   if (i.artists.length === 0) return 'Pick at least one artist.'
   if (!/^\d{4}-\d{2}-\d{2}$/.test(i.date)) return 'Pick the event date.'
   if (!i.name.trim() && !i.venue.trim()) return 'Add an event name or a venue.'
-  if (parseAmountInput(i.fee) === undefined) return 'The fee must be a number, like 120000.'
+  const fee = parseAmountInput(i.fee)
+  if (fee === undefined) return 'The fee must be a number, like 120000.'
+  if (fee !== null && fee < 0) return 'The fee cannot be negative.'
   return null
 }
 

@@ -20,6 +20,9 @@ import TotalsBar from './TotalsBar'
 import { BTN_GHOST, BTN_PRIMARY } from './styles'
 import { ErrorPanel, Skeleton, Toast, UndoToast, type ToastMsg } from './ui'
 
+// If the last-touch lookup fails, flags fall back to each row's updated_at instead of blocking the page.
+const NO_TOUCH: ReadonlyMap<string, string> = new Map()
+
 export interface Directory {
   managers: Manager[]
   artists: Artist[]
@@ -41,16 +44,10 @@ export default function Workspace({ me }: { me: Manager }) {
   }, [refreshInq, refreshTouch])
 
   const body =
-    dir.state.status === 'error' || inq.state.status === 'error' || touch.state.status === 'error' ? (
+    dir.state.status === 'error' || inq.state.status === 'error' ? (
       <ErrorPanel
         message={
-          dir.state.status === 'error'
-            ? dir.state.message
-            : inq.state.status === 'error'
-              ? inq.state.message
-              : touch.state.status === 'error'
-                ? touch.state.message
-                : ''
+          dir.state.status === 'error' ? dir.state.message : inq.state.status === 'error' ? inq.state.message : ''
         }
         onRetry={() => {
           dir.retry()
@@ -61,7 +58,7 @@ export default function Workspace({ me }: { me: Manager }) {
     ) : dir.state.status === 'loading' || inq.state.status === 'loading' || touch.state.status === 'loading' ? (
       <Skeleton />
     ) : (
-      <Dashboard me={me} directory={dir.state.data} inquiries={inq.state.data} lastTouch={touch.state.data} reload={reload} />
+      <Dashboard me={me} directory={dir.state.data} inquiries={inq.state.data} lastTouch={touch.state.status === 'ok' ? touch.state.data : NO_TOUCH} reload={reload} />
     )
 
   return (
@@ -161,10 +158,13 @@ function Dashboard({
     [inquiries, me.id, me.role, ctx.today],
   )
 
-  // Fresh data already reflects any finished write, so stop hiding those cards (but keep the one still waiting).
-  useEffect(() => {
-    setHidden(new Set(pending.current ? [pending.current.id] : []))
-  }, [inquiries, lastTouch])
+  const unhide = useCallback((id: string) => {
+    setHidden((h) => {
+      const n = new Set(h)
+      n.delete(id)
+      return n
+    })
+  }, [])
 
   const flush = useCallback(async () => {
     const p = pending.current
@@ -175,15 +175,13 @@ function Dashboard({
     try {
       await p.run()
       reload()
+      // Two fetches refresh the flags; keep the card hidden until both have had time to land, so it does not flicker back.
+      window.setTimeout(() => unhide(p.id), 2500)
     } catch (err) {
-      setHidden((h) => {
-        const n = new Set(h)
-        n.delete(p.id)
-        return n
-      })
+      unhide(p.id)
       setToast({ kind: 'error', text: friendlyError(err) })
     }
-  }, [reload])
+  }, [reload, unhide])
 
   const schedule = useCallback(
     (id: string, text: string, run: () => Promise<void>) => {
@@ -201,12 +199,21 @@ function Dashboard({
     window.clearTimeout(p.timer)
     pending.current = null
     setUndoText(null)
-    setHidden((h) => {
-      const n = new Set(h)
-      n.delete(p.id)
-      return n
-    })
+    unhide(p.id)
   }
+
+  // A held write must not be lost when the tab is closed, hidden, locked or left within the 5 seconds.
+  useEffect(() => {
+    const out = () => void flush()
+    const vis = () => document.visibilityState === 'hidden' && out()
+    document.addEventListener('visibilitychange', vis)
+    window.addEventListener('pagehide', out)
+    return () => {
+      document.removeEventListener('visibilitychange', vis)
+      window.removeEventListener('pagehide', out)
+      out()
+    }
+  }, [flush])
 
   const onChased = (i: Inquiry) =>
     schedule(i.id, `Marked chased · ${inquiryTitle(i)}`, () => addComment(i.id, me.id, 'Chased today'))
@@ -217,8 +224,10 @@ function Dashboard({
     const m = i.money
     if (!m || !m.balance) return
     schedule(i.id, `Marked paid · ${inquiryTitle(i)}`, async () => {
-      await saveMoney(i.id, { ...m, balance: 0 })
-      await addComment(i.id, me.id, `Balance paid (was ${formatAmount(m.balance, m.currency)})`)
+      // Keeps fee = advance + balance: what was owed now counts as received.
+      await saveMoney(i.id, { ...m, advance: (m.advance ?? 0) + m.balance!, balance: 0 })
+      // The note is a bonus; a failed note must not report the (already saved) payment as failed.
+      await addComment(i.id, me.id, `Balance paid (was ${formatAmount(m.balance, m.currency)})`).catch(() => undefined)
     })
   }
 

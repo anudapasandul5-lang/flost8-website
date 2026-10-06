@@ -20,7 +20,8 @@ export function useLoad<T>(load: () => Promise<T>): { state: LoadState<T>; refre
     let alive = true
     load().then(
       (data) => alive && setState({ status: 'ok', data }),
-      (err) => alive && setState({ status: 'error', message: friendlyError(err) }),
+      // A failed quiet refresh keeps the data already on screen; only a first load or an explicit retry shows the error.
+      (err) => alive && setState((prev) => (prev.status === 'ok' ? prev : { status: 'error', message: friendlyError(err) })),
     )
     return () => {
       alive = false
