@@ -195,3 +195,13 @@ export async function createEvent(input: NewEventInput, ownerId: string | null, 
   if (money) await saveMoney(id, money)
   return id
 }
+
+/** Permanent. Comments, lineup and money go with it (cascade). A delete the database filters out comes back as zero rows. */
+export async function deleteInquiry(id: string): Promise<void> {
+  const { data, error } = await getSupabase().from('inquiries').delete().eq('id', id).select('id')
+  if (error) {
+    if (isRlsError(error)) throw new NotAllowedError()
+    throw error
+  }
+  if (!data || data.length === 0) throw new NotAllowedError()
+}

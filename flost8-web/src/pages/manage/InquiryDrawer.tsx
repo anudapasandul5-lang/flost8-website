@@ -1,8 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
-import { ArrowUpRight, CheckCircle, Circle, FileArrowUp, X } from '@phosphor-icons/react'
-import { addComment, fetchConfirmedOnDate, friendlyError, updateInquiry, type InquiryPatch } from '../../lib/manage/api'
-import { canCommentOn, canEditInquiry, isHttpUrl, isPlainEmail } from '../../lib/manage/access'
+import { ArrowUpRight, CheckCircle, Circle, FileArrowUp, Trash, X } from '@phosphor-icons/react'
+import { addComment, deleteInquiry, fetchConfirmedOnDate, friendlyError, updateInquiry, type InquiryPatch } from '../../lib/manage/api'
+import { canCommentOn, canDeleteInquiry, canEditInquiry, isHttpUrl, isPlainEmail } from '../../lib/manage/access'
 import { formatDate } from '../../lib/manage/calendar'
 import { conflictsFor, describeBooked } from '../../lib/manage/conflicts'
 import { artistNames, inquiryTitle, SHEET_URLS } from '../../lib/manage/labels'
@@ -51,16 +51,18 @@ export default function InquiryDrawer({
   const canComment = canCommentOn(inquiry, me, mySlugs)
   const sheetUrl = ownerName ? SHEET_URLS[ownerName] : undefined
   const [version, setVersion] = useState(0)
-  const [busy, setBusy] = useState<'status' | 'fields' | 'comment' | null>(null)
+  const [busy, setBusy] = useState<'status' | 'fields' | 'comment' | 'delete' | null>(null)
+  const [askDelete, setAskDelete] = useState(false)
+  const canDelete = canDeleteInquiry(inquiry, me)
   const [confirm, setConfirm] = useState<{ next: Status; lines: string[] } | null>(null)
 
   useLockScroll(true)
   useEffect(() => {
     // While the double-booking question is open, Escape belongs to that dialog.
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !confirm && onClose()
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !confirm && !askDelete && onClose()
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onClose, confirm])
+  }, [onClose, confirm, askDelete])
 
   const [notes, setNotes] = useState(inquiry.notes ?? '')
   const [travel, setTravel] = useState(inquiry.travel_notes ?? '')
@@ -150,6 +152,20 @@ export default function InquiryDrawer({
     } catch (err) {
       notify({ kind: 'error', text: friendlyError(err) })
     } finally {
+      setBusy(null)
+    }
+  }
+
+  async function removeEvent() {
+    setAskDelete(false)
+    setBusy('delete')
+    try {
+      await deleteInquiry(inquiry.id)
+      notify({ kind: 'ok', text: 'Event deleted' })
+      onChanged()
+      onClose()
+    } catch (err) {
+      notify({ kind: 'error', text: friendlyError(err) })
       setBusy(null)
     }
   }
@@ -357,6 +373,21 @@ export default function InquiryDrawer({
             )}
             <ActivityTimeline inquiryId={inquiry.id} managers={directory.managers} version={version} />
           </section>
+
+          {canDelete && (
+            <section aria-label="Delete event" className="border-t border-[var(--bg-line)] pt-6">
+              <p className="mb-3 font-grotesk text-sm text-[var(--ink-50)]">Added in this app by mistake? Deleting removes the event, its comments and its money details for good.</p>
+              <button
+                type="button"
+                disabled={busy !== null}
+                onClick={() => setAskDelete(true)}
+                className={`inline-flex min-h-[48px] items-center gap-2 rounded-full border border-[#7a2f3a] px-5 font-grotesk text-[15px] text-[var(--error)] transition hover:bg-[#2b1219] active:scale-[0.98] disabled:opacity-50 ${FOCUS_RING}`}
+              >
+                <Trash size={18} aria-hidden="true" />
+                {busy === 'delete' ? 'Deleting…' : 'Delete event'}
+              </button>
+            </section>
+          )}
         </div>
       </motion.aside>
 
@@ -376,6 +407,20 @@ export default function InquiryDrawer({
           confirmLabel="Book anyway"
           onConfirm={() => void applyStatus(confirm.next)}
           onCancel={() => setConfirm(null)}
+        />
+      )}
+      {askDelete && (
+        <ConfirmDialog
+          title="DELETE EVENT?"
+          body={
+            <>
+              <span className="block">{inquiryTitle(inquiry)} will be permanently deleted, with its comments and money details.</span>
+              <span className="mt-2 block font-medium text-ink">This cannot be undone.</span>
+            </>
+          }
+          confirmLabel="Delete event"
+          onConfirm={() => void removeEvent()}
+          onCancel={() => setAskDelete(false)}
         />
       )}
     </div>

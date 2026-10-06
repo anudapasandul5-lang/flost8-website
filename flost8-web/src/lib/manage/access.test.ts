@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { canCommentOn, canEditInquiry, parseAuthError, isHttpUrl, isPlainEmail } from './access'
+import { canCommentOn, canDeleteInquiry, canEditInquiry, parseAuthError, isHttpUrl, isPlainEmail } from './access'
 import { KASUNI, makeInquiry, OWNER } from './testFixtures'
 
 describe('parseAuthError', () => {
@@ -62,5 +62,20 @@ describe('canCommentOn', () => {
   })
   it('refuses a row the manager neither owns nor has an artist on', () => {
     expect(canCommentOn(makeInquiry({ owner_id: 'other', artists: ['anush'] }), KASUNI, mySlugs)).toBe(false)
+  })
+})
+
+describe('canDeleteInquiry', () => {
+  it('lets the owner delete any app-added event', () => {
+    expect(canDeleteInquiry(makeInquiry({ source: 'manual', owner_id: 'someone-else' }), OWNER)).toBe(true)
+  })
+  it('lets a manager delete only their own app-added events', () => {
+    expect(canDeleteInquiry(makeInquiry({ source: 'manual', owner_id: KASUNI.id }), KASUNI)).toBe(true)
+    expect(canDeleteInquiry(makeInquiry({ source: 'manual', owner_id: 'someone-else' }), KASUNI)).toBe(false)
+    expect(canDeleteInquiry(makeInquiry({ source: 'manual', owner_id: null }), KASUNI)).toBe(false)
+  })
+  it('never offers delete on sheet or website rows, even to the owner', () => {
+    expect(canDeleteInquiry(makeInquiry({ source: 'sheet_import', owner_id: KASUNI.id }), OWNER)).toBe(false)
+    expect(canDeleteInquiry(makeInquiry({ source: 'website', owner_id: KASUNI.id }), KASUNI)).toBe(false)
   })
 })
