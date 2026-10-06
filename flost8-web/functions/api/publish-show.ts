@@ -7,6 +7,10 @@ interface Env {
   SUPABASE_SERVICE_ROLE_KEY: string
   ADMIN_SECRET: string
   APPS_SCRIPT_URL: string
+  /** Kill switch: nothing is written to the public Shows sheet unless this is exactly 'on'. */
+  WEBSITE_PUBLISH?: string
+  /** Test hook: pause between Apps Script retries, in ms (default 2000). */
+  APPS_SCRIPT_RETRY_MS?: string
 }
 const json = (body: unknown, status = 200) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json', 'cache-control': 'no-store' } })
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
@@ -31,12 +35,19 @@ function backend(env: Env) {
     if (!response.ok) throw new Failure('Publication database request failed')
     return response.status === 204 ? undefined as T : await response.json() as T
   }
+  // Apps Script serialises writes behind one lock that the 15-minute sheet sync also holds. When it answers
+  // "Busy" it has done nothing yet, so every action (even the non-idempotent addShow) is safe to send again.
   async function script(action: string, args: Record<string, unknown> = {}) {
-    const response = await fetch(env.APPS_SCRIPT_URL, { method: 'POST', headers: { 'content-type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, ...args, secret: env.ADMIN_SECRET }), redirect: 'follow', signal: AbortSignal.timeout(15000) })
-    if (!response.ok) throw new Failure('Website list request failed')
-    const result = await response.json() as { ok?: boolean; shows?: AdminShow[]; show?: AdminShow }
-    if (result.ok !== true) throw new Failure('Website list request failed')
-    return result
+    const pause = Number(env.APPS_SCRIPT_RETRY_MS ?? 2000)
+    for (let attempt = 1; ; attempt++) {
+      const response = await fetch(env.APPS_SCRIPT_URL, { method: 'POST', headers: { 'content-type': 'text/plain;charset=utf-8' }, body: JSON.stringify({ action, ...args, secret: env.ADMIN_SECRET }), redirect: 'follow', signal: AbortSignal.timeout(15000) })
+      if (!response.ok) throw new Failure('Website list request failed')
+      const result = await response.json() as { ok?: boolean; errors?: { message?: string }[]; shows?: AdminShow[]; show?: AdminShow }
+      if (result.ok === true) return result
+      const reason = String(result.errors?.[0]?.message ?? '').slice(0, 80)
+      if (reason === 'Busy, please retry' && attempt < 4) { await new Promise(r => setTimeout(r, pause)); continue }
+      throw new Failure(reason ? `Website list request failed: ${reason}` : 'Website list request failed')
+    }
   }
   const event = async (id: string) => (await db<EventRow[]>(`inquiries?select=${COLUMNS}&id=eq.${id}`))[0]
   return { db, script, event, root, headers }
@@ -63,6 +74,18 @@ async function publish(id: string, me: Manager, api: ReturnType<typeof backend>)
       const latest = await api.event(id)
       if (JSON.stringify(map(latest)) !== JSON.stringify(desired)) throw new Failure('Event changed during publication. Retry to update the website.', 409)
     }
+    // The sheet's date column can turn a new row's text into a real Date (the grid grew past the text-formatted range),
+    // and the live script then reads it back in UTC, one day early. Read the row back and rewrite it once: an update
+    // lands in a now text-formatted row and sticks. If it still differs, say so instead of reporting success.
+    const verify = async (id: string, want: AdminShow) => {
+      const find = async () => ((await api.script('listShows')).shows ?? []).find(s => s.id === id)
+      const stored = await find()
+      if (!stored) throw new Failure('The website row was not found after saving. Retry.')
+      if (stored.date === want.date) return
+      await api.script('updateShow', { id, show: want })
+      const again = await find()
+      if (again?.date !== want.date) throw new Failure(`The website stored ${again?.date ?? 'no date'} instead of ${want.date}. Ask the owner to check the Shows sheet.`)
+    }
     const listed = await api.script('listShows')
     if (!Array.isArray(listed.shows)) throw new Failure('Website list response was invalid')
     const shows = listed.shows
@@ -78,6 +101,7 @@ async function publish(id: string, me: Manager, api: ReturnType<typeof backend>)
     if (showId && shows.some(s => s.id === showId)) {
       await api.script('updateShow', { id: showId, show: desired })
       await finish(showId)
+      await verify(showId, desired)
     } else {
       // Persist BEFORE a non-idempotent add. A timeout/crash leaves this marker and blocks blind retries.
       const marked = await api.db<Publication[]>(lockPath, 'PATCH', { phase: 'adding' })
@@ -86,6 +110,7 @@ async function publish(id: string, me: Manager, api: ReturnType<typeof backend>)
       showId = added.show?.id ?? null
       if (!showId || showId.startsWith('sync:')) throw new Failure('Website add returned an invalid ID')
       await finish(showId)
+      await verify(showId, desired)
     }
     // Saving in the app can race a website request. Report drift so Retry/resync reads the newest event.
     await checkCurrent()
@@ -114,6 +139,7 @@ export async function onRequest({ request, env }: { request: Request; env: Env }
     if (!user.id) return json({ ok: false }, 401)
     const [me] = await api.db<Manager[]>(`managers?select=id,role,user_id&user_id=eq.${encodeURIComponent(user.id)}`)
     if (!me || !['manager', 'owner'].includes(me.role)) return json({ ok: false }, 403)
+    if (env.WEBSITE_PUBLISH !== 'on') return json({ ok: true, outcome: 'disabled' })
     if (payload.action === 'resync') {
       if (me.role !== 'owner') return json({ ok: false }, 403)
       if (payload.cursor && !UUID.test(payload.cursor)) return json({ ok: false }, 400)

@@ -4,11 +4,14 @@ import { onRequest } from './publish-show'
 
 afterEach(() => vi.unstubAllGlobals())
 const id = '11111111-1111-4111-8111-111111111111'
-const env = { SUPABASE_URL: 'https://db', SUPABASE_SERVICE_ROLE_KEY: 'key', ADMIN_SECRET: 'secret', APPS_SCRIPT_URL: 'https://script' }
+const env = { SUPABASE_URL: 'https://db', SUPABASE_SERVICE_ROLE_KEY: 'key', ADMIN_SECRET: 'secret', APPS_SCRIPT_URL: 'https://script', WEBSITE_PUBLISH: 'on', APPS_SCRIPT_RETRY_MS: '0' }
 const request = (body: unknown = { id }) => new Request('https://site/api/publish-show', { method: 'POST', headers: { authorization: 'Bearer access-token' }, body: JSON.stringify(body) })
 const manager = { id: 'manager', role: 'manager', user_id: 'user' }
 const inquiry = { id, source: 'manual', owner_id: 'manager', status: 'booking_confirmed', event_date: '2026-11-14', event_name: 'ZZ TEST - ignore', city: 'Colombo', venue: 'Factory', set_time: '10 pm', ticket_link: 'https://tickets.test', inquiry_artists: [{ position: 1, artist_slug: 'sonal' }], organizer_name: 'PRIVATE', organizer_phone: 'PRIVATE', notes: 'PRIVATE', fee: 'PRIVATE' }
-function fakeBackend(options: { event?: typeof inquiry | null; role?: string; invalidToken?: boolean; noManager?: boolean; shows?: unknown[]; phase?: string; showId?: string | null; addFails?: boolean; locked?: boolean; touchOnFinish?: boolean } = {}) {
+function fakeBackend(options: { event?: typeof inquiry | null; role?: string; invalidToken?: boolean; noManager?: boolean; shows?: unknown[]; phase?: string; showId?: string | null; addFails?: boolean; locked?: boolean; touchOnFinish?: boolean; busy?: number; shiftDate?: 'add' | 'always' } = {}) {
+  let busyLeft = options.busy ?? 0
+  const store: Record<string, unknown>[] = [...((options.shows ?? []) as Record<string, unknown>[])]
+  const dayBefore = (d: string) => new Date(Date.parse(`${d}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10)
   const writes: Record<string, unknown>[] = []
   let mapping = { inquiry_id: id, show_id: options.showId ?? null, phase: options.phase ?? 'idle' }
   let finished = false
@@ -25,10 +28,14 @@ function fakeBackend(options: { event?: typeof inquiry | null; role?: string; in
       return Response.json([mapping])
     }
     if (url === 'https://script') {
-      if (body.action === 'listShows') return Response.json({ ok: true, shows: options.shows ?? [] })
+      if (body.action === 'listShows') return Response.json({ ok: true, shows: store })
+      if (busyLeft > 0) { busyLeft -= 1; return Response.json({ ok: false, errors: [{ message: 'Busy, please retry' }] }) }
       writes.push(body)
       if (body.action === 'addShow' && options.addFails) throw new Error('Response lost')
-      return Response.json({ ok: true, show: { ...body.show, id: 'generated-id' }, deleted: true })
+      if (body.action === 'addShow') store.push({ ...body.show, id: 'generated-id', date: options.shiftDate ? dayBefore(body.show.date) : body.show.date })
+      if (body.action === 'updateShow') { const at = store.findIndex(x => x.id === body.id); const row = { ...body.show, id: body.id, date: options.shiftDate === 'always' ? dayBefore(body.show.date) : body.show.date }; if (at >= 0) store[at] = row; else store.push(row) }
+      if (body.action === 'deleteShow') { const at = store.findIndex(x => x.id === body.id); if (at >= 0) store.splice(at, 1) }
+      return Response.json({ ok: true, show: { ...body.show, id: body.id ?? 'generated-id' }, deleted: true })
     }
     throw new Error('Unexpected URL ' + url)
   }))
@@ -101,4 +108,42 @@ it('rejects a caller without a Supabase bearer token before making requests', as
   const response = await onRequest({ request: new Request('https://site/api/publish-show', { method: 'POST', body: JSON.stringify({ id: '11111111-1111-4111-8111-111111111111' }) }), env: { SUPABASE_URL: 'https://db', SUPABASE_SERVICE_ROLE_KEY: 'key', ADMIN_SECRET: 'secret', APPS_SCRIPT_URL: 'https://script' } })
   expect(response.status).toBe(401)
   expect(fetcher).not.toHaveBeenCalled()
+})
+
+it('does nothing until WEBSITE_PUBLISH is on, and still rejects unauthenticated callers', async () => {
+  const backend = fakeBackend()
+  const off = { ...env, WEBSITE_PUBLISH: '' }
+  const result = await onRequest({ request: request(), env: off })
+  expect(await result.json()).toEqual({ ok: true, outcome: 'disabled' })
+  expect(backend.writes).toEqual([])
+  expect((fetch as unknown as { mock: { calls: string[][] } }).mock.calls.some(c => c[0] === 'https://script')).toBe(false)
+  fakeBackend({ invalidToken: true })
+  expect((await onRequest({ request: request(), env: off })).status).toBe(401)
+})
+it('retries when Apps Script says Busy (the 15-minute sheet sync holds the lock) and then unpublishes', async () => {
+  const backend = fakeBackend({ event: { ...inquiry, status: 'tentative' }, showId: 'generated-id', shows: [{ id: 'generated-id', date: '2026-11-14' }], busy: 2 })
+  expect((await onRequest({ request: request(), env })).status).toBe(200)
+  expect(backend.writes).toEqual([{ action: 'deleteShow', id: 'generated-id', secret: 'secret' }])
+  expect(backend.mapping().show_id).toBeNull()
+})
+it('gives up after repeated Busy and keeps the mapping so Retry can finish the job', async () => {
+  const backend = fakeBackend({ event: { ...inquiry, status: 'tentative' }, showId: 'generated-id', shows: [{ id: 'generated-id', date: '2026-11-14' }], busy: 99 })
+  const result = await onRequest({ request: request(), env })
+  expect(result.status).toBe(502)
+  expect((await result.json() as { message: string }).message).toMatch(/Busy/)
+  expect(backend.mapping().show_id).toBe('generated-id')
+})
+it('repairs a date the sheet stored one day early (the cell was coerced to a Date)', async () => {
+  const backend = fakeBackend({ shiftDate: 'add' })
+  expect((await onRequest({ request: request(), env })).status).toBe(200)
+  expect(backend.writes.map(w => w.action)).toEqual(['addShow', 'updateShow'])
+  expect(backend.writes[1]).toMatchObject({ id: 'generated-id', show: { date: '2026-11-14' } })
+  expect(backend.mapping().show_id).toBe('generated-id')
+})
+it('reports an error, never silent success, when the date cannot be corrected', async () => {
+  const backend = fakeBackend({ shiftDate: 'always' })
+  const result = await onRequest({ request: request(), env })
+  expect(result.status).toBe(502)
+  expect((await result.json() as { message: string }).message).toMatch(/2026-11-13.*2026-11-14/)
+  expect(backend.mapping().show_id).toBe('generated-id')
 })
