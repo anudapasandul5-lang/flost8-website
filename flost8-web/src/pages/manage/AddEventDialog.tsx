@@ -104,7 +104,7 @@ export default function AddEventDialog({
         <p className="px-4 pb-4 font-grotesk text-[13.5px] text-[var(--ink-72)] md:px-6">A booking you took outside the sheet. It stays in this app only.</p>
 
         <form
-          className="space-y-4 px-4 pb-6 md:px-6"
+          className="space-y-4 px-4 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-6"
           onSubmit={(e) => {
             e.preventDefault()
             void save()
@@ -126,13 +126,13 @@ export default function AddEventDialog({
               <label htmlFor="ae-date" className={LABEL}>
                 Date
               </label>
-              <input id="ae-date" type="date" value={f.date} onChange={(e) => set({ date: e.target.value })} className={INPUT} style={{ colorScheme: 'dark' }} required />
+              <input id="ae-date" name="date" autoComplete="off" type="date" value={f.date} onChange={(e) => set({ date: e.target.value })} className={INPUT} style={{ colorScheme: 'dark' }} required />
             </div>
             <div>
               <label htmlFor="ae-time" className={LABEL}>
                 Set time (optional)
               </label>
-              <input id="ae-time" value={f.setTime} onChange={(e) => set({ setTime: e.target.value })} placeholder="10:00 pm" className={INPUT} />
+              <input id="ae-time" name="set_time" autoComplete="off" value={f.setTime} onChange={(e) => set({ setTime: e.target.value })} placeholder="10:00 pm" className={INPUT} />
             </div>
           </div>
 
@@ -151,20 +151,20 @@ export default function AddEventDialog({
             <label htmlFor="ae-name" className={LABEL}>
               Event name
             </label>
-            <input id="ae-name" value={f.name} onChange={(e) => set({ name: e.target.value })} className={INPUT} />
+            <input id="ae-name" name="event_name" autoComplete="off" value={f.name} onChange={(e) => set({ name: e.target.value })} className={INPUT} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label htmlFor="ae-venue" className={LABEL}>
                 Venue
               </label>
-              <input id="ae-venue" value={f.venue} onChange={(e) => set({ venue: e.target.value })} className={INPUT} />
+              <input id="ae-venue" name="venue" autoComplete="off" value={f.venue} onChange={(e) => set({ venue: e.target.value })} className={INPUT} />
             </div>
             <div>
               <label htmlFor="ae-city" className={LABEL}>
                 City
               </label>
-              <input id="ae-city" value={f.city} onChange={(e) => set({ city: e.target.value })} className={INPUT} />
+              <input id="ae-city" name="city" autoComplete="off" value={f.city} onChange={(e) => set({ city: e.target.value })} className={INPUT} />
             </div>
           </div>
 
@@ -184,7 +184,7 @@ export default function AddEventDialog({
               <label htmlFor="ae-fee" className={LABEL}>
                 Fee
               </label>
-              <input id="ae-fee" inputMode="decimal" value={f.fee} onChange={(e) => set({ fee: e.target.value })} placeholder="120,000" className={INPUT} />
+              <input id="ae-fee" name="fee" autoComplete="off" inputMode="decimal" value={f.fee} onChange={(e) => set({ fee: e.target.value })} placeholder="120,000" className={INPUT} />
             </div>
             <fieldset>
               <legend className={LABEL}>Currency</legend>
@@ -203,13 +203,13 @@ export default function AddEventDialog({
               <label htmlFor="ae-org" className={LABEL}>
                 Organizer
               </label>
-              <input id="ae-org" value={f.organizer} onChange={(e) => set({ organizer: e.target.value })} className={INPUT} />
+              <input id="ae-org" name="organizer" autoComplete="off" value={f.organizer} onChange={(e) => set({ organizer: e.target.value })} className={INPUT} />
             </div>
             <div>
               <label htmlFor="ae-phone" className={LABEL}>
                 Phone / WhatsApp
               </label>
-              <input id="ae-phone" type="tel" inputMode="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value })} className={INPUT} />
+              <input id="ae-phone" name="phone" autoComplete="off" type="tel" inputMode="tel" value={f.phone} onChange={(e) => set({ phone: e.target.value })} className={INPUT} />
             </div>
           </div>
 
@@ -228,7 +228,7 @@ export default function AddEventDialog({
               Cancel
             </button>
             <button type="submit" disabled={busy} className={`${BTN_PRIMARY} flex-1`}>
-              {busy ? 'Adding...' : clash.length > 0 ? 'Add anyway' : 'Add event'}
+              {busy ? 'Adding…' : clash.length > 0 ? 'Add anyway' : 'Add event'}
             </button>
           </div>
         </form>

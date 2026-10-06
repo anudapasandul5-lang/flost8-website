@@ -165,12 +165,14 @@ export async function saveMoney(inquiryId: string, money: Money): Promise<void> 
  */
 export async function createEvent(input: NewEventInput, ownerId: string | null): Promise<string> {
   const sb = getSupabase()
-  const made = await sb.from('inquiries').insert(toInquiryRow(input, ownerId)).select('id').single()
+  // The id is made here and the insert asks for nothing back: a manager's "can I read the new row" check
+  // (can_view) cannot see a row created in the same statement, so insert ... returning is refused for managers.
+  const id = crypto.randomUUID()
+  const made = await sb.from('inquiries').insert({ id, ...toInquiryRow(input, ownerId) })
   if (made.error) {
     if (isRlsError(made.error)) throw new NotAllowedError()
     throw made.error
   }
-  const id = (made.data as { id: string }).id
   const lineup = await sb
     .from('inquiry_artists')
     .insert(input.artists.map((artist_slug, n) => ({ inquiry_id: id, position: n + 1, artist_slug })))

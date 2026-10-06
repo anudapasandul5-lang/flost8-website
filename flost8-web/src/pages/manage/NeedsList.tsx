@@ -26,6 +26,9 @@ function Avatars({ slugs, artists }: { slugs: string[]; artists: Artist[] }) {
           key={s}
           src={`/photos/${s}.webp`}
           alt=""
+          width={46}
+          height={46}
+          loading="lazy"
           title={artists.find((a) => a.slug === s)?.name}
           className={`h-[46px] w-[46px] rounded-full border-2 border-[var(--bg-raise)] bg-[#2a1a36] object-cover [object-position:center_22%] ${n > 0 ? '-ml-3.5' : ''}`}
         />
@@ -48,7 +51,7 @@ function MoreMenu({ items }: { items: { label: string; hint?: string; href?: str
       document.removeEventListener('keydown', esc)
     }
   }, [open])
-  const row = 'flex min-h-[44px] w-full items-center gap-3 whitespace-nowrap rounded-[10px] px-3.5 text-left font-grotesk text-[14.5px] text-[var(--ink-72)] hover:bg-white/5 hover:text-ink'
+  const row = `flex min-h-[44px] w-full items-center gap-3 whitespace-nowrap rounded-[10px] px-3.5 text-left font-grotesk text-[14.5px] text-[var(--ink-72)] hover:bg-white/5 hover:text-ink ${FOCUS_RING}`
   return (
     <div ref={ref} className="relative">
       <button

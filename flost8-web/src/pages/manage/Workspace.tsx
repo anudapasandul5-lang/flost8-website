@@ -239,13 +239,12 @@ function Dashboard({
           </button>
         </div>
       )}
-      <div role="tablist" aria-label="View" className="mb-5 flex gap-1 rounded-full border border-[var(--bg-line)] bg-[var(--bg-raise)] p-1 md:max-w-[460px]">
+      <div role="group" aria-label="View" className="mb-5 flex gap-1 rounded-full border border-[var(--bg-line)] bg-[var(--bg-raise)] p-1 md:max-w-[460px]">
         {tabs.map((t) => (
           <button
             key={t.id}
             type="button"
-            role="tab"
-            aria-selected={view === t.id}
+            aria-pressed={view === t.id}
             onClick={() => setView(t.id)}
             className={`flex min-h-[44px] flex-1 items-center justify-center rounded-full font-grotesk text-[14.5px] transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-[var(--accent-ink)] ${
               view === t.id ? 'bg-[var(--accent-soft)] font-medium text-ink shadow-[inset_0_0_0_1px_var(--accent-line)]' : 'text-[var(--ink-72)]'
@@ -256,8 +255,9 @@ function Dashboard({
               (needsRows.length > 0 ? (
                 <b className="ml-2 inline-grid h-[22px] min-w-[22px] place-items-center rounded-full bg-accent px-1.5 text-[12.5px] font-semibold text-ink">{needsRows.length}</b>
               ) : (
-                <span className="ml-1.5" aria-label="nothing waiting">
-                  ✓
+                <span className="ml-1.5">
+                  <span aria-hidden="true">✓</span>
+                  <span className="sr-only"> nothing waiting</span>
                 </span>
               ))}
           </button>
