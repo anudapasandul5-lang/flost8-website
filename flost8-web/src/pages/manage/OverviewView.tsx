@@ -184,7 +184,10 @@ function Tiles({ props, filtered, waiting }: { props: OverviewViewProps; filtere
       </Tile>
 
       <Tile label="Deposits collected" onClick={click('deposits')} gauge={<Gauge pct={t.deposits[0]?.pct ?? null} />}>
-        <span className={VALUE}>{t.deposits[0]?.pct == null ? '-' : `${t.deposits[0].pct}%`}</span>
+        <span className={VALUE}>
+          {t.deposits[0]?.pct == null ? '-' : `${t.deposits[0].pct}%`}
+          {t.deposits.length > 1 && t.deposits[0]?.pct != null && <span className="ml-1.5 text-[13px] font-normal text-[var(--ink-50)]">{t.deposits[0].currency}</span>}
+        </span>
         <span className={SUB}>
           {t.deposits.length === 0
             ? 'Nothing quoted yet'
@@ -200,7 +203,7 @@ function Tiles({ props, filtered, waiting }: { props: OverviewViewProps; filtere
   )
 }
 
-function Charts({ filtered, today }: { filtered: Inquiry[]; today: string }) {
+function Charts({ filtered, today, owner }: { filtered: Inquiry[]; today: string; owner: boolean }) {
   const pipe = useMemo(() => pipeline(filtered), [filtered])
   const money = useMemo(() => moneyByMonth(filtered, today), [filtered, today])
   const anyMoney = money.months.some((m) => m.quoted > 0 || m.deposits > 0)
@@ -267,7 +270,7 @@ function Charts({ filtered, today }: { filtered: Inquiry[]; today: string }) {
         {(money.skipped > 0 || money.otherCurrency > 0) && (
           <p className="mt-2 font-grotesk text-[12px] text-[var(--ink-50)]">
             {[
-              money.skipped > 0 && `${money.skipped} ${money.skipped === 1 ? 'show has' : 'shows have'} no money you can see`,
+              money.skipped > 0 && `${money.skipped} ${money.skipped === 1 ? 'show has' : 'shows have'} ${owner ? 'no money recorded' : 'no money you can see'}`,
               money.otherCurrency > 0 && `${money.otherCurrency} priced in another currency, not shown`,
             ]
               .filter(Boolean)
@@ -402,7 +405,7 @@ export default function OverviewView(props: OverviewViewProps) {
       <div className="lg:order-last">
         <FollowUps props={props} rows={rows} />
       </div>
-      <Charts filtered={filtered} today={props.today} />
+      <Charts filtered={filtered} today={props.today} owner={props.role === 'owner'} />
     </div>
   )
 }
