@@ -102,7 +102,8 @@ it('Needs you / Team follow-ups: rows are focusable once each and Enter opens th
   expect(rows.map((e) => e.dataset.rowId)).toEqual(['n1'])
   rows[0].focus()
   expect(document.activeElement).toBe(rows[0])
-  fireEvent.keyDown(rows[0], { key: 'Enter' })
+  // fireEvent returns false when the event was default-prevented: the Enter must not also press the button the drawer focuses.
+  expect(fireEvent.keyDown(rows[0], { key: 'Enter' })).toBe(false)
   expect(open).toHaveBeenCalledWith('n1')
   // Enter on a button inside the card must not also open the row.
   open.mockClear()

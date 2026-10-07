@@ -224,7 +224,10 @@ export default function NeedsList({
             // Not a tab stop (the card's own buttons are): arrow keys land here, and Enter on the card itself opens it.
             tabIndex={-1}
             onKeyDown={(e) => {
-              if (e.key === 'Enter' && e.target === e.currentTarget) onOpen(row.inquiry.id)
+              if (e.key !== 'Enter' || e.target !== e.currentTarget) return
+              // Stops the same Enter from also pressing whichever button the opened drawer focuses (it would close it at once).
+              e.preventDefault()
+              onOpen(row.inquiry.id)
             }}
             className="rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-ink)]"
             layout={!reduce}

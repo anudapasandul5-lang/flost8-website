@@ -329,7 +329,7 @@ export default function ContactDrawer({
                           {NOTE_LABEL[n.kind]} by {who(n.author_id)}, {when(n.created_at)}
                         </span>
                         {(n.author_id === me.id || me.role === 'owner') && (
-                          <button type="button" onClick={() => void run(() => deleteContactNote(n.id), 'Deleted')} className="min-h-[32px] px-2 underline">
+                          <button type="button" onClick={() => void run(() => deleteContactNote(n.id), 'Deleted')} className="min-h-[44px] px-2 underline">
                             Delete
                           </button>
                         )}
