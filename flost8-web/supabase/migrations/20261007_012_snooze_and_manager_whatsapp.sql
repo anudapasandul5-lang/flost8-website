@@ -7,6 +7,8 @@
 --     functions; the column is kept out of every other role's table privileges.
 -- Existing inquiries RLS (inquiries_update) already covers the new column like every other inquiry column.
 
+begin;
+
 -- ---------- (1) snooze ----------
 alter table public.inquiries add column snoozed_until date;
 
@@ -76,3 +78,5 @@ create or replace function public.set_manager_whatsapp(p_manager uuid, p_whatsap
 
 revoke execute on function public.manager_whatsapps(), public.set_manager_whatsapp(uuid, text) from public, anon;
 grant  execute on function public.manager_whatsapps(), public.set_manager_whatsapp(uuid, text) to authenticated, service_role;
+
+commit;
