@@ -221,6 +221,12 @@ export default function NeedsList({
           <motion.li
             key={row.inquiry.id}
             data-row-id={row.inquiry.id}
+            // Not a tab stop (the card's own buttons are): arrow keys land here, and Enter on the card itself opens it.
+            tabIndex={-1}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && e.target === e.currentTarget) onOpen(row.inquiry.id)
+            }}
+            className="rounded-2xl outline-none focus-visible:ring-2 focus-visible:ring-[var(--accent-ink)]"
             layout={!reduce}
             exit={reduce ? { opacity: 0 } : { opacity: 0, x: 60, transition: { duration: 0.22 } }}
           >

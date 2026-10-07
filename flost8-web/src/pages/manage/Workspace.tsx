@@ -2,14 +2,14 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { SignOut } from '@phosphor-icons/react'
 import { addComment, snoozeInquiry, fetchDirectory, fetchInquiries, fetchLastTouch, friendlyError, saveMoney, updateInquiry } from '../../lib/manage/api'
 import { applyFilters, DEFAULT_FILTERS, todayISO, type Filters } from '../../lib/manage/filters'
-import { duplicateInput, bulkSummary, runBulk } from '../../lib/manage/rowActions'
+import { canSetStatus, duplicateInput, bulkSummary, runBulk } from '../../lib/manage/rowActions'
 import { EMPTY_EVENT, type NewEventInput } from '../../lib/manage/newEvent'
 import { isSnoozed, snoozedLabel } from '../../lib/manage/snooze'
 import { STATUS_LABEL } from '../../lib/manage/status'
 import { signOut, useLoad } from '../../lib/manage/hooks'
 import { inquiryTitle } from '../../lib/manage/labels'
 import { formatAmount, totalsByCurrency } from '../../lib/manage/money'
-import { loadFilters, moveHighlight, overlayIsOpen, saveFilters, shortcutFor, tileTarget } from '../../lib/manage/navState'
+import { focusableRows, loadFilters, moveHighlight, overlayIsOpen, saveFilters, shortcutFor, tileTarget } from '../../lib/manage/navState'
 import { needsAction, nextBookedShow, REASON_RANK, type NeedsActionContext } from '../../lib/manage/needsAction'
 import { nudgeLines } from '../../lib/manage/nudge'
 import { summarise } from '../../lib/manage/summaries'
@@ -375,19 +375,29 @@ function Dashboard({
     schedule(i.id, `${snoozedLabel(until, ctx.today)} · ${inquiryTitle(i)}`, () => snoozeInquiry(i.id, until))
   }
 
-  const onSetStatus = (i: Inquiry, status: Status) =>
+  const onSetStatus = (i: Inquiry, status: Status) => {
+    // The menu never offers this on a sheet row; refuse here too, so no other caller can queue a write the importer would undo.
+    if (!canSetStatus(i, me)) return setToast({ kind: 'error', text: 'Sheet rows cannot be changed here. Edit them in the sheet.' })
     schedule(i.id, `Marked ${STATUS_LABEL[status].toLowerCase()} · ${inquiryTitle(i)}`, async () => {
       await updateInquiry(i.id, { status })
       if (i.source === 'manual') await onPublish(i.id)
     })
+  }
 
   // One undo window for the whole batch; then each row is updated on its own so one refusal never blocks the rest.
-  const onBulkStatus = (ids: string[], status: 'lost' | 'spam') =>
+  const onBulkStatus = (wanted: string[], status: 'lost' | 'spam') => {
+    // Only rows this person may status-edit (never sheet rows), judged on the current data.
+    const ids = wanted.filter((id) => {
+      const row = inquiries.find((x) => x.id === id)
+      return !!row && canSetStatus(row, me)
+    })
+    if (ids.length === 0) return setToast({ kind: 'error', text: 'None of those rows can be changed here.' })
     schedule(`bulk:${ids.join(',')}`, `Marked ${ids.length} as ${STATUS_LABEL[status].toLowerCase()}`, async () => {
       const result = await runBulk(ids, (id) => updateInquiry(id, { status }))
       await Promise.all(result.done.filter((id) => inquiries.find((x) => x.id === id)?.source === 'manual').map((id) => onPublish(id)))
       setToast({ kind: result.done.length === result.total ? 'ok' : 'error', text: bulkSummary(result, 'updated') })
     })
+  }
 
   return (
     <>
@@ -688,7 +698,7 @@ function Views({
         e.preventDefault()
         onAdd()
       } else {
-        const rows = Array.from(document.querySelectorAll<HTMLElement>('[data-row-id]'))
+        const rows = focusableRows(document)
         if (rows.length === 0) return
         e.preventDefault()
         const ids = rows.map((r) => r.dataset.rowId ?? '')

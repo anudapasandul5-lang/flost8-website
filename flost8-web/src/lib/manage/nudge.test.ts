@@ -55,6 +55,8 @@ describe('normaliseWhatsapp', () => {
 describe('nudgeUrl', () => {
   it('uses digits only and encodes the message', () => {
     expect(nudgeUrl('+94 77 123 4567', 'Hi & bye?')).toBe('https://wa.me/94771234567?text=Hi%20%26%20bye%3F')
+    expect(nudgeUrl('0771234567', 'Hi')).toBe('https://wa.me/94771234567?text=Hi')
+    expect(nudgeUrl('94771234567', 'Hi')).toBe('https://wa.me/94771234567?text=Hi')
   })
 })
 

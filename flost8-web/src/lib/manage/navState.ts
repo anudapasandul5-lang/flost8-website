@@ -139,6 +139,22 @@ export function shortcutFor(e: KeyLike, overlayOpen: boolean): Shortcut | null {
   }
 }
 
+/**
+ * The elements arrow keys walk: those marked data-row-id that can really take focus (a button, link or tabindex), one per id.
+ * A wrapper that is not focusable, or a second element carrying the same id, would make focus() do nothing and strand the arrows.
+ */
+export function focusableRows(root: ParentNode): HTMLElement[] {
+  const seen = new Set<string>()
+  const out: HTMLElement[] = []
+  for (const el of Array.from(root.querySelectorAll<HTMLElement>('[data-row-id]'))) {
+    const id = el.dataset.rowId ?? ''
+    if (!id || seen.has(id) || !el.matches('button, a[href], [tabindex]')) continue
+    seen.add(id)
+    out.push(el)
+  }
+  return out
+}
+
 /** Next id one step up or down; stops at the ends. No current (or an unknown one) starts from the top, or the bottom going up. */
 export function moveHighlight(ids: readonly string[], current: string | null, dir: 'up' | 'down'): string | null {
   if (ids.length === 0) return null

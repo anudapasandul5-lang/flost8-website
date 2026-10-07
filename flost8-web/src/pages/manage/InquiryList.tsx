@@ -104,7 +104,7 @@ export default function InquiryList({
         const fee = i.money?.fee
         const selectable = canSetStatus(i, me)
         return (
-          <li key={i.id} data-row-id={i.id}>
+          <li key={i.id}>
             {year && year !== prev && (
               <h3 className={`mb-2 font-display text-2xl leading-none ${n > 0 ? 'mt-5' : ''} ${year.endsWith(String(THIS_YEAR)) ? 'text-ink' : 'text-[#FCD34D]'}`}>{year}</h3>
             )}

@@ -362,7 +362,7 @@ function FollowUps({ props, rows, snoozed }: { props: OverviewViewProps; rows: N
                 <li key={i.id} className={`relative grid gap-x-3 gap-y-0.5 border-b border-[var(--bg-line)] py-3 pl-4 pr-1 last:border-b-0 md:items-center md:px-3 ${ROW_COLS}`}>
                   <span aria-hidden="true" className="absolute bottom-3 left-0 top-3 w-1 rounded-r md:left-0" style={{ backgroundColor: color }} />
                   <div className="min-w-0">
-                    <button type="button" onClick={() => onOpen(i.id)} className={`block max-w-full truncate rounded text-left font-grotesk text-[15px] font-medium text-ink hover:underline ${FOCUS_RING}`}>
+                    <button type="button" data-row-id={i.id} onClick={() => onOpen(i.id)} className={`block max-w-full truncate rounded text-left font-grotesk text-[15px] font-medium text-ink hover:underline ${FOCUS_RING}`}>
                       {inquiryTitle(i)}
                     </button>
                     <small className="block truncate font-grotesk text-xs text-[var(--ink-50)]">
@@ -395,8 +395,8 @@ function FollowUps({ props, rows, snoozed }: { props: OverviewViewProps; rows: N
           {snoozed.slice(0, TOP_ROWS).map(({ inquiry: i }) => (
             <li key={i.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 py-2 pl-4 pr-1">
               <div className="min-w-0">
-                <button type="button" onClick={() => onOpen(i.id)} className={`block max-w-full truncate rounded text-left font-grotesk text-[14.5px] text-ink hover:underline ${FOCUS_RING}`}>
-                  {inquiryTitle(i)}
+                <button type="button" data-row-id={i.id} onClick={() => onOpen(i.id)} className={`flex min-h-[44px] max-w-full items-center rounded text-left font-grotesk text-[14.5px] text-ink hover:underline ${FOCUS_RING}`}>
+                  <span className="truncate">{inquiryTitle(i)}</span>
                 </button>
                 <small className="block font-grotesk text-xs text-[var(--ink-72)]">{snoozedLabel(i.snoozed_until!, today)}</small>
               </div>

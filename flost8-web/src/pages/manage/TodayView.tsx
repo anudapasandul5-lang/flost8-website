@@ -69,9 +69,10 @@ export default function TodayView({
           </h2>
           <ul className="space-y-2">
             {payments.map((p) => (
-              <li key={p.inquiry.id} data-row-id={p.inquiry.id}>
+              <li key={p.inquiry.id}>
                 <button
                   type="button"
+                  data-row-id={p.inquiry.id}
                   onClick={() => onOpenInquiry(p.inquiry.id)}
                   className={`${PANEL} flex min-h-[60px] w-full flex-wrap items-center justify-between gap-x-3 gap-y-1 p-3 text-left ${FOCUS_RING}`}
                   style={{ borderLeft: `3px solid ${p.overdue ? '#FF6B6B' : '#FCD34D'}` }}

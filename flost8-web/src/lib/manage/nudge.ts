@@ -31,8 +31,11 @@ export function normaliseWhatsapp(input: string): string | null {
   return /^\+?\d{7,15}$/.test(s) ? s : null
 }
 
+/** A stored number with no + and a leading 0 is a Sri Lankan local number (same rule as waLink): wa.me needs 94 instead of the 0. */
 export function nudgeUrl(whatsapp: string, message: string): string {
-  return `https://wa.me/${whatsapp.replace(/\D/g, '')}?text=${encodeURIComponent(message)}`
+  const digits = whatsapp.replace(/\D/g, '')
+  const intl = whatsapp.trim().startsWith('+') ? digits : digits.startsWith('0') ? `94${digits.slice(1)}` : digits
+  return `https://wa.me/${intl}?text=${encodeURIComponent(message)}`
 }
 
 /** Next-step lines for one manager's open items (rows are attributed by owner_id, like the needs list and summaries). */
