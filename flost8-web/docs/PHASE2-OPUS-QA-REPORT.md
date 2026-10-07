@@ -18,8 +18,11 @@ migration chain 001..N in order on a fresh in-memory Postgres and checks the fil
 |---|---|---|---|---|---|---|---|
 | 1 | `4557caf` (as delivered) | clean / clean | clean | 33 files, 384 passed | ok | 118 / 28 / **36 of 37** | **Fail**: contact_stats leak (D1) |
 | 2 | `dc3b81a` (fixes D1 to D8, guides) | clean / clean | clean | 34 files, 392 passed | ok | 118 / 28 / 37 | Clean |
-| 3 | final code, fresh clone | see section 9 | | | | | |
-| 4 | final code, fresh clone | see section 9 | | | | | |
+| 3 | `9805987` (final app code), fresh clone + `npm ci` | clean / clean | clean | 34 files, 392 passed | ok | 118 / 28 / 37 | Clean |
+| 4 | `9805987` again, second fresh clone | clean / clean | clean | 34 files, 392 passed | ok | 118 / 28 / 37 | Clean |
+
+Between rounds 2 and 3 the code changed (D8 phone wrap, D9 calendar a11y), so round 2 does not count toward the final pair.
+Rounds 3 and 4 are two consecutive clean rounds on identical code. The only commit after them is this report.
 
 Note: `tsc --noEmit -p .` uses a references-only root config and type-checks nothing; `npm run build` (`tsc -b`) and
 `tsc -p tsconfig.app.json` are the real checks. Both were run every round.
@@ -145,6 +148,16 @@ could follow both on a phone. The HTML files are self-contained and work offline
 4. Switch on `WEBSITE_PUBLISH` only when you want app events on the public Shows list.
 5. Later: switch the sheet importer off before the contacts cutover (script 011).
 
-## 9. Final rounds and rating
+## 9. Rating: 8 out of 10
 
-See the final message of the run for rounds 3 and 4 (filled in below after they ran).
+What earns it: the as-delivered branch was re-verified from scratch and its numbers reproduced; a real privacy leak that is
+live in production today (D1) was found, proven with a failing check and fixed in migration 013; nine more defects were fixed at
+the root with a test each; the browser QA ran the real migrations and real RLS (not a hand-written fake that trusts the UI),
+78 of 78 steps at two widths and two roles on the final code; the guides were audited claim by claim and fixed in both formats;
+two consecutive clean verify rounds on identical code from fresh clones.
+
+Missing 2 points:
+- **-1: nothing touched the real thing.** No real phone, Google sign-in, live database, WhatsApp or screen reader. Migrations
+  012 and 013 are proven only in PGlite, and the fake client is not PostgREST.
+- **-1: open items I chose not to fix here.** The forgeable `updated_at` (section 7) and the 1000-row reads of inquiries,
+  last-touch and reminders. Both are small today but they are real, and D1 shows that a fully proven baseline can still hide a leak.
