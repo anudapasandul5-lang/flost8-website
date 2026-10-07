@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Warning } from '@phosphor-icons/react'
 import { formatDate } from '../../lib/manage/calendar'
-import { todayISO } from '../../lib/manage/filters'
 import { artistNames, inquiryTitle } from '../../lib/manage/labels'
 import { formatAmount } from '../../lib/manage/money'
 import { isSnoozed, snoozedLabel } from '../../lib/manage/snooze'
@@ -14,10 +13,8 @@ import { StatusBadge } from './ui'
 
 const MON3 = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
 
-const TODAY = todayISO()
-const THIS_YEAR = new Date().getFullYear()
 
-function DateBlock({ date }: { date: string | null }) {
+function DateBlock({ date, thisYear }: { date: string | null; thisYear: number }) {
   if (!date)
     return (
       <div className="flex h-14 w-16 shrink-0 flex-col items-center justify-center rounded-xl border border-dashed border-[var(--bg-line)] text-center font-grotesk text-[11px] leading-tight text-[var(--ink-50)]">
@@ -29,11 +26,11 @@ function DateBlock({ date }: { date: string | null }) {
   const [y, m, d] = date.split('-').map(Number)
   return (
     <div
-      className={`flex h-14 w-16 shrink-0 flex-col items-center justify-center rounded-xl text-center ${y === THIS_YEAR ? 'bg-[var(--accent-soft)]' : 'border border-[#FCD34D]/50 bg-[#FCD34D]/10'}`}
+      className={`flex h-14 w-16 shrink-0 flex-col items-center justify-center rounded-xl text-center ${y === thisYear ? 'bg-[var(--accent-soft)]' : 'border border-[#FCD34D]/50 bg-[#FCD34D]/10'}`}
       aria-label={formatDate(date)}
     >
       <span className="font-display text-2xl leading-none text-ink">{d}</span>
-      <span className={`font-grotesk text-[11px] font-medium tracking-wide ${y === THIS_YEAR ? 'text-[var(--accent-ink)]' : 'text-[#FCD34D]'}`}>
+      <span className={`font-grotesk text-[11px] font-medium tracking-wide ${y === thisYear ? 'text-[var(--accent-ink)]' : 'text-[#FCD34D]'}`}>
         {MON3[m - 1]} {y}
       </span>
     </div>
@@ -44,6 +41,7 @@ export default function InquiryList({
   items,
   artists,
   conflicts,
+  today,
   onOpen,
   onClear,
   me,
@@ -63,11 +61,13 @@ export default function InquiryList({
   /** Called with the ticked rows; each one is updated on its own and the result reported. */
   onBulkStatus: (ids: string[], status: 'lost' | 'spam') => void
   conflicts: ReadonlySet<string>
+  /** YYYY-MM-DD, kept current by the caller (useToday). */
+  today: string
   onOpen: (id: string) => void
   onClear: () => void
 }) {
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set())
-  const actions: RowActions = { onDuplicate, onSetStatus, onSnooze, today: todayISO() }
+  const actions: RowActions = { onDuplicate, onSetStatus, onSnooze, today }
   // Ticks for rows that have left the list (a filter changed) must not be acted on.
   const ticked = items.filter((i) => picked.has(i.id) && canSetStatus(i, me)).map((i) => i.id)
   const toggle = (id: string) =>
@@ -97,7 +97,7 @@ export default function InquiryList({
     <ul className="space-y-2">
       {items.map((i, n) => {
         // Upcoming years come first, then past ones; a section label changes when the year or the upcoming/past side changes.
-        const section = (x: Inquiry | undefined) => (x?.event_date ? `${x.event_date < TODAY ? 'Past · ' : ''}${x.event_date.slice(0, 4)}` : undefined)
+        const section = (x: Inquiry | undefined) => (x?.event_date ? `${x.event_date < today ? 'Past · ' : ''}${x.event_date.slice(0, 4)}` : undefined)
         const year = section(i)
         const prev = n > 0 ? section(items[n - 1]) : undefined
         const place = [i.venue, i.city].filter(Boolean).join(', ')
@@ -106,7 +106,7 @@ export default function InquiryList({
         return (
           <li key={i.id}>
             {year && year !== prev && (
-              <h3 className={`mb-2 font-display text-2xl leading-none ${n > 0 ? 'mt-5' : ''} ${year.endsWith(String(THIS_YEAR)) ? 'text-ink' : 'text-[#FCD34D]'}`}>{year}</h3>
+              <h3 className={`mb-2 font-display text-2xl leading-none ${n > 0 ? 'mt-5' : ''} ${year.endsWith(today.slice(0, 4)) ? 'text-ink' : 'text-[#FCD34D]'}`}>{year}</h3>
             )}
             <div className="flex items-center gap-1 rounded-2xl border border-[var(--bg-line)] bg-[var(--bg-raise)] pr-2 transition hover:border-[var(--accent-line)]">
               {selectable ? (
@@ -128,7 +128,7 @@ export default function InquiryList({
               onClick={() => onOpen(i.id)}
               className={`flex min-h-[72px] min-w-0 flex-1 items-center gap-3 rounded-2xl py-3 pr-1 text-left active:scale-[0.99] ${FOCUS_RING}`}
             >
-              <DateBlock date={i.event_date} />
+              <DateBlock date={i.event_date} thisYear={Number(today.slice(0, 4))} />
               <div className="min-w-0 flex-1">
                 <p className="truncate font-grotesk text-[1.0625rem] font-medium text-ink">{inquiryTitle(i)}</p>
                 <p className="truncate font-grotesk text-sm text-[var(--ink-72)]">{artistNames(i.artists, artists) || 'No artist yet'}</p>
@@ -136,7 +136,7 @@ export default function InquiryList({
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1.5">
                 <StatusBadge status={i.status} />
-                {isSnoozed(i, TODAY) && <span className="font-grotesk text-[12px] text-[var(--ink-50)]">{snoozedLabel(i.snoozed_until!, TODAY)}</span>}
+                {isSnoozed(i, today) && <span className="font-grotesk text-[12px] text-[var(--ink-50)]">{snoozedLabel(i.snoozed_until!, today)}</span>}
                 {i.source === 'manual' && (
                   <span className="rounded-full border border-[var(--accent-line)] px-2 py-0.5 font-grotesk text-[11.5px] text-[var(--accent-ink)]">Added in app</span>
                 )}

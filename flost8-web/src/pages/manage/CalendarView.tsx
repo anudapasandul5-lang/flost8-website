@@ -14,17 +14,19 @@ export default function CalendarView({
   items,
   artists,
   conflicts,
+  today = todayISO(),
   onOpen,
   onAddOnDate,
 }: {
   items: Inquiry[]
   artists: Artist[]
   conflicts: ReadonlySet<string>
+  /** YYYY-MM-DD; the caller keeps it current (useToday). */
+  today?: string
   onOpen: (id: string) => void
   /** Opens Add event on that day (YYYY-MM-DD). Omit when this person cannot add events. */
   onAddOnDate?: (date: string) => void
 }) {
-  const today = todayISO()
   const [ty, tm] = today.split('-').map(Number)
   const [{ year, month0 }, setMonth] = useState({ year: ty, month0: tm - 1 })
   const [picked, setPicked] = useState<string | null>(null)

@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { SignOut } from '@phosphor-icons/react'
 import { addComment, snoozeInquiry, fetchDirectory, fetchInquiries, fetchLastTouch, friendlyError, saveMoney, updateInquiry } from '../../lib/manage/api'
-import { applyFilters, DEFAULT_FILTERS, todayISO, type Filters } from '../../lib/manage/filters'
+import { applyFilters, DEFAULT_FILTERS, type Filters } from '../../lib/manage/filters'
 import { canSetStatus, duplicateInput, bulkSummary, runBulk } from '../../lib/manage/rowActions'
 import { EMPTY_EVENT, type NewEventInput } from '../../lib/manage/newEvent'
 import { isSnoozed, snoozedLabel } from '../../lib/manage/snooze'
 import { STATUS_LABEL } from '../../lib/manage/status'
-import { signOut, useLoad } from '../../lib/manage/hooks'
+import { signOut, useLoad, useToday } from '../../lib/manage/hooks'
 import { inquiryTitle } from '../../lib/manage/labels'
 import { formatAmount, totalsByCurrency } from '../../lib/manage/money'
 import { focusableRows, loadFilters, moveHighlight, overlayIsOpen, saveFilters, shortcutFor, tileTarget } from '../../lib/manage/navState'
@@ -72,7 +72,8 @@ export default function Workspace({ me }: { me: Manager }) {
   const inq = useLoad(loadInq)
   const touch = useLoad(loadTouch)
   const contactsQ = useLoad(useCallback(() => fetchContacts(), []))
-  const statsQ = useLoad(useCallback(() => fetchContactStats(todayISO()), []))
+  const today = useToday()
+  const statsQ = useLoad(useCallback(() => fetchContactStats(today), [today]))
   const remindersQ = useLoad(useCallback(() => fetchOpenReminders(), []))
   const refreshContacts = contactsQ.refresh
   const refreshStats = statsQ.refresh
@@ -206,7 +207,8 @@ function Dashboard({
     finally { setResyncBusy(false) }
   }
 
-  const ctx = useMemo(() => ({ mySlugs, today: todayISO() }), [mySlugs])
+  const today = useToday()
+  const ctx = useMemo(() => ({ mySlugs, today }), [mySlugs, today])
   const open = inquiries.find((i) => i.id === openId) ?? null
   const editing = inquiries.find((i) => i.id === editingId) ?? null
   const openContact = crm.contacts.find((c) => c.id === contactId) ?? null
@@ -886,6 +888,7 @@ function Views({
             items={filtered}
             artists={directory.artists}
             conflicts={conflicts}
+            today={today}
             me={me}
             managers={directory.managers}
             onDuplicate={onDuplicate}
@@ -897,7 +900,7 @@ function Views({
           />
         </>
       ) : (
-        <CalendarView items={forCalendar} artists={directory.artists} conflicts={conflicts} onOpen={onOpen} onAddOnDate={onAdd} />
+        <CalendarView items={forCalendar} artists={directory.artists} conflicts={conflicts} today={today} onOpen={onOpen} onAddOnDate={onAdd} />
       )}
     </>
   )

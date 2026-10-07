@@ -1,6 +1,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, expect, it, vi } from 'vitest'
 import { focusableRows, overlayIsOpen, shortcutFor } from '../../lib/manage/navState'
+import { todayISO } from '../../lib/manage/filters'
 import { KASUNI, makeInquiry, OWNER } from '../../lib/manage/testFixtures'
 import apiSrc from '../../lib/manage/api.ts?raw'
 import nudgeSrc from '../../lib/manage/nudgeApi.ts?raw'
@@ -23,10 +24,10 @@ it('contract: nudgeApi rpc names, arguments and columns match migration 012', ()
   expect(api).toContain('manager_id: string; whatsapp: string')
 })
 
-it('contract: migration 012 follows 011 with no gap or clash, and anon cannot run the new functions', () => {
+it('contract: migrations are numbered 1..N with no gap or clash (012 and 013 follow 011), and anon cannot run the new functions', () => {
   const nums = Object.keys(migrations).sort().map((f) => Number(/\/\d+_(\d+)_[^/]*$/.exec(f)?.[1]))
   expect(nums).toEqual(Array.from({ length: nums.length }, (_, n) => n + 1))
-  expect(nums.at(-1)).toBe(12)
+  expect(nums.at(-1)).toBe(13)
   expect(sql012()).toMatch(/revoke execute on function public\.manager_whatsapps\(\), public\.set_manager_whatsapp\(uuid, text\) from public, anon/)
 })
 
@@ -68,7 +69,7 @@ const appRow = makeInquiry({ id: 'app1', source: 'manual', owner_id: KASUNI.id, 
 
 it('All list: one focusable element per row so arrow keys work, and sheet rows cannot be selected or status-edited', () => {
   const { container } = render(
-    <InquiryList items={[sheetRow, webRow, appRow]} artists={[]} me={KASUNI} managers={[KASUNI]} conflicts={new Set()} onOpen={noop} onClear={noop} onDuplicate={noop} onSetStatus={noop} onSnooze={noop} onBulkStatus={noop} />,
+    <InquiryList items={[sheetRow, webRow, appRow]} artists={[]} me={KASUNI} managers={[KASUNI]} conflicts={new Set()} today={todayISO()} onOpen={noop} onClear={noop} onDuplicate={noop} onSetStatus={noop} onSnooze={noop} onBulkStatus={noop} />,
   )
   expect(focusableRows(container).map((e) => e.dataset.rowId)).toEqual(['sheet1', 'web1', 'app1'])
   expect(container.querySelectorAll('[data-row-id]')).toHaveLength(3)
@@ -84,7 +85,7 @@ it('All list: one focusable element per row so arrow keys work, and sheet rows c
 
 it('All list: bulk bar only acts on ticked, status-editable rows', () => {
   const bulk = vi.fn()
-  render(<InquiryList items={[sheetRow, webRow]} artists={[]} me={KASUNI} managers={[KASUNI]} conflicts={new Set()} onOpen={noop} onClear={noop} onDuplicate={noop} onSetStatus={noop} onSnooze={noop} onBulkStatus={bulk} />)
+  render(<InquiryList items={[sheetRow, webRow]} artists={[]} me={KASUNI} managers={[KASUNI]} conflicts={new Set()} today={todayISO()} onOpen={noop} onClear={noop} onDuplicate={noop} onSetStatus={noop} onSnooze={noop} onBulkStatus={bulk} />)
   fireEvent.click(screen.getByRole('checkbox'))
   fireEvent.click(screen.getByRole('button', { name: 'Mark spam' }))
   expect(bulk).toHaveBeenCalledWith(['web1'], 'spam')
