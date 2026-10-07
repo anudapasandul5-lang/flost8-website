@@ -75,6 +75,7 @@ export default function InquiryList({
             )}
             <button
               type="button"
+              data-row-id={i.id}
               onClick={() => onOpen(i.id)}
               className={`flex min-h-[72px] w-full items-center gap-4 rounded-2xl border border-[var(--bg-line)] bg-[var(--bg-raise)] p-3 text-left transition hover:border-[var(--accent-line)] active:scale-[0.99] ${FOCUS_RING}`}
             >

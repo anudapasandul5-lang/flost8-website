@@ -1,6 +1,7 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import { AddressBook, BellRinging, CalendarBlank, CalendarCheck, ListBullets, Plus, SignOut, SquaresFour } from '@phosphor-icons/react'
 import { signOut } from '../../lib/manage/hooks'
+import { loadView, saveView } from '../../lib/manage/navState'
 import type { Reason } from '../../lib/manage/needsAction'
 import type { Manager } from '../../lib/manage/types'
 import { BTN_GHOST, FOCUS_RING, REASON_COLOR } from './styles'
@@ -41,9 +42,14 @@ export interface ShellProps {
 
 const MAX_W = 'max-w-[1440px]'
 
+// Views each role has in its nav; a remembered view outside this list is ignored.
+const OWNER_VIEWS: View[] = ['overview', 'needs', 'contacts', 'all', 'calendar']
+const MANAGER_VIEWS: View[] = ['today', 'contacts', 'all', 'calendar']
+
 /** Sidebar from 1024px up, bottom tab bar below. Owns which view is open and the manager filter. */
 export default function Shell({ me, team, needCount, totalCount, followUpCount = 0, onAdd, onResync, resyncBusy, children }: ShellProps) {
-  const [view, setView] = useState<View>(me.role === 'owner' ? 'overview' : 'today')
+  const [view, setView] = useState<View>(() => (me.role === 'owner' ? loadView(me.id, OWNER_VIEWS, 'overview') : loadView(me.id, MANAGER_VIEWS, 'today')))
+  useEffect(() => saveView(me.id, view), [me.id, view])
   const [managerFilter, setManagerFilter] = useState<string | null>(null)
   const owner = me.role === 'owner'
   const needsLabel = owner ? 'Team follow-ups' : 'Needs you'

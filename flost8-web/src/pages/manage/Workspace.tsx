@@ -5,6 +5,7 @@ import { applyFilters, DEFAULT_FILTERS, todayISO, type Filters } from '../../lib
 import { signOut, useLoad } from '../../lib/manage/hooks'
 import { inquiryTitle } from '../../lib/manage/labels'
 import { formatAmount, totalsByCurrency } from '../../lib/manage/money'
+import { loadFilters, moveHighlight, overlayIsOpen, saveFilters, shortcutFor, tileTarget } from '../../lib/manage/navState'
 import { needsAction, nextBookedShow, REASON_RANK, type NeedsActionContext } from '../../lib/manage/needsAction'
 import { summarise } from '../../lib/manage/summaries'
 import type { Artist, Inquiry, Manager } from '../../lib/manage/types'
@@ -156,6 +157,11 @@ function Dashboard({
   )
   const [openId, setOpenId] = useState<string | null>(null)
   const [adding, setAdding] = useState(false)
+  const [addDate, setAddDate] = useState('')
+  const openAdd = useCallback((date?: string) => {
+    setAddDate(date ?? '')
+    setAdding(true)
+  }, [])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [toast, setToast] = useState<ToastMsg | null>(null)
   const clearToast = useCallback(() => setToast(null), [])
@@ -350,7 +356,7 @@ function Dashboard({
           </button>
         </div>
       )}
-      <Shell me={me} team={team} needCount={waiting.length} followUpCount={followUpCount} totalCount={inquiries.length} onAdd={pickable.length > 0 ? () => setAdding(true) : undefined} onResync={me.role === 'owner' ? () => void resync() : undefined} resyncBusy={resyncBusy}>
+      <Shell me={me} team={team} needCount={waiting.length} followUpCount={followUpCount} totalCount={inquiries.length} onAdd={pickable.length > 0 ? () => openAdd() : undefined} onResync={me.role === 'owner' ? () => void resync() : undefined} resyncBusy={resyncBusy}>
         {({ view, setView, managerFilter, setManagerFilter }) => (
           <Views
             me={me}
@@ -367,6 +373,7 @@ function Dashboard({
             conflicts={conflicts}
             naCtx={naCtx}
             nextShow={nextShow}
+            onAdd={pickable.length > 0 ? openAdd : undefined}
             onOpen={setOpenId}
             onChased={onChased}
             onAdvance={onAdvance}
@@ -411,6 +418,7 @@ function Dashboard({
           managers={directory.managers}
           contacts={crm.contacts}
           inquiries={inquiries}
+          initialDate={addDate || undefined}
           onContactCreated={() => crmReload()}
           onClose={() => setAdding(false)}
           onSaved={(id) => {
@@ -551,6 +559,7 @@ function Views({
   conflicts,
   naCtx,
   nextShow,
+  onAdd,
   onOpen,
   onChased,
   onAdvance,
@@ -579,6 +588,8 @@ function Views({
   conflicts: ReadonlySet<string>
   naCtx: NeedsActionContext
   nextShow: Inquiry | undefined
+  /** Opens Add event, on a given day when one is passed. Omitted when this person cannot add events. */
+  onAdd?: (date?: string) => void
   onOpen: (id: string) => void
   onChased: (i: Inquiry) => void
   onAdvance: (i: Inquiry, kind: AdvanceKind) => void
@@ -594,10 +605,43 @@ function Views({
   notify: (t: ToastMsg) => void
 }) {
   // Someone who looks after no artists (the owner) would see an empty "My artists" list.
-  const [filters, setFilters] = useState<Filters>(() => ({
-    ...DEFAULT_FILTERS,
-    scope: me.role === 'owner' && mySlugs.size === 0 ? 'everyone' : 'mine',
-  }))
+  // Remembered per person; a remembered scope or artist this person can no longer use is dropped.
+  const [filters, setFilters] = useState<Filters>(() => {
+    const owner = me.role === 'owner'
+    const noOwn = owner && mySlugs.size === 0
+    const f = loadFilters(me.id, { ...DEFAULT_FILTERS, scope: noOwn ? 'everyone' : 'mine' })
+    const allowed = owner ? directory.artists : directory.artists.filter((a) => mySlugs.has(a.slug))
+    return { ...f, scope: !owner ? 'mine' : noOwn ? 'everyone' : f.scope, artist: allowed.some((a) => a.slug === f.artist) ? f.artist : '' }
+  })
+  useEffect(() => saveFilters(me.id, filters), [me.id, filters])
+
+  // Desktop shortcuts: "/" search, "N" add event, Up/Down walk the rows (real focus, so Enter opens the row natively).
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      const act = shortcutFor(e, overlayIsOpen(document))
+      if (!act) return
+      if (act === 'search') {
+        const box = document.getElementById('m-search')
+        if (!box) return
+        e.preventDefault()
+        box.focus()
+      } else if (act === 'add') {
+        if (!onAdd) return
+        e.preventDefault()
+        onAdd()
+      } else {
+        const rows = Array.from(document.querySelectorAll<HTMLElement>('[data-row-id]'))
+        if (rows.length === 0) return
+        e.preventDefault()
+        const ids = rows.map((r) => r.dataset.rowId ?? '')
+        const here = document.activeElement instanceof HTMLElement ? (document.activeElement.closest<HTMLElement>('[data-row-id]')?.dataset.rowId ?? null) : null
+        const next = moveHighlight(ids, here, act)
+        if (next !== null) rows[ids.indexOf(next)]?.focus()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onAdd])
   const ctx = useMemo(() => ({ mySlugs, today }), [mySlugs, today])
   // A manager's own shows: ones they own, plus any carrying one of their artists (joint bills owned by another manager).
   const mine = useMemo(
@@ -698,6 +742,11 @@ function Views({
           onOpen={onOpen}
           onChased={onChased}
           onViewAll={() => setView('needs')}
+          onTile={(tile) => {
+            const go = tileTarget(tile, me.role, filters)
+            if (go.filters) setFilters(go.filters)
+            setView(go.view)
+          }}
         />
         <RightColumn
           me={me}
@@ -765,7 +814,7 @@ function Views({
           />
         </>
       ) : (
-        <CalendarView items={forCalendar} artists={directory.artists} conflicts={conflicts} onOpen={onOpen} />
+        <CalendarView items={forCalendar} artists={directory.artists} conflicts={conflicts} onOpen={onOpen} onAddOnDate={onAdd} />
       )}
     </>
   )
