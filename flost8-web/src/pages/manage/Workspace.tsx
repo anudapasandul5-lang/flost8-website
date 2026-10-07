@@ -7,6 +7,7 @@ import { inquiryTitle } from '../../lib/manage/labels'
 import { formatAmount, totalsByCurrency } from '../../lib/manage/money'
 import { loadFilters, moveHighlight, overlayIsOpen, saveFilters, shortcutFor, tileTarget } from '../../lib/manage/navState'
 import { needsAction, nextBookedShow, REASON_RANK, type NeedsActionContext } from '../../lib/manage/needsAction'
+import { nudgeLines } from '../../lib/manage/nudge'
 import { summarise } from '../../lib/manage/summaries'
 import type { Artist, Inquiry, Manager } from '../../lib/manage/types'
 import { publishShow, resyncWebsite } from '../../lib/manage/publishShow'
@@ -657,8 +658,13 @@ function Views({
   // The owner sees every show; a manager sees only their own artists' shows. The manager filter narrows both.
   const showsFor = useMemo(() => mine.filter(byManager), [mine, byManager])
   const managerRows = useMemo(
-    () => team.map((t) => ({ ...t, artistCount: directory.artists.filter((a) => a.manager_id === t.id).length })),
-    [team, directory.artists],
+    () =>
+      team.map((t) => ({
+        ...t,
+        artistCount: directory.artists.filter((a) => a.manager_id === t.id).length,
+        nudgeLines: me.role === 'owner' ? nudgeLines(t.id, waiting, inquiries, naCtx) : undefined,
+      })),
+    [team, directory.artists, me.role, waiting, inquiries, naCtx],
   )
 
   const reminders = managerFilter ? crm.reminders.filter((r) => r.manager_id === managerFilter) : crm.reminders
