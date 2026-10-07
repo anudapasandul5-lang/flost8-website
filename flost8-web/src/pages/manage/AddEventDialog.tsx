@@ -237,7 +237,11 @@ export default function AddEventDialog({
 
           {!editing && (
           <p className="font-grotesk text-[13px] text-[var(--ink-50)]">
-            {me.role === 'owner' ? (ownerName ? `Will be owned by ${ownerName}.` : 'Pick an artist to see who will own it.') : 'Will be added to your list.'} Money stays visible only to you and Anuda.
+            {me.role === 'owner'
+              ? ownerName
+                ? `Will be owned by ${ownerName}. Money stays visible only to you and ${ownerName}.`
+                : 'Pick an artist to see who will own it.'
+              : 'Will be added to your list. Money stays visible only to you and Anuda.'}
           </p>
           )}
 
