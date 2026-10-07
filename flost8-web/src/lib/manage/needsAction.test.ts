@@ -183,3 +183,24 @@ describe('tentative', () => {
     expect(nextBookedShow([mine({ id: 't', status: 'tentative', event_date: '2026-10-12' })], TODAY)).toBeUndefined()
   })
 })
+
+describe('snooze', () => {
+  const quiet = (over = {}) => mine({ id: 'a', status: 'new', ...over })
+  const old = { lastTouch: new Map([['a', hoursAgo(30)]]) }
+  it('a row snoozed until a future date is left out', () => {
+    expect(needsAction(quiet({ snoozed_until: '2026-10-11' }), ctx(old))).toEqual([])
+  })
+  it('snoozed until today comes back', () => {
+    expect(needsAction(quiet({ snoozed_until: TODAY }), ctx(old))).toEqual(['no_reply'])
+  })
+  it('snoozed until a past date comes back', () => {
+    expect(needsAction(quiet({ snoozed_until: '2026-10-01' }), ctx(old))).toEqual(['no_reply'])
+  })
+  it('includeSnoozed shows what the flags would be (owner view)', () => {
+    expect(needsAction(quiet({ snoozed_until: '2026-10-11' }), ctx({ ...old, includeSnoozed: true }))).toEqual(['no_reply'])
+  })
+  it('snoozing hides a double booking and an unpaid balance too', () => {
+    const i = mine({ id: 'a', status: 'booking_confirmed', event_date: '2026-10-20', money: money(1000), snoozed_until: '2026-10-12' })
+    expect(needsAction(i, ctx({ conflicts: new Set(['a']) }))).toEqual([])
+  })
+})

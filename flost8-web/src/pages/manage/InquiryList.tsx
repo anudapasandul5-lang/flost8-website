@@ -1,9 +1,14 @@
+import { useState } from 'react'
 import { Warning } from '@phosphor-icons/react'
 import { formatDate } from '../../lib/manage/calendar'
 import { todayISO } from '../../lib/manage/filters'
 import { artistNames, inquiryTitle } from '../../lib/manage/labels'
 import { formatAmount } from '../../lib/manage/money'
-import type { Artist, Inquiry } from '../../lib/manage/types'
+import { isSnoozed, snoozedLabel } from '../../lib/manage/snooze'
+import { canSetStatus } from '../../lib/manage/rowActions'
+import type { Artist, Inquiry, Manager, Status } from '../../lib/manage/types'
+import { commonRowItems, type RowActions } from '../../lib/manage/rowMenu'
+import RowMenu from './RowMenu'
 import { BTN_GHOST, FOCUS_RING } from './styles'
 import { StatusBadge } from './ui'
 
@@ -41,13 +46,41 @@ export default function InquiryList({
   conflicts,
   onOpen,
   onClear,
+  me,
+  managers,
+  onDuplicate,
+  onSetStatus,
+  onSnooze,
+  onBulkStatus,
 }: {
   items: Inquiry[]
   artists: Artist[]
+  me: Manager
+  managers: Manager[]
+  onDuplicate: (i: Inquiry) => void
+  onSetStatus: (i: Inquiry, status: Status) => void
+  onSnooze: (i: Inquiry, until: string | null) => void
+  /** Called with the ticked rows; each one is updated on its own and the result reported. */
+  onBulkStatus: (ids: string[], status: 'lost' | 'spam') => void
   conflicts: ReadonlySet<string>
   onOpen: (id: string) => void
   onClear: () => void
 }) {
+  const [picked, setPicked] = useState<ReadonlySet<string>>(new Set())
+  const actions: RowActions = { onDuplicate, onSetStatus, onSnooze, today: todayISO() }
+  // Ticks for rows that have left the list (a filter changed) must not be acted on.
+  const ticked = items.filter((i) => picked.has(i.id) && canSetStatus(i, me)).map((i) => i.id)
+  const toggle = (id: string) =>
+    setPicked((p) => {
+      const n = new Set(p)
+      if (!n.delete(id)) n.add(id)
+      return n
+    })
+  const bulk = (status: 'lost' | 'spam') => {
+    onBulkStatus(ticked, status)
+    setPicked(new Set())
+  }
+
   if (items.length === 0)
     return (
       <div className="rounded-2xl border border-dashed border-[var(--bg-line)] p-8 text-center">
@@ -60,6 +93,7 @@ export default function InquiryList({
     )
 
   return (
+    <>
     <ul className="space-y-2">
       {items.map((i, n) => {
         // Upcoming years come first, then past ones; a section label changes when the year or the upcoming/past side changes.
@@ -68,16 +102,31 @@ export default function InquiryList({
         const prev = n > 0 ? section(items[n - 1]) : undefined
         const place = [i.venue, i.city].filter(Boolean).join(', ')
         const fee = i.money?.fee
+        const selectable = canSetStatus(i, me)
         return (
-          <li key={i.id}>
+          <li key={i.id} data-row-id={i.id}>
             {year && year !== prev && (
               <h3 className={`mb-2 font-display text-2xl leading-none ${n > 0 ? 'mt-5' : ''} ${year.endsWith(String(THIS_YEAR)) ? 'text-ink' : 'text-[#FCD34D]'}`}>{year}</h3>
             )}
+            <div className="flex items-center gap-1 rounded-2xl border border-[var(--bg-line)] bg-[var(--bg-raise)] pr-2 transition hover:border-[var(--accent-line)]">
+              {selectable ? (
+                <label className="grid h-12 w-11 shrink-0 cursor-pointer place-items-center pl-1">
+                  <input
+                    type="checkbox"
+                    checked={picked.has(i.id)}
+                    onChange={() => toggle(i.id)}
+                    aria-label={`Select ${inquiryTitle(i)}`}
+                    className="h-5 w-5 accent-[#9D14FF]"
+                  />
+                </label>
+              ) : (
+                <span aria-hidden="true" className="w-3 shrink-0" />
+              )}
             <button
               type="button"
               data-row-id={i.id}
               onClick={() => onOpen(i.id)}
-              className={`flex min-h-[72px] w-full items-center gap-4 rounded-2xl border border-[var(--bg-line)] bg-[var(--bg-raise)] p-3 text-left transition hover:border-[var(--accent-line)] active:scale-[0.99] ${FOCUS_RING}`}
+              className={`flex min-h-[72px] min-w-0 flex-1 items-center gap-3 rounded-2xl py-3 pr-1 text-left active:scale-[0.99] ${FOCUS_RING}`}
             >
               <DateBlock date={i.event_date} />
               <div className="min-w-0 flex-1">
@@ -87,6 +136,7 @@ export default function InquiryList({
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1.5">
                 <StatusBadge status={i.status} />
+                {isSnoozed(i, TODAY) && <span className="font-grotesk text-[12px] text-[var(--ink-50)]">{snoozedLabel(i.snoozed_until!, TODAY)}</span>}
                 {i.source === 'manual' && (
                   <span className="rounded-full border border-[var(--accent-line)] px-2 py-0.5 font-grotesk text-[11.5px] text-[var(--accent-ink)]">Added in app</span>
                 )}
@@ -101,9 +151,20 @@ export default function InquiryList({
                 )}
               </div>
             </button>
+              <RowMenu items={[...commonRowItems(i, me, managers, actions), { label: 'Open details', onClick: () => onOpen(i.id) }]} />
+            </div>
           </li>
         )
       })}
     </ul>
+    {ticked.length > 0 && (
+      <div role="region" aria-label="Selected inquiries" className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-20 mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-[var(--accent-line)] bg-[#241433] p-2 pl-4 shadow-[0_8px_30px_rgba(10,4,14,0.6)] lg:bottom-4">
+        <span className="mr-auto font-grotesk text-[15px] text-ink" aria-live="polite">{ticked.length} selected</span>
+        <button type="button" onClick={() => bulk('lost')} className={BTN_GHOST}>Mark lost</button>
+        <button type="button" onClick={() => bulk('spam')} className={BTN_GHOST}>Mark spam</button>
+        <button type="button" onClick={() => setPicked(new Set())} className={BTN_GHOST}>Clear</button>
+      </div>
+    )}
+    </>
   )
 }

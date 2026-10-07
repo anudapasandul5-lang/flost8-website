@@ -69,7 +69,7 @@ export default function TodayView({
           </h2>
           <ul className="space-y-2">
             {payments.map((p) => (
-              <li key={p.inquiry.id}>
+              <li key={p.inquiry.id} data-row-id={p.inquiry.id}>
                 <button
                   type="button"
                   onClick={() => onOpenInquiry(p.inquiry.id)}

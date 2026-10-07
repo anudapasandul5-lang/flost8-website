@@ -71,6 +71,8 @@ export interface Inquiry {
   contract_url: string | null
   travel_notes: string | null
   lost_reason: string | null
+  /** Hidden from Needs you until this date (YYYY-MM-DD); null = not snoozed. */
+  snoozed_until: string | null
   /** Artist slugs in lineup order. */
   artists: string[]
   /** Present only when the database let this manager see the money. */

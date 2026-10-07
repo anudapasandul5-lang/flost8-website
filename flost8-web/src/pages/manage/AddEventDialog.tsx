@@ -27,7 +27,7 @@ export default function AddEventDialog({
   onClose,
   onSaved,
   editing,
-  initialDate,
+  initial,
 }: {
   me: Manager
   /** Artists this person may pick. */
@@ -44,10 +44,10 @@ export default function AddEventDialog({
   onSaved: (id: string) => void
   /** Set to edit a saved event instead of adding one. Status is changed in the drawer, not here. */
   editing?: Inquiry
-  /** YYYY-MM-DD to start the date field on (a day tapped in the Calendar). Ignored when editing. */
-  initialDate?: string
+  /** Starting values for a new event (Duplicate). Ignored when editing. */
+  initial?: NewEventInput
 }) {
-  const [f, setF] = useState<NewEventInput>(() => (editing ? toEditInput(editing) : initialDate ? { ...EMPTY_EVENT, date: initialDate } : EMPTY_EVENT))
+  const [f, setF] = useState<NewEventInput>(() => (editing ? toEditInput(editing) : (initial ?? EMPTY_EVENT)))
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const eventId = useRef(newId()) // same id on every retry, so a retry never makes a duplicate

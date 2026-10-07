@@ -1,7 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { SignOut } from '@phosphor-icons/react'
-import { addComment, fetchDirectory, fetchInquiries, fetchLastTouch, friendlyError, saveMoney, updateInquiry } from '../../lib/manage/api'
+import { addComment, snoozeInquiry, fetchDirectory, fetchInquiries, fetchLastTouch, friendlyError, saveMoney, updateInquiry } from '../../lib/manage/api'
 import { applyFilters, DEFAULT_FILTERS, todayISO, type Filters } from '../../lib/manage/filters'
+import { duplicateInput, bulkSummary, runBulk } from '../../lib/manage/rowActions'
+import { EMPTY_EVENT, type NewEventInput } from '../../lib/manage/newEvent'
+import { isSnoozed, snoozedLabel } from '../../lib/manage/snooze'
+import { STATUS_LABEL } from '../../lib/manage/status'
 import { signOut, useLoad } from '../../lib/manage/hooks'
 import { inquiryTitle } from '../../lib/manage/labels'
 import { formatAmount, totalsByCurrency } from '../../lib/manage/money'
@@ -9,7 +13,7 @@ import { loadFilters, moveHighlight, overlayIsOpen, saveFilters, shortcutFor, ti
 import { needsAction, nextBookedShow, REASON_RANK, type NeedsActionContext } from '../../lib/manage/needsAction'
 import { nudgeLines } from '../../lib/manage/nudge'
 import { summarise } from '../../lib/manage/summaries'
-import type { Artist, Inquiry, Manager } from '../../lib/manage/types'
+import type { Artist, Inquiry, Manager, Status } from '../../lib/manage/types'
 import { publishShow, resyncWebsite } from '../../lib/manage/publishShow'
 import { fetchContacts, fetchContactStats, fetchOpenReminders, setContactDeleted, undoMerge } from '../../lib/manage/contactsApi'
 import { bestPhone, contextBooking, pendingPayments, quietContacts, reminderBucket, type Contact, type ContactStats, type Reminder } from '../../lib/manage/contacts'
@@ -157,12 +161,8 @@ function Dashboard({
     [directory.artists, me.id],
   )
   const [openId, setOpenId] = useState<string | null>(null)
-  const [adding, setAdding] = useState(false)
-  const [addDate, setAddDate] = useState('')
-  const openAdd = useCallback((date?: string) => {
-    setAddDate(date ?? '')
-    setAdding(true)
-  }, [])
+  const [adding, setAdding] = useState<{ initial?: NewEventInput } | null>(null)
+  const openAdd = useCallback((date?: string) => setAdding(date ? { initial: { ...EMPTY_EVENT, date } } : {}), [])
   const [editingId, setEditingId] = useState<string | null>(null)
   const [toast, setToast] = useState<ToastMsg | null>(null)
   const clearToast = useCallback(() => setToast(null), [])
@@ -250,6 +250,18 @@ function Dashboard({
             (a.inquiry.event_date ?? '9999').localeCompare(b.inquiry.event_date ?? '9999'),
         ),
     [inquiries, naCtx],
+  )
+  // The owner's follow-ups list also shows what is snoozed (dimmed), so a hidden row is never lost track of.
+  const snoozedRows = useMemo<NeedsRow[]>(
+    () =>
+      me.role !== 'owner'
+        ? []
+        : inquiries
+            .filter((i) => isSnoozed(i, ctx.today))
+            .map((inquiry) => ({ inquiry, reasons: needsAction(inquiry, { ...naCtx, includeSnoozed: true }) }))
+            .filter((r) => r.reasons.length > 0)
+            .sort((a, b) => (a.inquiry.snoozed_until ?? '').localeCompare(b.inquiry.snoozed_until ?? '')),
+    [me.role, inquiries, naCtx, ctx.today],
   )
   // What is still waiting (cards leave it the moment they are actioned) for everyone, not just the filtered manager.
   const waiting = useMemo(() => needsAll.filter((r) => !hidden.has(r.inquiry.id)), [needsAll, hidden])
@@ -347,6 +359,36 @@ function Dashboard({
     })
   }
 
+  const onDuplicate = (i: Inquiry) => setAdding({ initial: duplicateInput(i, new Set(pickable.map((a) => a.slug))) })
+
+  const onSnooze = (i: Inquiry, until: string | null) => {
+    if (until === null) {
+      void snoozeInquiry(i.id, null).then(
+        () => {
+          setToast({ kind: 'ok', text: `Unsnoozed · ${inquiryTitle(i)}` })
+          reload()
+        },
+        (err) => setToast({ kind: 'error', text: friendlyError(err) }),
+      )
+      return
+    }
+    schedule(i.id, `${snoozedLabel(until, ctx.today)} · ${inquiryTitle(i)}`, () => snoozeInquiry(i.id, until))
+  }
+
+  const onSetStatus = (i: Inquiry, status: Status) =>
+    schedule(i.id, `Marked ${STATUS_LABEL[status].toLowerCase()} · ${inquiryTitle(i)}`, async () => {
+      await updateInquiry(i.id, { status })
+      if (i.source === 'manual') await onPublish(i.id)
+    })
+
+  // One undo window for the whole batch; then each row is updated on its own so one refusal never blocks the rest.
+  const onBulkStatus = (ids: string[], status: 'lost' | 'spam') =>
+    schedule(`bulk:${ids.join(',')}`, `Marked ${ids.length} as ${STATUS_LABEL[status].toLowerCase()}`, async () => {
+      const result = await runBulk(ids, (id) => updateInquiry(id, { status }))
+      await Promise.all(result.done.filter((id) => inquiries.find((x) => x.id === id)?.source === 'manual').map((id) => onPublish(id)))
+      setToast({ kind: result.done.length === result.total ? 'ok' : 'error', text: bulkSummary(result, 'updated') })
+    })
+
   return (
     <>
       {crm.error && (
@@ -371,6 +413,7 @@ function Dashboard({
             setView={setView}
             team={team}
             waiting={waiting}
+            snoozedRows={snoozedRows}
             conflicts={conflicts}
             naCtx={naCtx}
             nextShow={nextShow}
@@ -378,6 +421,10 @@ function Dashboard({
             onOpen={setOpenId}
             onChased={onChased}
             onAdvance={onAdvance}
+            onDuplicate={onDuplicate}
+            onSetStatus={onSetStatus}
+            onSnooze={onSnooze}
+            onBulkStatus={onBulkStatus}
             crm={crm}
             onOpenContact={setContactId}
             onNewContact={() => setContactForm({})}
@@ -413,17 +460,17 @@ function Dashboard({
       )}
       {adding && (
         <AddEventDialog
+          initial={adding.initial}
           me={me}
           artists={pickable}
           allArtists={directory.artists}
           managers={directory.managers}
           contacts={crm.contacts}
           inquiries={inquiries}
-          initialDate={addDate || undefined}
           onContactCreated={() => crmReload()}
-          onClose={() => setAdding(false)}
+          onClose={() => setAdding(null)}
           onSaved={(id) => {
-            setAdding(false)
+            setAdding(null)
             setToast({ kind: 'ok', text: 'Event added' })
             reload()
             setOpenId(id)
@@ -557,6 +604,7 @@ function Views({
   setView,
   team,
   waiting,
+  snoozedRows,
   conflicts,
   naCtx,
   nextShow,
@@ -564,6 +612,10 @@ function Views({
   onOpen,
   onChased,
   onAdvance,
+  onDuplicate,
+  onSetStatus,
+  onSnooze,
+  onBulkStatus,
   crm,
   onOpenContact,
   onNewContact,
@@ -586,6 +638,7 @@ function Views({
   setView: (v: View) => void
   team: TeamItem[]
   waiting: NeedsRow[]
+  snoozedRows: NeedsRow[]
   conflicts: ReadonlySet<string>
   naCtx: NeedsActionContext
   nextShow: Inquiry | undefined
@@ -594,6 +647,10 @@ function Views({
   onOpen: (id: string) => void
   onChased: (i: Inquiry) => void
   onAdvance: (i: Inquiry, kind: AdvanceKind) => void
+  onDuplicate: (i: Inquiry) => void
+  onSetStatus: (i: Inquiry, status: Status) => void
+  onSnooze: (i: Inquiry, until: string | null) => void
+  onBulkStatus: (ids: string[], status: 'lost' | 'spam') => void
   crm: CrmData
   onOpenContact: (id: string) => void
   onNewContact: () => void
@@ -716,7 +773,7 @@ function Views({
               <h2 className="mb-3 font-display text-2xl text-ink">
                 NEEDS YOU <span className="text-[var(--ink-50)]">({needsRows.length})</span>
               </h2>
-              <NeedsList rows={needsRows} all={inquiries} artists={directory.artists} managers={directory.managers} me={me} ctx={naCtx} nextShow={nextShow} onOpen={onOpen} onChased={onChased} onAdvance={onAdvance} onWhatsApp={onWhatsAppInquiry} compactEmpty />
+              <NeedsList rows={needsRows} all={inquiries} artists={directory.artists} managers={directory.managers} me={me} ctx={naCtx} nextShow={nextShow} onOpen={onOpen} onChased={onChased} onAdvance={onAdvance} onWhatsApp={onWhatsAppInquiry} onDuplicate={onDuplicate} onSetStatus={onSetStatus} onSnooze={onSnooze} compactEmpty />
             </section>
           ) : null
         }
@@ -738,6 +795,7 @@ function Views({
         <OverviewView
           inquiries={mine}
           waiting={waiting}
+          snoozed={snoozedRows}
           today={today}
           role={me.role}
           managerFilter={managerFilter}
@@ -787,6 +845,9 @@ function Views({
         onChased={onChased}
         onAdvance={onAdvance}
         onWhatsApp={onWhatsAppInquiry}
+        onDuplicate={onDuplicate}
+        onSetStatus={onSetStatus}
+        onSnooze={onSnooze}
       />
       </>
     )
@@ -815,6 +876,12 @@ function Views({
             items={filtered}
             artists={directory.artists}
             conflicts={conflicts}
+            me={me}
+            managers={directory.managers}
+            onDuplicate={onDuplicate}
+            onSetStatus={onSetStatus}
+            onSnooze={onSnooze}
+            onBulkStatus={onBulkStatus}
             onOpen={onOpen}
             onClear={() => setFilters({ ...DEFAULT_FILTERS, scope: 'everyone' })}
           />
