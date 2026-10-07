@@ -1,11 +1,12 @@
-import { useEffect, useRef, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
-import { ArrowUpRight, Check, ChatCircle, DotsThree } from '@phosphor-icons/react'
+import { ArrowUpRight, Check, ChatCircle } from '@phosphor-icons/react'
 import { canEditInquiry } from '../../lib/manage/access'
 import { formatDate } from '../../lib/manage/calendar'
-import { artistNames, inquiryTitle, SHEET_URLS } from '../../lib/manage/labels'
+import { artistNames, inquiryTitle } from '../../lib/manage/labels'
 import { nextStep, waLink, type NeedsActionContext, type Reason } from '../../lib/manage/needsAction'
-import type { Artist, Inquiry, Manager } from '../../lib/manage/types'
+import type { Artist, Inquiry, Manager, Status } from '../../lib/manage/types'
+import { commonRowItems, type RowActions } from '../../lib/manage/rowMenu'
+import RowMenu from './RowMenu'
 import { FOCUS_RING, REASON_COLOR } from './styles'
 
 export interface NeedsRow {
@@ -37,70 +38,6 @@ function Avatars({ slugs, artists }: { slugs: string[]; artists: Artist[] }) {
   )
 }
 
-function MoreMenu({ items }: { items: { label: string; hint?: string; href?: string; external?: boolean; onClick?: () => void }[] }) {
-  const [open, setOpen] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-  useEffect(() => {
-    if (!open) return
-    const away = (e: MouseEvent) => !ref.current?.contains(e.target as Node) && setOpen(false)
-    const esc = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false)
-    document.addEventListener('mousedown', away)
-    document.addEventListener('keydown', esc)
-    return () => {
-      document.removeEventListener('mousedown', away)
-      document.removeEventListener('keydown', esc)
-    }
-  }, [open])
-  const row = `flex min-h-[44px] w-full items-center gap-3 whitespace-nowrap rounded-[10px] px-3.5 text-left font-grotesk text-[14.5px] text-[var(--ink-72)] hover:bg-white/5 hover:text-ink ${FOCUS_RING}`
-  return (
-    <div ref={ref} className="relative">
-      <button
-        type="button"
-        aria-label="More actions"
-        aria-haspopup="menu"
-        aria-expanded={open}
-        onClick={() => setOpen((o) => !o)}
-        className={`grid h-12 w-12 place-items-center rounded-full border border-[var(--bg-line)] text-[var(--ink-72)] hover:bg-[var(--bg-raise)] ${FOCUS_RING}`}
-      >
-        <DotsThree size={24} weight="bold" aria-hidden="true" />
-      </button>
-      {open && (
-        <div role="menu" className="absolute right-0 top-[54px] z-20 min-w-[250px] rounded-[14px] border border-[var(--bg-line)] bg-[#24142F] p-1.5 shadow-[0_12px_36px_rgba(10,4,14,0.7)]">
-          {items.map((it) =>
-            it.href ? (
-              <a
-                key={it.label}
-                role="menuitem"
-                href={it.href}
-                {...(it.external ? { target: '_blank', rel: 'noreferrer noopener' } : {})}
-                onClick={() => setOpen(false)}
-                className={row}
-              >
-                {it.label}
-                {it.hint && <small className="ml-auto whitespace-nowrap text-xs text-[var(--ink-50)]">{it.hint}</small>}
-              </a>
-            ) : (
-              <button
-                key={it.label}
-                type="button"
-                role="menuitem"
-                onClick={() => {
-                  setOpen(false)
-                  it.onClick?.()
-                }}
-                className={row}
-              >
-                {it.label}
-                {it.hint && <small className="ml-auto whitespace-nowrap text-xs text-[var(--ink-50)]">{it.hint}</small>}
-              </button>
-            ),
-          )}
-        </div>
-      )}
-    </div>
-  )
-}
-
 function NeedsCard({
   row,
   all,
@@ -112,6 +49,7 @@ function NeedsCard({
   onChased,
   onAdvance,
   onWhatsApp,
+  actions,
 }: {
   row: NeedsRow
   all: Inquiry[]
@@ -124,13 +62,13 @@ function NeedsCard({
   onAdvance: (i: Inquiry, kind: AdvanceKind) => void
   /** When given, WhatsApp opens the template sheet instead of a bare chat. */
   onWhatsApp?: (i: Inquiry) => void
+  actions: RowActions
 }) {
   const { inquiry: i, reasons } = row
   const primary = reasons[0]
   const color = REASON_COLOR[primary]
   const sheet = i.source === 'sheet_import'
   const ownerName = managers.find((m) => m.id === i.owner_id)?.name
-  const sheetUrl = ownerName ? SHEET_URLS[ownerName] : undefined
   const wa = waLink(i.organizer_phone)
   const phone = i.organizer_phone?.replace(/\s/g, '')
   const canEdit = canEditInquiry(i, me)
@@ -180,7 +118,7 @@ function NeedsCard({
     ...(phone ? [{ label: `Call ${i.organizer_phone}`, href: `tel:${phone}` }] : []),
     ...(clearsByComment && primary !== 'quote_quiet' ? [{ label: 'Chased today', onClick: () => onChased(i) }] : []),
     ...(advance ? [{ label: advance.label, hint: 'advance status', onClick: () => onAdvance(i, advance.kind) }] : []),
-    ...(sheet && sheetUrl ? [{ label: 'Edit in sheet', hint: 'opens workbook', href: sheetUrl, external: true }] : []),
+    ...commonRowItems(i, me, managers, actions),
     { label: 'Open details', onClick: () => onOpen(i.id) },
   ]
 
@@ -211,7 +149,7 @@ function NeedsCard({
       </div>
       <div className="col-span-2 mt-2.5 flex gap-2.5 md:col-span-1 md:col-start-3 md:mt-0">
         {button}
-        <MoreMenu items={menu} />
+        <RowMenu items={menu} />
       </div>
     </div>
   )
@@ -229,6 +167,8 @@ export default function NeedsList({
   onChased,
   onAdvance,
   onWhatsApp,
+  onDuplicate,
+  onSetStatus,
   compactEmpty,
 }: {
   rows: NeedsRow[]
@@ -242,10 +182,13 @@ export default function NeedsList({
   onChased: (i: Inquiry) => void
   onAdvance: (i: Inquiry, kind: AdvanceKind) => void
   onWhatsApp?: (i: Inquiry) => void
+  onDuplicate?: (i: Inquiry) => void
+  onSetStatus?: (i: Inquiry, status: Status) => void
   /** Inside the Today screen an empty list simply disappears. */
   compactEmpty?: boolean
 }) {
   const reduce = useReducedMotion()
+  const actions: RowActions = { onDuplicate, onSetStatus }
 
   if (rows.length === 0 && compactEmpty) return null
   if (rows.length === 0)
@@ -275,10 +218,11 @@ export default function NeedsList({
         {rows.map((row) => (
           <motion.li
             key={row.inquiry.id}
+            data-row-id={row.inquiry.id}
             layout={!reduce}
             exit={reduce ? { opacity: 0 } : { opacity: 0, x: 60, transition: { duration: 0.22 } }}
           >
-            <NeedsCard row={row} all={all} artists={artists} managers={managers} me={me} ctx={ctx} onOpen={onOpen} onChased={onChased} onAdvance={onAdvance} onWhatsApp={onWhatsApp} />
+            <NeedsCard row={row} all={all} artists={artists} managers={managers} me={me} ctx={ctx} onOpen={onOpen} onChased={onChased} onAdvance={onAdvance} onWhatsApp={onWhatsApp} actions={actions} />
           </motion.li>
         ))}
       </AnimatePresence>

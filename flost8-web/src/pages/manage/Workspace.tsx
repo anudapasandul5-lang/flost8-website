@@ -2,12 +2,15 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { SignOut } from '@phosphor-icons/react'
 import { addComment, fetchDirectory, fetchInquiries, fetchLastTouch, friendlyError, saveMoney, updateInquiry } from '../../lib/manage/api'
 import { applyFilters, DEFAULT_FILTERS, todayISO, type Filters } from '../../lib/manage/filters'
+import { duplicateInput, bulkSummary, runBulk } from '../../lib/manage/rowActions'
+import type { NewEventInput } from '../../lib/manage/newEvent'
+import { STATUS_LABEL } from '../../lib/manage/status'
 import { signOut, useLoad } from '../../lib/manage/hooks'
 import { inquiryTitle } from '../../lib/manage/labels'
 import { formatAmount, totalsByCurrency } from '../../lib/manage/money'
 import { needsAction, nextBookedShow, REASON_RANK, type NeedsActionContext } from '../../lib/manage/needsAction'
 import { summarise } from '../../lib/manage/summaries'
-import type { Artist, Inquiry, Manager } from '../../lib/manage/types'
+import type { Artist, Inquiry, Manager, Status } from '../../lib/manage/types'
 import { publishShow, resyncWebsite } from '../../lib/manage/publishShow'
 import { fetchContacts, fetchContactStats, fetchOpenReminders, setContactDeleted, undoMerge } from '../../lib/manage/contactsApi'
 import { bestPhone, contextBooking, pendingPayments, quietContacts, reminderBucket, type Contact, type ContactStats, type Reminder } from '../../lib/manage/contacts'
@@ -155,7 +158,7 @@ function Dashboard({
     [directory.artists, me.id],
   )
   const [openId, setOpenId] = useState<string | null>(null)
-  const [adding, setAdding] = useState(false)
+  const [adding, setAdding] = useState<{ initial?: NewEventInput } | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [toast, setToast] = useState<ToastMsg | null>(null)
   const clearToast = useCallback(() => setToast(null), [])
@@ -340,6 +343,22 @@ function Dashboard({
     })
   }
 
+  const onDuplicate = (i: Inquiry) => setAdding({ initial: duplicateInput(i, new Set(pickable.map((a) => a.slug))) })
+
+  const onSetStatus = (i: Inquiry, status: Status) =>
+    schedule(i.id, `Marked ${STATUS_LABEL[status].toLowerCase()} · ${inquiryTitle(i)}`, async () => {
+      await updateInquiry(i.id, { status })
+      if (i.source === 'manual') await onPublish(i.id)
+    })
+
+  // One undo window for the whole batch; then each row is updated on its own so one refusal never blocks the rest.
+  const onBulkStatus = (ids: string[], status: 'lost' | 'spam') =>
+    schedule(`bulk:${ids.join(',')}`, `Marked ${ids.length} as ${STATUS_LABEL[status].toLowerCase()}`, async () => {
+      const result = await runBulk(ids, (id) => updateInquiry(id, { status }))
+      await Promise.all(result.done.filter((id) => inquiries.find((x) => x.id === id)?.source === 'manual').map((id) => onPublish(id)))
+      setToast({ kind: result.done.length === result.total ? 'ok' : 'error', text: bulkSummary(result, 'updated') })
+    })
+
   return (
     <>
       {crm.error && (
@@ -350,7 +369,7 @@ function Dashboard({
           </button>
         </div>
       )}
-      <Shell me={me} team={team} needCount={waiting.length} followUpCount={followUpCount} totalCount={inquiries.length} onAdd={pickable.length > 0 ? () => setAdding(true) : undefined} onResync={me.role === 'owner' ? () => void resync() : undefined} resyncBusy={resyncBusy}>
+      <Shell me={me} team={team} needCount={waiting.length} followUpCount={followUpCount} totalCount={inquiries.length} onAdd={pickable.length > 0 ? () => setAdding({}) : undefined} onResync={me.role === 'owner' ? () => void resync() : undefined} resyncBusy={resyncBusy}>
         {({ view, setView, managerFilter, setManagerFilter }) => (
           <Views
             me={me}
@@ -370,6 +389,9 @@ function Dashboard({
             onOpen={setOpenId}
             onChased={onChased}
             onAdvance={onAdvance}
+            onDuplicate={onDuplicate}
+            onSetStatus={onSetStatus}
+            onBulkStatus={onBulkStatus}
             crm={crm}
             onOpenContact={setContactId}
             onNewContact={() => setContactForm({})}
@@ -405,6 +427,7 @@ function Dashboard({
       )}
       {adding && (
         <AddEventDialog
+          initial={adding.initial}
           me={me}
           artists={pickable}
           allArtists={directory.artists}
@@ -412,9 +435,9 @@ function Dashboard({
           contacts={crm.contacts}
           inquiries={inquiries}
           onContactCreated={() => crmReload()}
-          onClose={() => setAdding(false)}
+          onClose={() => setAdding(null)}
           onSaved={(id) => {
-            setAdding(false)
+            setAdding(null)
             setToast({ kind: 'ok', text: 'Event added' })
             reload()
             setOpenId(id)
@@ -554,6 +577,9 @@ function Views({
   onOpen,
   onChased,
   onAdvance,
+  onDuplicate,
+  onSetStatus,
+  onBulkStatus,
   crm,
   onOpenContact,
   onNewContact,
@@ -582,6 +608,9 @@ function Views({
   onOpen: (id: string) => void
   onChased: (i: Inquiry) => void
   onAdvance: (i: Inquiry, kind: AdvanceKind) => void
+  onDuplicate: (i: Inquiry) => void
+  onSetStatus: (i: Inquiry, status: Status) => void
+  onBulkStatus: (ids: string[], status: 'lost' | 'spam') => void
   crm: CrmData
   onOpenContact: (id: string) => void
   onNewContact: () => void
@@ -666,7 +695,7 @@ function Views({
               <h2 className="mb-3 font-display text-2xl text-ink">
                 NEEDS YOU <span className="text-[var(--ink-50)]">({needsRows.length})</span>
               </h2>
-              <NeedsList rows={needsRows} all={inquiries} artists={directory.artists} managers={directory.managers} me={me} ctx={naCtx} nextShow={nextShow} onOpen={onOpen} onChased={onChased} onAdvance={onAdvance} onWhatsApp={onWhatsAppInquiry} compactEmpty />
+              <NeedsList rows={needsRows} all={inquiries} artists={directory.artists} managers={directory.managers} me={me} ctx={naCtx} nextShow={nextShow} onOpen={onOpen} onChased={onChased} onAdvance={onAdvance} onWhatsApp={onWhatsAppInquiry} onDuplicate={onDuplicate} onSetStatus={onSetStatus} compactEmpty />
             </section>
           ) : null
         }
@@ -732,6 +761,8 @@ function Views({
         onChased={onChased}
         onAdvance={onAdvance}
         onWhatsApp={onWhatsAppInquiry}
+        onDuplicate={onDuplicate}
+        onSetStatus={onSetStatus}
       />
       </>
     )
@@ -760,6 +791,11 @@ function Views({
             items={filtered}
             artists={directory.artists}
             conflicts={conflicts}
+            me={me}
+            managers={directory.managers}
+            onDuplicate={onDuplicate}
+            onSetStatus={onSetStatus}
+            onBulkStatus={onBulkStatus}
             onOpen={onOpen}
             onClear={() => setFilters({ ...DEFAULT_FILTERS, scope: 'everyone' })}
           />
