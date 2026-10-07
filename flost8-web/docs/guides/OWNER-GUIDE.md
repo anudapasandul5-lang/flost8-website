@@ -65,7 +65,7 @@ If you see **NO ACCESS YET**, that Google account is not on the list. Use the ac
 
 | Tile | What it shows | What happens when you tap it |
 |---|---|---|
-| **Team follow-ups** | How many things need a manager | Opens the **Team follow-ups** list |
+| **Team follow-ups** | How many events need a manager | Opens the **Team follow-ups** list |
 | **Booked ahead** | Booked shows coming up, and the next one | Opens **All inquiries** showing upcoming booked shows |
 | **Still owed** | Money still to collect | Opens **All inquiries** showing upcoming booked shows |
 | **Deposits collected** | How much of the quoted money is paid as deposit | Opens **All inquiries** showing upcoming live inquiries |
@@ -76,6 +76,8 @@ Under the tiles you will also see:
 - **Money by event month**: a small chart.
 - **Team follow-ups**: the four most urgent items. Tap **View all** for the rest.
 - On the right: **Next shows**, **Activity**, and **Managers** (this is where **Nudge** lives).
+
+The number next to **Team follow-ups** in the menu can be a little higher than the tile. The menu also counts follow-up reminders that are due.
 
 **If it goes wrong.** If a number looks too low, check you are on **Everyone** (not one manager).
 
@@ -92,7 +94,7 @@ Under the tiles you will also see:
 - **Follow up on quote**: the status is **Quote sent** and nothing has happened for more than 5 days.
 - **Chase money**: the show is **Booked** or **Deposit paid**, it is within 14 days, and money is still owed.
 
-Each card has one big button (like **Reply on WhatsApp** or **Chased today**) and a **three dots** button for more. The three dots menu can hold: **Call**, **Chased today**, **Mark reached out**, **Mark paid**, **Set status**, **Snooze**, **Duplicate** and **Open details**. You only see the ones that fit that card. Each action can be undone for 5 seconds.
+Each card has one big button (like **Reply on WhatsApp** or **Chased today**) and a **three dots** button for more. The three dots menu can hold: **Call**, **Chased today**, **Mark reached out**, **Mark paid**, **Set status**, **Snooze**, **Duplicate** and **Open details**. You only see the ones that fit that card. **Chased today**, **Mark reached out**, **Mark paid**, **Set status** and **Snooze** can be undone for 5 seconds.
 
 A card goes away when someone acts on it (a comment or a status change). A **Tentative** date never shows here. A date that is already past never shows here.
 
@@ -162,7 +164,7 @@ On a laptop, a free day also shows a small **+** button when you point at it.
 
 ![Add event](screens/owner-add-event-desktop.webp)
 
-**What you will see.** The event opens. The window also says who will own it (the manager of that artist).
+**What you will see.** Before you save, the window says who will own it (the manager of that artist). After you tap **Add event**, the event opens.
 
 **To edit.** Open the event. Tap **Edit event**. This works for events added in the app. Sheet rows cannot be edited here. In the event you can also:
 - Add **Notes**, **Travel notes**, a **Contract link**, and switch **Contract signed**.
@@ -204,11 +206,11 @@ You get 5 seconds to tap **Undo**.
 **What to tap.**
 1. Tap the **three dots** on the row.
 2. Tap **Snooze**.
-3. Tap **Tomorrow**, **Friday**, or **Pick a date**.
+3. Tap **Tomorrow**, **Friday**, or **Pick a date**. (On a Thursday there is no **Friday** button, because tomorrow is Friday.)
 
 **What you will see.** The row leaves the follow-ups. In **All inquiries** it says **Snoozed till** that day. On the day itself it comes back by itself. You get 5 seconds to **Undo**.
 
-To bring it back early: **three dots**, then **Unsnooze**.
+To bring it back early: **three dots**, then **Unsnooze**. This happens at once. There is no Undo for it.
 
 As owner, you still see snoozed items on the **Overview**, under **Team follow-ups**, in a dim colour.
 
@@ -228,7 +230,7 @@ You can snooze sheet rows too.
 3. Pick the new **Date**.
 4. Tap **Add event**.
 
-**What you will see.** The **Add event** window opens already filled in. It copies the artists, name, venue, city, set time, fee, currency and organizer. It does not copy the date or the ticket link. It does not copy deposits or balances.
+**What you will see.** The **Add event** window opens already filled in. It copies the artists, name, venue, city, set time, fee, currency, organizer and status. It does not copy the date or the ticket link. It does not copy deposits or balances. A copy of a **Deposit paid** event starts as **Booked**, because nobody has paid for the new date yet.
 
 ![Duplicate](screens/owner-duplicate-desktop.webp)
 
@@ -334,7 +336,7 @@ You can also set a reminder while you log a call: under **LOG A TOUCH**, pick **
 
 **What you will see.** On the day it is due, it shows in **Follow-ups due**. Late ones are red. Tap **Done** when finished. The small chat button opens WhatsApp.
 
-**If it goes wrong.** You only see your own reminders and your managers' reminders, with their names.
+**Good to know.** You see your own reminders and your managers' reminders. Each one shows the manager's name.
 
 ---
 
@@ -378,6 +380,8 @@ The app can also **Copy** the message. If the box **Add to their timeline when I
 ![Nudge ready](screens/owner-nudge-ready-desktop.webp)
 
 The message lists the next steps. It leaves out phone numbers and emails on purpose.
+
+**Wrong number?** Tap **Change number** next to **Nudge**. Fix the number and tap **Save number**. Or tap **Remove number** to delete it.
 
 **If it goes wrong.**
 - The button says **Nothing to nudge** and is grey: that manager has nothing open.
@@ -432,7 +436,7 @@ They do not work while you are typing in a box, or while a menu or window is ope
 
 ## 19. Things only you can do (once)
 
-1. **Ask your developer to apply the latest database update** (the one for snooze and WhatsApp numbers) after reading it. Until then, Snooze and saved numbers will not work.
+1. **Ask your developer to apply the two latest database updates** after reading them: number 12 (snooze and WhatsApp numbers) and number 13 (a privacy fix: contact counts no longer show one manager the other manager's shows). Until 12 is applied, Snooze and saved numbers will not work.
 2. **Add each manager's WhatsApp number** (section 15). Do this once.
 3. **Ask your developer to switch on website updates** if you want events to go to Upcoming Shows from the app.
 4. **A later step, not now:** switching off the sheet copy and moving the sheet rows into the app. When that is done, sheet rows become editable. Do not try to do this inside the app.

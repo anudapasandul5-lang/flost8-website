@@ -92,7 +92,7 @@ The **three dots** button has more. You only see the ones that fit that card: **
 
 ![Row menu on a phone](screens/mgr-row-menu-phone.webp)
 
-Every action can be undone for 5 seconds. Tap **Undo** at the bottom.
+**Chased today**, **Mark reached out**, **Mark paid**, **Set status** and **Snooze** can be undone for 5 seconds. Tap **Undo** at the bottom.
 
 A **Tentative** date never shows here. Past dates never show here. A card leaves the list when you act on it (a comment, a status change, or a button above).
 
@@ -115,7 +115,7 @@ A **Tentative** date never shows here. Past dates never show here. A card leaves
 
 ![Add event on a phone](screens/mgr-add-event-phone.webp)
 
-**What you will see.** The new event opens. It says **Will be added to your list.** Events with the status **Booked** or **Deposit paid** are also sent to the website's Upcoming Shows list.
+**What you will see.** Before you save, the window says **Will be added to your list.** After you tap **Add event**, the new event opens. Events with the status **Booked** or **Deposit paid** are also sent to the website's Upcoming Shows list.
 
 You can also fill **Set time**, **City**, **Ticket link**, **Fee** and **Currency**.
 
@@ -222,11 +222,11 @@ You can also tap **Copy**. If **Add to their timeline when I open WhatsApp** is 
 **What to tap.**
 1. Tap the **three dots** on the card or row.
 2. Tap **Snooze**.
-3. Tap **Tomorrow**, **Friday**, or **Pick a date**.
+3. Tap **Tomorrow**, **Friday**, or **Pick a date**. (On a Thursday there is no **Friday** button, because tomorrow is Friday.)
 
 **What you will see.** The card goes away. In **All inquiries** the row says **Snoozed till** that day. On that day it comes back by itself. You get 5 seconds to **Undo**.
 
-To bring it back early: **three dots**, then **Unsnooze**.
+To bring it back early: **three dots**, then **Unsnooze**. This happens at once. There is no Undo for it.
 
 Anuda can still see what you snoozed, in a dim colour.
 
@@ -244,7 +244,7 @@ Anuda can still see what you snoozed, in a dim colour.
 3. Pick the new **Date**.
 4. Tap **Add event**.
 
-The **Add event** window opens already filled in. It copies your artists, name, venue, city, set time, fee, currency and organizer. It does not copy the date or the ticket link.
+The **Add event** window opens already filled in. It copies your artists, name, venue, city, set time, fee, currency, organizer and status. It does not copy the date, the ticket link, deposits or balances. A copy of a **Deposit paid** event starts as **Booked**, because nobody has paid for the new date yet. Check the status before you tap **Add event**.
 
 ---
 
@@ -279,7 +279,7 @@ You cannot change the status of a **From sheet** row. Change it in the sheet.
 
 ## 13. What you cannot see or do
 
-- You cannot see other managers' bookings. You see your own artists' events.
+- You cannot see other managers' bookings. You see events for your own artists, including shared shows where one of your artists plays.
 - You cannot see money for events that are not yours. You will see **Money details are private to the artist's manager.**
 - You cannot edit, delete or bulk change a **From sheet** row.
 - You cannot change an event that belongs to another manager. You can open it and read it.
