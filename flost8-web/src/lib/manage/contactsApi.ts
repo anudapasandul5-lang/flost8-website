@@ -29,10 +29,15 @@ export async function fetchContacts(): Promise<Contact[]> {
   }
 }
 
+/** One row per contact. The same 1000-row response cap applies to rpc results, so this is paged like fetchContacts. */
 export async function fetchContactStats(today: string): Promise<Map<string, ContactStats>> {
-  const { data, error } = await getSupabase().rpc('contact_stats', { p_today: today })
-  check(error)
-  return new Map((data as ContactStats[]).map((s) => [s.contact_id, s]))
+  const out = new Map<string, ContactStats>()
+  for (let from = 0; ; from += CONTACT_PAGE) {
+    const { data, error } = await getSupabase().rpc('contact_stats', { p_today: today }).order('contact_id').range(from, from + CONTACT_PAGE - 1)
+    check(error)
+    for (const s of (data ?? []) as ContactStats[]) out.set(s.contact_id, s)
+    if (!data || data.length < CONTACT_PAGE) return out
+  }
 }
 
 /** The id is made here so a retry after a dropped connection cannot create a second contact. */

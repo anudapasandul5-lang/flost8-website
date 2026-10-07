@@ -13,9 +13,14 @@ vi.mock('./supabase', () => ({
         }),
       }),
     }),
+    rpc: () => ({
+      order: () => ({
+        range: async (from: number, to: number) => { ranges.push([from, to]); return { data: pages.shift() ?? [], error: null } },
+      }),
+    }),
   }),
 }))
-import { fetchContacts } from './contactsApi'
+import { fetchContacts, fetchContactStats } from './contactsApi'
 
 beforeEach(() => { pages.length = 0; ranges.length = 0 })
 
@@ -29,4 +34,11 @@ it('stops after one page when the book is small', async () => {
   pages.push([{ id: 'only' }])
   expect(await fetchContacts()).toHaveLength(1)
   expect(ranges).toHaveLength(1)
+})
+it('pages contact stats too (the cap applies to rpc results), so contact 1001 still gets its counts', async () => {
+  pages.push(Array.from({ length: 1000 }, (_, i) => ({ contact_id: `a${i}`, any_count: 1 })), [{ contact_id: 'late', any_count: 2 }])
+  const stats = await fetchContactStats('2026-10-07')
+  expect(stats.size).toBe(1001)
+  expect(stats.get('late')?.any_count).toBe(2)
+  expect(ranges).toEqual([[0, 999], [1000, 1999]])
 })
