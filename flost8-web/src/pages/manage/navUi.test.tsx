@@ -15,14 +15,18 @@ afterEach(() => {
 it('calendar: an empty day offers Add event on that day, from the cell and from the list under the grid', () => {
   const add = vi.fn()
   const today = todayISO()
-  render(<CalendarView items={[]} artists={[]} conflicts={new Set()} onOpen={vi.fn()} onAddOnDate={add} />)
+  const { container } = render(<CalendarView items={[]} artists={[]} conflicts={new Set()} onOpen={vi.fn()} onAddOnDate={add} />)
   const name = `Add event on ${formatDate(today)}`
-  fireEvent.click(screen.getByRole('button', { name }))
+  // The cell's hover "+" is a mouse shortcut, hidden from the accessibility tree.
+  const hover = container.querySelector<HTMLButtonElement>(`button[aria-label="${name}"]`)!
+  expect(hover.getAttribute('aria-hidden')).toBe('true')
+  fireEvent.click(hover)
   expect(add).toHaveBeenLastCalledWith(today)
+  expect(screen.queryByRole('button', { name })).toBeNull()
   fireEvent.click(screen.getByRole('button', { name: formatDate(today) }))
-  const both = screen.getAllByRole('button', { name })
-  expect(both).toHaveLength(2)
-  fireEvent.click(both[1])
+  const visible = screen.getAllByRole('button', { name })
+  expect(visible).toHaveLength(1)
+  fireEvent.click(visible[0])
   expect(add).toHaveBeenCalledTimes(2)
 })
 

@@ -114,6 +114,8 @@ export default function CalendarView({
               <button
                 type="button"
                 tabIndex={-1}
+                // Mouse-only shortcut: hidden from screen readers so the grid does not read out ~30 extra buttons.
+                aria-hidden="true"
                 aria-label={`Add event on ${formatDate(c.iso)}`}
                 onClick={() => onAddOnDate(c.iso)}
                 className={`absolute bottom-1 right-1 hidden h-11 w-11 place-items-center rounded-full border border-[var(--accent-line)] bg-[var(--accent-soft)] text-ink opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 motion-reduce:transition-none md:grid ${FOCUS_RING}`}
