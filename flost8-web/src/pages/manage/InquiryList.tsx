@@ -130,7 +130,7 @@ export default function InquiryList({
             >
               <DateBlock date={i.event_date} thisYear={Number(today.slice(0, 4))} />
               <div className="min-w-0 flex-1">
-                <p className="truncate font-grotesk text-[1.0625rem] font-medium text-ink">{inquiryTitle(i)}</p>
+                <p className="line-clamp-2 break-words font-grotesk text-[1.0625rem] font-medium leading-snug text-ink">{inquiryTitle(i)}</p>
                 <p className="truncate font-grotesk text-sm text-[var(--ink-72)]">{artistNames(i.artists, artists) || 'No artist yet'}</p>
                 {place && <p className="truncate font-grotesk text-[13px] text-[var(--ink-50)]">{place}</p>}
               </div>
