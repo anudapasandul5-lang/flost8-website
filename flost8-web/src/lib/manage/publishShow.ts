@@ -27,6 +27,8 @@ export async function resyncWebsite(): Promise<void> {
   const failures: string[] = []
   do {
     const page: Result = await request({ action: 'resync', ...(cursor ? { cursor } : {}) })
+    // The server answers "disabled" while the WEBSITE_PUBLISH switch is off; nothing was synced, so do not say it was.
+    if (page.outcome === 'disabled') throw new Error('Website updates are switched off right now, so nothing was changed.')
     failures.push(...(page.results ?? []).filter(r => r.error).map(r => `${r.id}: ${r.error}`))
     cursor = page.cursor ?? null
   } while (cursor)
