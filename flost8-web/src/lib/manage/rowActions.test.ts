@@ -42,6 +42,13 @@ describe('duplicateInput', () => {
     expect(duplicateInput(makeInquiry({ status: 'reached_out' }), null).status).toBe('new')
     expect(duplicateInput(src, null).status).toBe('booking_confirmed')
   })
+  it('a copy of a Deposit paid show starts as Booked, since the deposit is not copied', () => {
+    const paid = makeInquiry({ status: 'deposit_paid', money: { currency: 'LKR', fee: 200000, advance: 50000, balance: 150000, balance_note: null, total: null, booking_fee: null } })
+    const d = duplicateInput(paid, null)
+    expect(d.status).toBe('booking_confirmed')
+    expect(d.fee).toBe('200000')
+    expect(Object.values(d)).not.toContain('50000')
+  })
 })
 
 describe('runBulk', () => {

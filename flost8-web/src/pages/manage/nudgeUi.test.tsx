@@ -79,4 +79,23 @@ describe('Nudge on the Managers panel', () => {
     expect(await screen.findByRole('button', { name: /Add WhatsApp number/ })).toBeTruthy()
     expect(screen.queryByRole('link')).toBeNull()
   })
+
+  it('lets the owner change a saved number, and remove it', async () => {
+    rpc.mockResolvedValueOnce({ data: [{ manager_id: 'm1', whatsapp: '+94770000001' }], error: null })
+    rpc.mockResolvedValue({ data: null, error: null })
+    renderList()
+    fireEvent.click(await screen.findByRole('button', { name: 'Change WhatsApp number for Kasuni' }))
+    const box = screen.getByLabelText("Kasuni's WhatsApp number") as HTMLInputElement
+    expect(box.value).toBe('+94770000001')
+    fireEvent.change(box, { target: { value: '+94 77 000 0002' } })
+    fireEvent.click(screen.getByRole('button', { name: 'Save number' }))
+    const link = (await screen.findByRole('link', { name: /Nudge Kasuni/ })) as HTMLAnchorElement
+    expect(new URL(link.href).pathname).toBe('/94770000002')
+    expect(rpc).toHaveBeenLastCalledWith('set_manager_whatsapp', { p_manager: 'm1', p_whatsapp: '+94770000002' })
+    fireEvent.click(screen.getByRole('button', { name: 'Change WhatsApp number for Kasuni' }))
+    fireEvent.click(screen.getByRole('button', { name: 'Remove number' }))
+    expect(await screen.findByRole('button', { name: 'Add WhatsApp number for Kasuni' })).toBeTruthy()
+    expect(rpc).toHaveBeenLastCalledWith('set_manager_whatsapp', { p_manager: 'm1', p_whatsapp: null })
+    expect(screen.queryByRole('link')).toBeNull()
+  })
 })

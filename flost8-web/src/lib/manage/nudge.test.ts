@@ -34,6 +34,19 @@ describe('buildNudgeMessage', () => {
   })
 })
 
+describe('odd characters survive the trip to WhatsApp', () => {
+  it('keeps &, #, ?, quotes, angle brackets, emoji and Sinhala intact through the wa.me link', () => {
+    const m = buildNudgeMessage('  Kasuni  ', ['Reply to "Rock & Roll" <Night> #1? 🎧', 'Follow up on quote for සිංහල නම'])!
+    const back = new URL(nudgeUrl('+94770000001', m)).searchParams.get('text')
+    expect(back).toBe(m)
+    expect(m).toBe('Hi Kasuni, 2 things need you: Reply to "Rock & Roll" <Night> #1? 🎧; Follow up on quote for සිංහල නම. Can you pick these up today?')
+  })
+  it('a line that is only a phone number or email is dropped and not counted', () => {
+    expect(buildNudgeMessage('Kasuni', ['0771234567', 'a@b.lk'])).toBeNull()
+    expect(buildNudgeMessage('', ['Item'])).toBe('Hi there, 1 thing needs you: Item. Can you pick this up today?')
+  })
+})
+
 describe('normaliseWhatsapp', () => {
   it('strips spaces, dashes and brackets', () => {
     expect(normaliseWhatsapp(' +94 (77) 123-4567 ')).toBe('+94771234567')
@@ -57,6 +70,10 @@ describe('nudgeUrl', () => {
     expect(nudgeUrl('+94 77 123 4567', 'Hi & bye?')).toBe('https://wa.me/94771234567?text=Hi%20%26%20bye%3F')
     expect(nudgeUrl('0771234567', 'Hi')).toBe('https://wa.me/94771234567?text=Hi')
     expect(nudgeUrl('94771234567', 'Hi')).toBe('https://wa.me/94771234567?text=Hi')
+  })
+  it('treats a 00 prefix as international, like the other WhatsApp links', () => {
+    expect(nudgeUrl('0094771234567', 'Hi')).toBe('https://wa.me/94771234567?text=Hi')
+    expect(nudgeUrl('00447700900123', 'Hi')).toBe('https://wa.me/447700900123?text=Hi')
   })
 })
 

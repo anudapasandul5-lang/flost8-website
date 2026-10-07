@@ -21,7 +21,8 @@ export function duplicateInput(i: Inquiry, allowed: ReadonlySet<string> | null):
     date: '',
     ticketLink: '',
     artists: allowed ? base.artists.filter((s) => allowed.has(s)) : base.artists,
-    status: (STARTING.includes(i.status) ? i.status : i.status === 'reached_out' ? 'new' : 'tentative') as NewStatus,
+    // No deposit is copied, so a copy of a "Deposit paid" show starts as Booked: nobody has paid anything for the new date.
+    status: (i.status === 'deposit_paid' ? 'booking_confirmed' : STARTING.includes(i.status) ? i.status : i.status === 'reached_out' ? 'new' : 'tentative') as NewStatus,
   }
 }
 

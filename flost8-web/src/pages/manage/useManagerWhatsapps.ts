@@ -16,10 +16,16 @@ export function useManagerWhatsapps(enabled: boolean) {
       live = false
     }
   }, [enabled])
-  const save = useCallback(async (managerId: string, input: string) => {
+  /** A typed number, or null to remove the saved one. */
+  const save = useCallback(async (managerId: string, input: string | null) => {
     await setManagerWhatsapp(managerId, input)
-    const saved = normaliseWhatsapp(input)
-    if (saved) setNumbers((prev) => new Map(prev).set(managerId, saved))
+    const saved = input === null ? null : normaliseWhatsapp(input)
+    setNumbers((prev) => {
+      const next = new Map(prev)
+      if (saved) next.set(managerId, saved)
+      else next.delete(managerId)
+      return next
+    })
   }, [])
   return { numbers, save }
 }
