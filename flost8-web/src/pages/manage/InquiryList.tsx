@@ -4,6 +4,7 @@ import { formatDate } from '../../lib/manage/calendar'
 import { todayISO } from '../../lib/manage/filters'
 import { artistNames, inquiryTitle } from '../../lib/manage/labels'
 import { formatAmount } from '../../lib/manage/money'
+import { isSnoozed, snoozedLabel } from '../../lib/manage/snooze'
 import { canSetStatus } from '../../lib/manage/rowActions'
 import type { Artist, Inquiry, Manager, Status } from '../../lib/manage/types'
 import { commonRowItems, type RowActions } from '../../lib/manage/rowMenu'
@@ -49,6 +50,7 @@ export default function InquiryList({
   managers,
   onDuplicate,
   onSetStatus,
+  onSnooze,
   onBulkStatus,
 }: {
   items: Inquiry[]
@@ -57,6 +59,7 @@ export default function InquiryList({
   managers: Manager[]
   onDuplicate: (i: Inquiry) => void
   onSetStatus: (i: Inquiry, status: Status) => void
+  onSnooze: (i: Inquiry, until: string | null) => void
   /** Called with the ticked rows; each one is updated on its own and the result reported. */
   onBulkStatus: (ids: string[], status: 'lost' | 'spam') => void
   conflicts: ReadonlySet<string>
@@ -64,7 +67,7 @@ export default function InquiryList({
   onClear: () => void
 }) {
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set())
-  const actions: RowActions = { onDuplicate, onSetStatus }
+  const actions: RowActions = { onDuplicate, onSetStatus, onSnooze, today: todayISO() }
   // Ticks for rows that have left the list (a filter changed) must not be acted on.
   const ticked = items.filter((i) => picked.has(i.id) && canSetStatus(i, me)).map((i) => i.id)
   const toggle = (id: string) =>
@@ -132,6 +135,7 @@ export default function InquiryList({
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1.5">
                 <StatusBadge status={i.status} />
+                {isSnoozed(i, TODAY) && <span className="font-grotesk text-[12px] text-[var(--ink-50)]">{snoozedLabel(i.snoozed_until!, TODAY)}</span>}
                 {i.source === 'manual' && (
                   <span className="rounded-full border border-[var(--accent-line)] px-2 py-0.5 font-grotesk text-[11.5px] text-[var(--accent-ink)]">Added in app</span>
                 )}

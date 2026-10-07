@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { NotAllowedError } from './api'
-import { bulkSummary, canSetStatus, duplicateInput, runBulk } from './rowActions'
+import { bulkSummary, canSetStatus, canSnooze, duplicateInput, runBulk } from './rowActions'
 import { KASUNI, makeInquiry, OWNER } from './testFixtures'
 
 describe('canSetStatus', () => {
@@ -76,5 +76,13 @@ describe('bulkSummary', () => {
   })
   it('says so when nothing worked', () => {
     expect(bulkSummary({ total: 2, done: [], notAllowed: ['a', 'b'], failed: [] }, 'updated')).toBe('0 of 2 updated, 2 not allowed')
+  })
+})
+
+describe('canSnooze', () => {
+  it('allows sheet rows (the database permits that one column) but not other managers rows', () => {
+    expect(canSnooze(makeInquiry({ source: 'sheet_import', owner_id: KASUNI.id }), KASUNI)).toBe(true)
+    expect(canSnooze(makeInquiry({ source: 'sheet_import', owner_id: 'm-other' }), KASUNI)).toBe(false)
+    expect(canSnooze(makeInquiry({ source: 'sheet_import', owner_id: 'm-other' }), OWNER)).toBe(true)
   })
 })

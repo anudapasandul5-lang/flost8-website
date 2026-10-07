@@ -55,3 +55,8 @@ export function bulkSummary(r: BulkResult, verb: string): string {
   if (r.failed.length) parts.push(`${r.failed.length} failed`)
   return parts.join(', ')
 }
+
+/** Snoozing is a note to self, so a sheet row can be snoozed (the database allows that one column); the person must still be able to edit the row's owner's inquiries. */
+export function canSnooze(i: Inquiry, me: Manager): boolean {
+  return me.role === 'owner' || i.owner_id === null || i.owner_id === me.id
+}

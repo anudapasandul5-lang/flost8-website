@@ -4,7 +4,7 @@ In-memory Postgres (PGlite) with Supabase stubs, run against the real migrations
 
 ```
 npm i --no-save @electric-sql/pglite
-node supabase/proofs/contacts_rls.proof.mjs       # migrations 010 + 011: RLS, merge/undo, publish hold, history, notes, reminders, purge
+node supabase/proofs/contacts_rls.proof.mjs       # migrations 010 + 011 + 012: RLS, merge/undo, publish hold, history, notes, reminders, purge, snooze, manager whatsapp
 node supabase/proofs/contacts_scripts.proof.mjs   # seed script, intake linking, cutover script
 ```
 

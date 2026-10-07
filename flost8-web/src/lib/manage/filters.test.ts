@@ -70,3 +70,10 @@ describe('todayISO', () => {
     expect(todayISO(new Date(2026, 0, 5, 23, 59))).toBe('2026-01-05')
   })
 })
+
+describe('snooze', () => {
+  it('a snoozed inquiry still shows in the All list (snooze only leaves Needs you)', () => {
+    const i = makeInquiry({ id: 'sn', snoozed_until: '2099-01-01', artists: ['dr-green'] })
+    expect(applyFilters([i], { ...DEFAULT_FILTERS, scope: 'everyone' }, ctx).map((x) => x.id)).toEqual(['sn'])
+  })
+})

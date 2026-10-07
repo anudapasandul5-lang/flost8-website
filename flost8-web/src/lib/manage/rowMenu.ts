@@ -1,5 +1,6 @@
 import { SHEET_URLS } from './labels'
-import { canSetStatus } from './rowActions'
+import { canSetStatus, canSnooze } from './rowActions'
+import { isSnoozed, snoozeChoices, snoozedLabel } from './snooze'
 import { STATUS_LABEL, STATUS_ORDER } from './status'
 import type { Inquiry, Manager, Status } from './types'
 
@@ -10,13 +11,16 @@ export interface MenuItem {
   external?: boolean
   onClick?: () => void
   /** A heading that opens a short list of choices in place (used for "Set status"). */
-  group?: { label: string; onClick: () => void }[]
+  group?: { label: string; onClick?: () => void; /** A native date input instead of a button. */ date?: { min: string; onPick: (iso: string) => void } }[]
 }
 
 /** What a list row can do beyond its own buttons. Each callback is optional: the menu only offers what the screen wires up. */
 export interface RowActions {
   onDuplicate?: (i: Inquiry) => void
   onSetStatus?: (i: Inquiry, status: Status) => void
+  /** A date hides the row from Needs you until then; null unsnoozes. Needs `today` to offer Tomorrow / Friday. */
+  onSnooze?: (i: Inquiry, until: string | null) => void
+  today?: string
 }
 
 /**
@@ -28,6 +32,19 @@ export function commonRowItems(i: Inquiry, me: Manager, managers: Manager[], act
   if (actions.onSetStatus && canSetStatus(i, me)) {
     const set = actions.onSetStatus
     out.push({ label: 'Set status', hint: STATUS_LABEL[i.status], group: STATUS_ORDER.filter((s) => s !== i.status).map((s) => ({ label: STATUS_LABEL[s], onClick: () => set(i, s) })) })
+  }
+  if (actions.onSnooze && actions.today && canSnooze(i, me)) {
+    const snooze = actions.onSnooze
+    const today = actions.today
+    out.push({
+      label: 'Snooze',
+      hint: isSnoozed(i, today) ? snoozedLabel(i.snoozed_until!, today).replace('Snoozed ', '') : undefined,
+      group: [
+        ...snoozeChoices(today).map((c) => ({ label: c.label, onClick: () => snooze(i, c.date) })),
+        { label: 'Pick a date', date: { min: snoozeChoices(today)[0].date, onPick: (d: string) => snooze(i, d) } },
+      ],
+    })
+    if (isSnoozed(i, today)) out.push({ label: 'Unsnooze', onClick: () => snooze(i, null) })
   }
   const ownerName = managers.find((m) => m.id === i.owner_id)?.name
   const sheetUrl = ownerName ? SHEET_URLS[ownerName] : undefined

@@ -1,4 +1,5 @@
 import { inquiryTitle } from './labels'
+import { isSnoozed } from './snooze'
 import type { Inquiry } from './types'
 
 export type Reason = 'double_booked' | 'unpaid_soon' | 'no_reply' | 'quote_quiet'
@@ -26,6 +27,8 @@ export interface NeedsActionContext {
   conflicts: ReadonlySet<string>
   meId: string
   isOwner: boolean
+  /** Keep rows that are snoozed into the future (the owner's follow-ups list shows them dimmed). */
+  includeSnoozed?: boolean
 }
 
 function hoursQuiet(i: Inquiry, c: NeedsActionContext): number {
@@ -47,6 +50,7 @@ export function needsAction(i: Inquiry, c: NeedsActionContext): Reason[] {
   // A tentative date is only being held: nothing is owed and nobody is waiting, so it never nags.
   if (i.status === 'lost' || i.status === 'spam' || i.status === 'tentative') return []
   if (i.event_date && i.event_date < c.today) return []
+  if (!c.includeSnoozed && isSnoozed(i, c.today)) return []
 
   const out: Reason[] = []
   const booked = i.status === 'booking_confirmed' || i.status === 'deposit_paid'

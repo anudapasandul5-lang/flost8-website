@@ -48,20 +48,38 @@ export default function RowMenu({ items, label = 'More actions' }: { items: Menu
                 </button>
                 {expanded === it.label && (
                   <div role="group" aria-label={it.label} className="mb-1 ml-3 border-l border-[var(--bg-line)] pl-1.5">
-                    {it.group.map((g) => (
+                    {it.group.map((g) =>
+                      g.date ? (
+                        <label key={g.label} className={`${row} cursor-pointer`}>
+                          {g.label}
+                          <input
+                            type="date"
+                            min={g.date.min}
+                            aria-label={g.label}
+                            onChange={(e) => {
+                              if (!e.target.value) return
+                              const pick = g.date!.onPick
+                              close()
+                              pick(e.target.value)
+                            }}
+                            className="ml-auto h-9 rounded-lg border border-[var(--bg-line)] bg-transparent px-2 text-[16px] text-ink [color-scheme:dark]"
+                          />
+                        </label>
+                      ) : (
                       <button
                         key={g.label}
                         type="button"
                         role="menuitem"
                         onClick={() => {
                           close()
-                          g.onClick()
+                          g.onClick?.()
                         }}
                         className={row}
                       >
                         {g.label}
                       </button>
-                    ))}
+                      ),
+                    )}
                   </div>
                 )}
               </div>

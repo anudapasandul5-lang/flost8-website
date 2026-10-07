@@ -47,9 +47,11 @@ export async function fetchDirectory(): Promise<{ managers: Manager[]; artists: 
 }
 
 const INQUIRY_COLUMNS =
-  'id,created_at,updated_at,status,source,owner_id,sheet_updated_at,set_type,event_name,event_date,venue,city,event_type,set_duration_h,set_time,ticket_link,website_show_id,contact_id,no_auto_publish,deal_type,lead_source,platform,brand,collab_type,invoice_no,organizer_name,organizer_phone,organizer_email,other_artists,notes,contract_signed,contract_url,travel_notes,lost_reason'
+  'id,created_at,updated_at,status,source,owner_id,sheet_updated_at,set_type,event_name,event_date,venue,city,event_type,set_duration_h,set_time,ticket_link,website_show_id,contact_id,no_auto_publish,deal_type,lead_source,platform,brand,collab_type,invoice_no,organizer_name,organizer_phone,organizer_email,other_artists,notes,contract_signed,contract_url,travel_notes,lost_reason,snoozed_until'
 
-const LEGACY_INQUIRY_COLUMNS = INQUIRY_COLUMNS.replace('contact_id,no_auto_publish,', '')
+// Builds before migration 012 / 010 are live: drop the columns they add so the dashboard still loads.
+const PRE_012_INQUIRY_COLUMNS = INQUIRY_COLUMNS.replace(',snoozed_until', '')
+const LEGACY_INQUIRY_COLUMNS = PRE_012_INQUIRY_COLUMNS.replace('contact_id,no_auto_publish,', '')
 
 interface RawInquiry extends Omit<Inquiry, 'artists' | 'money'> {
   inquiry_artists: { position: number; artist_slug: string }[] | null
@@ -90,10 +92,11 @@ export async function fetchInquiries(): Promise<Inquiry[]> {
       .order('event_date', { ascending: false, nullsFirst: false })
       .limit(1000)
   let { data, error } = await read(INQUIRY_COLUMNS)
-  // 42703 = undefined column: this build is live before migration 010. Read the old columns so the dashboard still works.
+  // 42703 = undefined column: this build is live before migration 012, then before 010. Read the older columns so the dashboard still works.
+  if (error?.code === '42703') ({ data, error } = await read(PRE_012_INQUIRY_COLUMNS))
   if (error?.code === '42703') ({ data, error } = await read(LEGACY_INQUIRY_COLUMNS))
   if (error) throw error
-  return (data as unknown as RawInquiry[]).map((r) => normalise({ ...r, contact_id: r.contact_id ?? null, no_auto_publish: r.no_auto_publish ?? false }))
+  return (data as unknown as RawInquiry[]).map((r) => normalise({ ...r, contact_id: r.contact_id ?? null, no_auto_publish: r.no_auto_publish ?? false, snoozed_until: r.snoozed_until ?? null }))
 }
 
 /** inquiry id -> last_touch (latest of updated_at and newest comment/status activity). RLS limits it to rows this user can see. */
@@ -147,6 +150,7 @@ export interface InquiryPatch {
   contract_signed?: boolean
   contract_url?: string | null
   travel_notes?: string | null
+  snoozed_until?: string | null
 }
 
 /** An update the database silently filters out comes back as zero rows; treat that as "not allowed". */
@@ -157,6 +161,12 @@ export async function updateInquiry(id: string, patch: InquiryPatch): Promise<vo
     throw error
   }
   if (!data || data.length === 0) throw new NotAllowedError()
+}
+
+/** Hide an inquiry from Needs you until `until` (YYYY-MM-DD), or pass null to unsnooze. Allowed on sheet rows too (migration 012). */
+export async function snoozeInquiry(id: string, until: string | null): Promise<void> {
+  if (until !== null && !/^\d{4}-\d{2}-\d{2}$/.test(until)) throw new Error('Pick a valid date')
+  await updateInquiry(id, { snoozed_until: until })
 }
 
 export async function addComment(inquiryId: string, actorId: string, text: string): Promise<void> {

@@ -169,6 +169,7 @@ export default function NeedsList({
   onWhatsApp,
   onDuplicate,
   onSetStatus,
+  onSnooze,
   compactEmpty,
 }: {
   rows: NeedsRow[]
@@ -184,11 +185,12 @@ export default function NeedsList({
   onWhatsApp?: (i: Inquiry) => void
   onDuplicate?: (i: Inquiry) => void
   onSetStatus?: (i: Inquiry, status: Status) => void
+  onSnooze?: (i: Inquiry, until: string | null) => void
   /** Inside the Today screen an empty list simply disappears. */
   compactEmpty?: boolean
 }) {
   const reduce = useReducedMotion()
-  const actions: RowActions = { onDuplicate, onSetStatus }
+  const actions: RowActions = { onDuplicate, onSetStatus, onSnooze, today: ctx.today }
 
   if (rows.length === 0 && compactEmpty) return null
   if (rows.length === 0)
