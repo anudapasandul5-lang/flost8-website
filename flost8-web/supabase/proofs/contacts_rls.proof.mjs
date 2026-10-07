@@ -66,7 +66,6 @@ const A1 = '00000000-0000-0000-0000-0000000000a1', B1 = '00000000-0000-0000-0000
 const owners = await q(`select id, owner_id from public.inquiries order by id`)
 ok(owners[0].owner_id === K.id && owners[1].owner_id === N.id, 'assign_owner trigger gave Kasuni the Sonal row and Nirbheeth the Anush row')
 
-const baseline = String((await q(`select updated_at from public.inquiries where id = '00000000-0000-0000-0000-0000000000a1'`))[0].updated_at)
 // --- contacts basics -------------------------------------------------------------------------------------------
 await as(K.user_id)
 const c1 = (await q(`insert into public.contacts (name, types, phones, owner_id) values ('Ruwan Perera', '{client}', '{0771234567}', $1) returning id`, [K.id]))[0].id
@@ -261,6 +260,8 @@ await su()
   ok(r.s === '2026-10-16', 'importer-style upsert leaves snoozed_until untouched', r.s)
 }
 await db.query(`update public.inquiries set venue = null, status = 'booking_confirmed', notes = null where id = $1`, [A1])
+// The importer and this reset are legitimate writers and bump updated_at; from here on nothing a signed-in user does may move it.
+const quietFrom = (await q(`select updated_at::text t from public.inquiries where id = '00000000-0000-0000-0000-0000000000a1'`))[0].t
 await as(N.user_id)
 await db.query(`update public.inquiries set snoozed_until = '2026-10-20' where id = $1`, [B1])
 ok((await q(`select snoozed_until::text s from public.inquiries where id = $1`, [B1]))[0].s === '2026-10-20', 'a manager can snooze their own app-added row')
@@ -315,8 +316,8 @@ ok((await q(`select whatsapp from public.managers where id = $1`, [K.id]))[0].wh
 
 // --- what 010 left untouched -----------------------------------------------------------------------------------
 await su()
-const bad = [{ n: String((await q(`select updated_at from public.inquiries where id = '00000000-0000-0000-0000-0000000000a1'`))[0].updated_at) === baseline ? 0 : 1 }]
-ok(bad[0].n === 0, 'sheet row updated_at never moved through any of the above')
+const bad = [{ n: (await q(`select updated_at::text t from public.inquiries where id = '00000000-0000-0000-0000-0000000000a1'`))[0].t === quietFrom ? 0 : 1 }]
+ok(bad[0].n === 0, 'sheet row updated_at never moved through any of the signed-in steps after the importer step')
 
 console.log(`\n${pass} passed, ${fail} failed`)
 process.exit(fail ? 1 : 0)
