@@ -18,6 +18,8 @@ const COLUMNS = 'id,source,status,owner_id,event_date,event_name,venue,city,set_
 interface EventRow extends Omit<PublicInquiry, 'artists'> {
   id: string
   owner_id: string | null
+  /** Converted sheet rows: kept off the public Shows list until the owner releases them. */
+  no_auto_publish?: boolean
   updated_at?: string
   inquiry_artists: { position: number; artist_slug: string }[]
 }
@@ -49,7 +51,8 @@ function backend(env: Env) {
       throw new Failure(reason ? `Website list request failed: ${reason}` : 'Website list request failed')
     }
   }
-  const event = async (id: string) => (await db<EventRow[]>(`inquiries?select=${COLUMNS}&id=eq.${id}`))[0]
+  // A failed read must stop the publish: falling back to a query without no_auto_publish would let a held event go public.
+  const event = async (id: string) => (await db<EventRow[]>(`inquiries?select=${COLUMNS},no_auto_publish&id=eq.${id}`))[0]
   return { db, script, event, root, headers }
 }
 
@@ -58,6 +61,8 @@ async function publish(id: string, me: Manager, api: ReturnType<typeof backend>)
   const first = await api.event(id)
   if (first && me.role !== 'owner' && first.owner_id !== me.id) throw new Failure('Forbidden', 403)
   if (first && first.source !== 'manual') return 'not_app_event'
+  // Holding an event back never touches the site: it just is not added. (A hold set on something already live does not unpublish it.)
+  if (first?.no_auto_publish) return 'held_back'
   const token = crypto.randomUUID()
   const claim = await api.db<Publication | null>('rpc/claim_website_publication', 'POST', { p_id: id, p_token: token })
   if (!claim) throw new Failure('Website update already in progress. Retry shortly.', 409)

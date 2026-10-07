@@ -4,10 +4,14 @@ import { ArrowUpRight, CheckCircle, Circle, FileArrowUp, Trash, X } from '@phosp
 import { addComment, deleteInquiry, friendlyError, updateInquiry, type InquiryPatch } from '../../lib/manage/api'
 import { canCommentOn, canDeleteInquiry, canEditInquiry, isHttpUrl, isPlainEmail } from '../../lib/manage/access'
 import { formatDate } from '../../lib/manage/calendar'
+import { createContact, setInquiryContact, setPublishHold } from '../../lib/manage/contactsApi'
+import { bestPhone, EMPTY_CONTACT, type Contact } from '../../lib/manage/contacts'
 import { artistNames, inquiryTitle, SHEET_URLS } from '../../lib/manage/labels'
 import { STATUS_COLOR, STATUS_LABEL, STATUS_ORDER } from '../../lib/manage/status'
 import type { Inquiry, Manager, Status } from '../../lib/manage/types'
 import ActivityTimeline from './ActivityTimeline'
+import ContactPicker from './ContactPicker'
+import { Sheet } from './contactUi'
 import MoneyPanel from './MoneyPanel'
 import type { Directory } from './Workspace'
 import { BTN_GHOST, BTN_PRIMARY, FOCUS_RING, INPUT, LABEL, PANEL } from './styles'
@@ -33,6 +37,9 @@ export default function InquiryDrawer({
   onEdit,
   notify,
   onPublish,
+  contacts,
+  onOpenContact,
+  onContactCreated,
 }: {
   inquiry: Inquiry
   me: Manager
@@ -43,6 +50,9 @@ export default function InquiryDrawer({
   onEdit: () => void
   notify: (t: ToastMsg) => void
   onPublish: (id: string) => Promise<void>
+  contacts: Contact[]
+  onOpenContact: (id: string) => void
+  onContactCreated: (c: Contact) => void
 }) {
   const reduce = useReducedMotion()
 
@@ -55,6 +65,8 @@ export default function InquiryDrawer({
   const [version, setVersion] = useState(0)
   const [busy, setBusy] = useState<'status' | 'fields' | 'comment' | 'delete' | null>(null)
   const [askDelete, setAskDelete] = useState(false)
+  const [linking, setLinking] = useState(false)
+  const [linkText, setLinkText] = useState(inquiry.organizer_name ?? '')
   const canDelete = canDeleteInquiry(inquiry, me)
 
   useLockScroll(true)
@@ -148,6 +160,30 @@ export default function InquiryDrawer({
     }
   }
 
+  const linked = inquiry.contact_id ? contacts.find((c) => c.id === inquiry.contact_id && !c.deleted_at) ?? null : null
+
+  async function setLink(contactId: string | null) {
+    try {
+      await setInquiryContact(inquiry.id, contactId)
+      notify({ kind: 'ok', text: contactId ? 'Linked to contact' : 'Unlinked from contact' })
+      setLinking(false)
+      changed()
+    } catch (err) {
+      notify({ kind: 'error', text: friendlyError(err) })
+    }
+  }
+
+  async function releaseHold() {
+    try {
+      await setPublishHold(inquiry.id, false)
+      notify({ kind: 'ok', text: 'Released. It can now go on the website.' })
+      changed()
+      void onPublish(inquiry.id)
+    } catch (err) {
+      notify({ kind: 'error', text: friendlyError(err) })
+    }
+  }
+
   const place = [inquiry.venue, inquiry.city].filter(Boolean).join(', ')
   const lineup = artistNames(inquiry.artists, directory.artists)
 
@@ -211,6 +247,39 @@ export default function InquiryDrawer({
               )}
             </div>
           )}
+
+          {inquiry.no_auto_publish && (
+            <div role="note" className={`${PANEL} border-[var(--accent-line)] p-4 font-grotesk text-[15px] leading-relaxed text-ink`}>
+              <p>This event is held back from the website. It will not appear on the public Shows list until the owner releases it.</p>
+              {me.role === 'owner' && (
+                <button type="button" onClick={() => void releaseHold()} className={`${BTN_GHOST} mt-3 w-full border-[var(--accent-line)] text-ink`}>
+                  Release to website
+                </button>
+              )}
+            </div>
+          )}
+
+          <section aria-label="Contact">
+            <h3 className="mb-3 font-display text-2xl text-ink">CONTACT</h3>
+            {linked ? (
+              <div className={`${PANEL} flex items-center justify-between gap-3 p-3`}>
+                <button type="button" onClick={() => onOpenContact(linked.id)} className={`min-w-0 flex-1 text-left font-grotesk ${FOCUS_RING}`}>
+                  <span className="block truncate text-[1rem] text-ink">{linked.name}</span>
+                  <span className="block truncate text-[13.5px] text-[var(--ink-72)]">{[linked.organisation, bestPhone(linked)].filter(Boolean).join(', ') || 'Open the contact card'}</span>
+                </button>
+                <button type="button" onClick={() => setLinking(true)} className={BTN_GHOST}>
+                  Change
+                </button>
+              </div>
+            ) : (
+              <div className={`${PANEL} p-4 font-grotesk text-[15px] text-[var(--ink-72)]`}>
+                <p>{inquiry.organizer_name ? `${inquiry.organizer_name} is not linked to a saved contact yet.` : 'No contact linked yet.'}</p>
+                <button type="button" onClick={() => setLinking(true)} className={`${BTN_GHOST} mt-3`}>
+                  Link or add a contact
+                </button>
+              </div>
+            )}
+          </section>
 
           <section aria-label="Details">
             <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
@@ -395,6 +464,29 @@ export default function InquiryDrawer({
           onConfirm={() => void removeEvent()}
           onCancel={() => setAskDelete(false)}
         />
+      )}
+      {linking && (
+        <Sheet title="LINK A CONTACT" intro="Pick someone you already have, or add the name as a new contact." onClose={() => setLinking(false)}>
+          <ContactPicker
+            id="link-contact"
+            contacts={contacts}
+            picked={null}
+            text={linkText}
+            onText={setLinkText}
+            onPick={(c) => void setLink(c.id)}
+            onClear={() => undefined}
+            onCreate={async (name) => {
+              const made = await createContact({ ...EMPTY_CONTACT, name, phones: [inquiry.organizer_phone ?? ''], emails: [inquiry.organizer_email ?? ''], types: ['client'], city: inquiry.city ?? '', owner_id: inquiry.owner_id ?? me.id })
+              onContactCreated(made)
+              return made
+            }}
+          />
+          {linked && (
+            <button type="button" onClick={() => void setLink(null)} className={`${BTN_GHOST} w-full`}>
+              Unlink this contact
+            </button>
+          )}
+        </Sheet>
       )}
     </div>
   )

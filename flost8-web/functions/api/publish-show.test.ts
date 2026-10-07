@@ -51,6 +51,13 @@ it('verifies tokens, rejects non-managers, wrong owners and manager resync', asy
     expect(backend.writes).toEqual([])
   }
 })
+it('leaves an event that is held back off the website without claiming or writing anything', async () => {
+  const backend = fakeBackend({ event: { ...inquiry, no_auto_publish: true } as typeof inquiry })
+  const result = await onRequest({ request: request(), env })
+  expect(await result.json()).toMatchObject({ ok: true, outcome: 'held_back' })
+  expect(backend.writes).toEqual([])
+  expect(backend.mapping().show_id).toBeNull()
+})
 it('adds a whitelisted show and saves the generated ID for later deletion', async () => {
   const backend = fakeBackend()
   const result = await onRequest({ request: request(), env })
@@ -146,4 +153,18 @@ it('reports an error, never silent success, when the date cannot be corrected', 
   expect(result.status).toBe(502)
   expect((await result.json() as { message: string }).message).toMatch(/2026-11-13.*2026-11-14/)
   expect(backend.mapping().show_id).toBe('generated-id')
+})
+it('fails closed when the event read errors: nothing is claimed or written', async () => {
+  const backend = fakeBackend()
+  const ok = (globalThis.fetch as unknown as (u: string, i?: RequestInit) => Promise<Response>)
+  // One transient 503, then healthy: the old fallback retried without no_auto_publish and published a held event.
+  let failed = false
+  vi.stubGlobal('fetch', vi.fn(async (url: string, init?: RequestInit) => {
+    if (url.includes('/inquiries?') && !failed) { failed = true; return new Response('boom', { status: 503 }) }
+    return ok(url, init)
+  }))
+  const result = await onRequest({ request: request(), env })
+  expect(result.ok).toBe(false)
+  expect(backend.writes).toEqual([])
+  expect(backend.mapping().show_id).toBeNull()
 })

@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { X } from '@phosphor-icons/react'
 import { createEvent, friendlyError, newId, updateEvent } from '../../lib/manage/api'
+import { createContact } from '../../lib/manage/contactsApi'
+import { bestPhone, defaultsFromContact, EMPTY_CONTACT, type Contact } from '../../lib/manage/contacts'
 import { EMPTY_EVENT, ownerFor, toEditInput, validateNewEvent, type NewEventInput, type NewStatus } from '../../lib/manage/newEvent'
 import { STATUS_LABEL } from '../../lib/manage/status'
 import type { Artist, Inquiry, Manager } from '../../lib/manage/types'
+import ContactPicker from './ContactPicker'
 import { BTN_GHOST, BTN_PRIMARY, CHIP_BASE, CHIP_OFF, CHIP_ON, INPUT, LABEL } from './styles'
 import { useLockScroll } from './useLockScroll'
 
@@ -18,6 +21,9 @@ export default function AddEventDialog({
   artists,
   allArtists,
   managers,
+  contacts,
+  inquiries,
+  onContactCreated,
   onClose,
   onSaved,
   editing,
@@ -28,6 +34,11 @@ export default function AddEventDialog({
   /** Everyone's, to name the owner. */
   allArtists: Artist[]
   managers: Manager[]
+  /** Saved contacts, for the organizer picker. */
+  contacts: Contact[]
+  /** Everything this person can see, to pre-fill from a contact's last booking. */
+  inquiries: Inquiry[]
+  onContactCreated: (c: Contact) => void
   onClose: () => void
   onSaved: (id: string) => void
   /** Set to edit a saved event instead of adding one. Status is changed in the drawer, not here. */
@@ -48,6 +59,29 @@ export default function AddEventDialog({
 
   const ownerId = useMemo(() => ownerFor(f.artists, me, allArtists), [f.artists, me, allArtists])
   const ownerName = managers.find((m) => m.id === ownerId)?.name
+
+  const picked = f.contactId ? contacts.find((c) => c.id === f.contactId) ?? null : null
+  const allowed = useMemo(() => new Set(artists.map((a) => a.slug)), [artists])
+
+  function pick(c: Contact) {
+    const d = defaultsFromContact(c, inquiries)
+    setF((p) => ({
+      ...p,
+      contactId: c.id,
+      organizer: c.name,
+      phone: bestPhone(c) ?? p.phone,
+      email: c.emails[0] ?? '',
+      city: p.city || d.city,
+      venue: p.venue || d.venue,
+      artists: p.artists.length ? p.artists : d.artists.filter((s) => allowed.has(s)),
+    }))
+  }
+
+  async function createFromTyped(name: string): Promise<Contact> {
+    const made = await createContact({ ...EMPTY_CONTACT, name, phones: [f.phone], emails: [''], types: ['client'], city: f.city, owner_id: ownerId ?? me.id })
+    onContactCreated(made)
+    return made
+  }
 
   const toggleArtist = (slug: string) =>
     set({ artists: f.artists.includes(slug) ? f.artists.filter((s) => s !== slug) : [...f.artists, slug] })
@@ -179,13 +213,17 @@ export default function AddEventDialog({
             </fieldset>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label htmlFor="ae-org" className={LABEL}>
-                Organizer
-              </label>
-              <input id="ae-org" name="organizer" autoComplete="off" value={f.organizer} onChange={(e) => set({ organizer: e.target.value })} className={INPUT} />
-            </div>
+          <div className="space-y-4">
+            <ContactPicker
+              id="ae-org"
+              contacts={contacts}
+              picked={picked}
+              text={f.organizer}
+              onText={(t) => set({ organizer: t })}
+              onPick={pick}
+              onClear={() => set({ contactId: null, email: '', organizer: '' })}
+              onCreate={createFromTyped}
+            />
             <div>
               <label htmlFor="ae-phone" className={LABEL}>
                 Phone / WhatsApp

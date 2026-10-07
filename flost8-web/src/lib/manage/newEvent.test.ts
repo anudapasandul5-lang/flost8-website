@@ -52,11 +52,25 @@ describe('toInquiryRow', () => {
       set_time: '10 pm',
       organizer_name: 'Dinesh',
       organizer_phone: '077 555 0192',
+      organizer_email: null,
+      contact_id: null,
       ticket_link: null,
     })
   })
   it('keeps the chosen status', () => {
     expect(toInquiryRow({ ...ok, status: 'quoted' }, null).status).toBe('quoted')
+  })
+})
+
+describe('picking a contact', () => {
+  it('writes the link and copies the email onto the inquiry', () => {
+    const row = toInquiryRow({ ...ok, contactId: 'c-1', email: ' r@club.test ' }, 'm-kasuni')
+    expect(row.contact_id).toBe('c-1')
+    expect(row.organizer_email).toBe('r@club.test')
+  })
+  it('an edit can change or clear the link', () => {
+    expect(toEditPatch({ ...ok, contactId: 'c-2' }).contact_id).toBe('c-2')
+    expect(toEditPatch({ ...ok, contactId: null }).contact_id).toBeNull()
   })
 })
 
@@ -128,6 +142,8 @@ describe('editing an added event', () => {
       set_time: '10:00 pm',
       organizer_name: 'Dinesh',
       organizer_phone: '0775550192',
+      organizer_email: null,
+      contact_id: null,
       ticket_link: null,
     })
     expect(patch).not.toHaveProperty('source')

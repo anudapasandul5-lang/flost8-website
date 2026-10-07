@@ -96,12 +96,26 @@ export async function saveInquiry(env: IntakeEnv, payload: Record<string, unknow
   const [created] = (await res.json()) as Array<{ id: string }>
 
   // No valid slug: the inquiry stays (unowned) so the managers still see it.
-  if (!slugs.length) return
-  const lineup = await fetch(`${rest}/inquiry_artists`, {
-    method: 'POST',
-    headers,
-    body: JSON.stringify(slugs.map((artist_slug, i) => ({ inquiry_id: created.id, position: i + 1, artist_slug }))),
-    signal: AbortSignal.timeout(8000),
-  })
-  if (!lineup.ok) throw new Error(`inquiry_artists insert ${lineup.status} (inquiry ${created.id})`)
+  if (slugs.length) {
+    const lineup = await fetch(`${rest}/inquiry_artists`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify(slugs.map((artist_slug, i) => ({ inquiry_id: created.id, position: i + 1, artist_slug }))),
+      signal: AbortSignal.timeout(8000),
+    })
+    if (!lineup.ok) throw new Error(`inquiry_artists insert ${lineup.status} (inquiry ${created.id})`)
+  }
+
+  // Link the enquiry to a saved contact (same phone or email) or save a new one. After the lineup, so the owner is set.
+  // Never fatal: the booking is already stored, and before migration 010 this function does not exist yet.
+  try {
+    await fetch(`${rest}/rpc/link_intake_contact`, {
+      method: 'POST',
+      headers,
+      body: JSON.stringify({ p_inquiry: created.id }),
+      signal: AbortSignal.timeout(5000),
+    })
+  } catch {
+    // ignored on purpose, see above
+  }
 }

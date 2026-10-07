@@ -95,7 +95,20 @@ describe('saveInquiry', () => {
       { SUPABASE_URL: 'https://x.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'k' },
       { ...payload, lineup_slugs: 'bogus', artist: 'bogus' },
     )
-    expect(f).toHaveBeenCalledTimes(1)
+    expect(f).toHaveBeenCalledTimes(2) // the inquiry, then the contact link
+    expect(f.mock.calls[1][0]).toBe('https://x.supabase.co/rest/v1/rpc/link_intake_contact')
+  })
+
+  it('links the enquiry to a contact after the lineup, and a failing link never fails the booking', async () => {
+    const f = vi
+      .fn()
+      .mockResolvedValueOnce(new Response(JSON.stringify([{ id: 'abc' }]), { status: 201 }))
+      .mockResolvedValueOnce(new Response(null, { status: 201 }))
+      .mockRejectedValueOnce(new Error('network down'))
+    vi.stubGlobal('fetch', f)
+    await expect(saveInquiry({ SUPABASE_URL: 'https://x.supabase.co', SUPABASE_SERVICE_ROLE_KEY: 'k' }, payload)).resolves.toBeUndefined()
+    expect(f.mock.calls.map((c) => String(c[0]).split('/rest/v1/')[1])).toEqual(['inquiries?select=id', 'inquiry_artists', 'rpc/link_intake_contact'])
+    expect(JSON.parse(f.mock.calls[2][1].body)).toEqual({ p_inquiry: 'abc' })
   })
 
   it('errors carry status/id only, never the key or the response body', async () => {

@@ -18,6 +18,9 @@ export interface NewEventInput {
   organizer: string
   phone: string
   ticketLink: string
+  /** Set when the organiser was picked from Contacts; the name, phone and email are then copied from that contact. */
+  contactId: string | null
+  email: string
 }
 
 export const EMPTY_EVENT: NewEventInput = {
@@ -33,6 +36,8 @@ export const EMPTY_EVENT: NewEventInput = {
   organizer: '',
   phone: '',
   ticketLink: '',
+  contactId: null,
+  email: '',
 }
 
 /** The first problem in plain English, or null when the entry can be saved. */
@@ -63,6 +68,8 @@ export function toInquiryRow(i: NewEventInput, ownerId: string | null) {
     set_time: nul(i.setTime),
     organizer_name: nul(i.organizer),
     organizer_phone: nul(i.phone),
+    organizer_email: nul(i.email),
+    contact_id: i.contactId,
     ticket_link: nul(i.ticketLink),
   }
 }
@@ -95,6 +102,8 @@ export function toEditInput(i: Inquiry): NewEventInput {
     organizer: i.organizer_name ?? '',
     phone: i.organizer_phone ?? '',
     ticketLink: i.ticket_link ?? '',
+    contactId: i.contact_id,
+    email: i.organizer_email ?? '',
   }
 }
 
@@ -109,6 +118,8 @@ export function toEditPatch(i: NewEventInput) {
     set_time: row.set_time,
     organizer_name: row.organizer_name,
     organizer_phone: row.organizer_phone,
+    organizer_email: row.organizer_email,
+    contact_id: row.contact_id,
     ticket_link: row.ticket_link,
   }
 }

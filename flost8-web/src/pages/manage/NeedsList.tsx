@@ -111,6 +111,7 @@ function NeedsCard({
   onOpen,
   onChased,
   onAdvance,
+  onWhatsApp,
 }: {
   row: NeedsRow
   all: Inquiry[]
@@ -121,6 +122,8 @@ function NeedsCard({
   onOpen: (id: string) => void
   onChased: (i: Inquiry) => void
   onAdvance: (i: Inquiry, kind: AdvanceKind) => void
+  /** When given, WhatsApp opens the template sheet instead of a bare chat. */
+  onWhatsApp?: (i: Inquiry) => void
 }) {
   const { inquiry: i, reasons } = row
   const primary = reasons[0]
@@ -156,6 +159,13 @@ function NeedsCard({
       <button type="button" onClick={() => onChased(i)} className={`${PILL} flex-1 border border-[var(--accent-line)] text-ink hover:bg-[var(--accent-soft)] md:flex-none md:px-7`}>
         <Check size={18} weight="bold" aria-hidden="true" />
         Chased today
+      </button>
+    )
+  else if (wa && onWhatsApp)
+    button = (
+      <button type="button" onClick={() => onWhatsApp(i)} className={`${PILL} flex-1 bg-accent text-ink hover:opacity-90 md:flex-none md:px-7`}>
+        <ChatCircle size={18} aria-hidden="true" />
+        {primary === 'unpaid_soon' ? 'Chase on WhatsApp' : 'Reply on WhatsApp'}
       </button>
     )
   else if (wa)
@@ -218,6 +228,8 @@ export default function NeedsList({
   onOpen,
   onChased,
   onAdvance,
+  onWhatsApp,
+  compactEmpty,
 }: {
   rows: NeedsRow[]
   all: Inquiry[]
@@ -229,9 +241,13 @@ export default function NeedsList({
   onOpen: (id: string) => void
   onChased: (i: Inquiry) => void
   onAdvance: (i: Inquiry, kind: AdvanceKind) => void
+  onWhatsApp?: (i: Inquiry) => void
+  /** Inside the Today screen an empty list simply disappears. */
+  compactEmpty?: boolean
 }) {
   const reduce = useReducedMotion()
 
+  if (rows.length === 0 && compactEmpty) return null
   if (rows.length === 0)
     return (
       <div className="px-2 py-10 text-center">
@@ -262,7 +278,7 @@ export default function NeedsList({
             layout={!reduce}
             exit={reduce ? { opacity: 0 } : { opacity: 0, x: 60, transition: { duration: 0.22 } }}
           >
-            <NeedsCard row={row} all={all} artists={artists} managers={managers} me={me} ctx={ctx} onOpen={onOpen} onChased={onChased} onAdvance={onAdvance} />
+            <NeedsCard row={row} all={all} artists={artists} managers={managers} me={me} ctx={ctx} onOpen={onOpen} onChased={onChased} onAdvance={onAdvance} onWhatsApp={onWhatsApp} />
           </motion.li>
         ))}
       </AnimatePresence>

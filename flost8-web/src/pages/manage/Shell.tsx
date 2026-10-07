@@ -1,11 +1,11 @@
 import { useState, type ReactNode } from 'react'
-import { BellRinging, CalendarBlank, ListBullets, Plus, SignOut, SquaresFour } from '@phosphor-icons/react'
+import { AddressBook, BellRinging, CalendarBlank, CalendarCheck, ListBullets, Plus, SignOut, SquaresFour } from '@phosphor-icons/react'
 import { signOut } from '../../lib/manage/hooks'
 import type { Reason } from '../../lib/manage/needsAction'
 import type { Manager } from '../../lib/manage/types'
 import { BTN_GHOST, FOCUS_RING, REASON_COLOR } from './styles'
 
-export type View = 'overview' | 'needs' | 'all' | 'calendar'
+export type View = 'overview' | 'today' | 'needs' | 'contacts' | 'all' | 'calendar'
 
 /** One manager in the sidebar's Team list (owner only). `top` colours the dot; no dot when nothing is open. */
 export interface TeamItem {
@@ -30,6 +30,8 @@ export interface ShellProps {
   /** Items still waiting for everyone (not narrowed by the manager filter). */
   needCount: number
   totalCount: number
+  /** Reminders due today or overdue; counted with the follow-ups badge. */
+  followUpCount?: number
   /** Omit when this person cannot add events. */
   onAdd?: () => void
   onResync?: () => void
@@ -40,19 +42,27 @@ export interface ShellProps {
 const MAX_W = 'max-w-[1440px]'
 
 /** Sidebar from 1024px up, bottom tab bar below. Owns which view is open and the manager filter. */
-export default function Shell({ me, team, needCount, totalCount, onAdd, onResync, resyncBusy, children }: ShellProps) {
-  const [view, setView] = useState<View>('overview')
+export default function Shell({ me, team, needCount, totalCount, followUpCount = 0, onAdd, onResync, resyncBusy, children }: ShellProps) {
+  const [view, setView] = useState<View>(me.role === 'owner' ? 'overview' : 'today')
   const [managerFilter, setManagerFilter] = useState<string | null>(null)
   const owner = me.role === 'owner'
   const needsLabel = owner ? 'Team follow-ups' : 'Needs you'
 
-  const items: { id: View; label: string; short: string; Icon: typeof SquaresFour; count?: number }[] = [
-    { id: 'overview', label: 'Overview', short: 'Overview', Icon: SquaresFour },
-    { id: 'needs', label: needsLabel, short: owner ? 'Follow-ups' : 'Needs you', Icon: BellRinging, count: needCount },
-    { id: 'all', label: 'All inquiries', short: 'All', Icon: ListBullets, count: totalCount },
-    { id: 'calendar', label: 'Calendar', short: 'Calendar', Icon: CalendarBlank },
-  ]
-  const title = items.find((i) => i.id === view)!.label
+  const items: { id: View; label: string; short: string; Icon: typeof SquaresFour; count?: number }[] = owner
+    ? [
+        { id: 'overview', label: 'Overview', short: 'Overview', Icon: SquaresFour },
+        { id: 'needs', label: needsLabel, short: 'Follow-ups', Icon: BellRinging, count: needCount + followUpCount },
+        { id: 'contacts', label: 'Contacts', short: 'Contacts', Icon: AddressBook },
+        { id: 'all', label: 'All inquiries', short: 'All', Icon: ListBullets, count: totalCount },
+        { id: 'calendar', label: 'Calendar', short: 'Calendar', Icon: CalendarBlank },
+      ]
+    : [
+        { id: 'today', label: 'Today', short: 'Today', Icon: CalendarCheck, count: needCount + followUpCount },
+        { id: 'contacts', label: 'Contacts', short: 'Contacts', Icon: AddressBook },
+        { id: 'all', label: 'All inquiries', short: 'All', Icon: ListBullets, count: totalCount },
+        { id: 'calendar', label: 'Calendar', short: 'Calendar', Icon: CalendarBlank },
+      ]
+  const title = items.find((i) => i.id === view)?.label ?? 'Overview'
 
   const navBtn = (on: boolean) =>
     `flex h-11 w-full items-center justify-between rounded-xl px-3 text-left font-grotesk text-[14.5px] transition ${
@@ -167,7 +177,7 @@ export default function Shell({ me, team, needCount, totalCount, onAdd, onResync
           {children({ view, setView, managerFilter, setManagerFilter })}
         </main>
 
-        <nav aria-label="Views" className="fixed inset-x-0 bottom-0 z-40 grid grid-cols-4 border-t border-[var(--bg-line)] bg-[#120917]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden">
+        <nav aria-label="Views" className={`fixed inset-x-0 bottom-0 z-40 grid ${items.length === 5 ? 'grid-cols-5' : 'grid-cols-4'} border-t border-[var(--bg-line)] bg-[#120917]/95 pb-[env(safe-area-inset-bottom)] backdrop-blur lg:hidden`}>
           {items.map((it) => {
             const on = view === it.id
             return (
@@ -180,7 +190,7 @@ export default function Shell({ me, team, needCount, totalCount, onAdd, onResync
               >
                 <it.Icon size={22} weight={on ? 'fill' : 'regular'} aria-hidden="true" className={on ? 'text-[var(--accent-ink)]' : ''} />
                 {it.short}
-                {it.id === 'needs' && it.count ? (
+                {(it.id === 'needs' || it.id === 'today') && it.count ? (
                   <b className="absolute right-[22%] top-1.5 grid h-[18px] min-w-[18px] place-items-center rounded-full bg-accent px-1 text-[11px] font-semibold text-ink">{it.count}</b>
                 ) : null}
               </button>

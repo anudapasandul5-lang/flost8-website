@@ -21,7 +21,7 @@ export function friendlyError(err: unknown): string {
   return 'Something went wrong. Please try again.'
 }
 
-function isRlsError(err: { code?: string; message?: string }): boolean {
+export function isRlsError(err: { code?: string; message?: string }): boolean {
   return err.code === '42501' || /row-level security/i.test(err.message ?? '')
 }
 
@@ -47,7 +47,9 @@ export async function fetchDirectory(): Promise<{ managers: Manager[]; artists: 
 }
 
 const INQUIRY_COLUMNS =
-  'id,created_at,updated_at,status,source,owner_id,sheet_updated_at,set_type,event_name,event_date,venue,city,event_type,set_duration_h,set_time,ticket_link,website_show_id,deal_type,lead_source,platform,brand,collab_type,invoice_no,organizer_name,organizer_phone,organizer_email,other_artists,notes,contract_signed,contract_url,travel_notes,lost_reason'
+  'id,created_at,updated_at,status,source,owner_id,sheet_updated_at,set_type,event_name,event_date,venue,city,event_type,set_duration_h,set_time,ticket_link,website_show_id,contact_id,no_auto_publish,deal_type,lead_source,platform,brand,collab_type,invoice_no,organizer_name,organizer_phone,organizer_email,other_artists,notes,contract_signed,contract_url,travel_notes,lost_reason'
+
+const LEGACY_INQUIRY_COLUMNS = INQUIRY_COLUMNS.replace('contact_id,no_auto_publish,', '')
 
 interface RawInquiry extends Omit<Inquiry, 'artists' | 'money'> {
   inquiry_artists: { position: number; artist_slug: string }[] | null
@@ -81,13 +83,17 @@ function normalise(r: RawInquiry): Inquiry {
 }
 
 export async function fetchInquiries(): Promise<Inquiry[]> {
-  const { data, error } = await getSupabase()
-    .from('inquiries')
-    .select(`${INQUIRY_COLUMNS},inquiry_artists(position,artist_slug),inquiry_money(*)`)
-    .order('event_date', { ascending: false, nullsFirst: false })
-    .limit(1000)
+  const read = (columns: string) =>
+    getSupabase()
+      .from('inquiries')
+      .select(`${columns},inquiry_artists(position,artist_slug),inquiry_money(*)`)
+      .order('event_date', { ascending: false, nullsFirst: false })
+      .limit(1000)
+  let { data, error } = await read(INQUIRY_COLUMNS)
+  // 42703 = undefined column: this build is live before migration 010. Read the old columns so the dashboard still works.
+  if (error?.code === '42703') ({ data, error } = await read(LEGACY_INQUIRY_COLUMNS))
   if (error) throw error
-  return (data as unknown as RawInquiry[]).map(normalise)
+  return (data as unknown as RawInquiry[]).map((r) => normalise({ ...r, contact_id: r.contact_id ?? null, no_auto_publish: r.no_auto_publish ?? false }))
 }
 
 /** inquiry id -> last_touch (latest of updated_at and newest comment/status activity). RLS limits it to rows this user can see. */

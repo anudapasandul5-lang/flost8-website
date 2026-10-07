@@ -9,6 +9,16 @@ import { needsAction, nextBookedShow, REASON_RANK, type NeedsActionContext } fro
 import { summarise } from '../../lib/manage/summaries'
 import type { Artist, Inquiry, Manager } from '../../lib/manage/types'
 import { publishShow, resyncWebsite } from '../../lib/manage/publishShow'
+import { fetchContacts, fetchContactStats, fetchOpenReminders, setContactDeleted, undoMerge } from '../../lib/manage/contactsApi'
+import { bestPhone, contextBooking, pendingPayments, quietContacts, reminderBucket, type Contact, type ContactStats, type Reminder } from '../../lib/manage/contacts'
+import ContactDrawer from './ContactDrawer'
+import ContactFormDialog from './ContactFormDialog'
+import ContactsView from './ContactsView'
+import FollowUpsPanel from './FollowUpsPanel'
+import MergeDialog from './MergeDialog'
+import TemplatesDialog from './TemplatesDialog'
+import TodayView from './TodayView'
+import WhatsAppSheet from './WhatsAppSheet'
 import CalendarView from './CalendarView'
 import AddEventDialog from './AddEventDialog'
 import FilterBar from './FilterBar'
@@ -28,6 +38,20 @@ const NO_TOUCH: ReadonlyMap<string, string> = new Map()
 // Clash flags are off: a DJ can have two or three events on one day. The views still take the set, so it can come back.
 const conflicts: ReadonlySet<string> = new Set()
 
+/** Contacts, their date/count stats and open reminders. Empty (not an error) until loaded, so the dashboard never waits on them. */
+export interface CrmData {
+  contacts: Contact[]
+  stats: ReadonlyMap<string, ContactStats>
+  reminders: Reminder[]
+  reload: () => void
+  /** Set when a first load of contacts, stats or reminders failed; the lists above are then empty, not truly empty. */
+  error: string | null
+  retry: () => void
+}
+const NO_CONTACTS: Contact[] = []
+const NO_STATS: ReadonlyMap<string, ContactStats> = new Map()
+const NO_REMINDERS: Reminder[] = []
+
 export interface Directory {
   managers: Manager[]
   artists: Artist[]
@@ -41,6 +65,35 @@ export default function Workspace({ me }: { me: Manager }) {
   const dir = useLoad(loadDir)
   const inq = useLoad(loadInq)
   const touch = useLoad(loadTouch)
+  const contactsQ = useLoad(useCallback(() => fetchContacts(), []))
+  const statsQ = useLoad(useCallback(() => fetchContactStats(todayISO()), []))
+  const remindersQ = useLoad(useCallback(() => fetchOpenReminders(), []))
+  const refreshContacts = contactsQ.refresh
+  const refreshStats = statsQ.refresh
+  const refreshReminders = remindersQ.refresh
+  const reloadCrm = useCallback(() => {
+    refreshContacts()
+    refreshStats()
+    refreshReminders()
+  }, [refreshContacts, refreshStats, refreshReminders])
+  const retryContacts = contactsQ.retry
+  const retryStats = statsQ.retry
+  const retryReminders = remindersQ.retry
+  const crm = useMemo<CrmData>(
+    () => ({
+      contacts: contactsQ.state.status === 'ok' ? contactsQ.state.data : NO_CONTACTS,
+      stats: statsQ.state.status === 'ok' ? statsQ.state.data : NO_STATS,
+      reminders: remindersQ.state.status === 'ok' ? remindersQ.state.data : NO_REMINDERS,
+      reload: reloadCrm,
+      error: [contactsQ.state, statsQ.state, remindersQ.state].some((s) => s.status === 'error') ? 'Contacts could not be loaded, so the lists below may look empty.' : null,
+      retry: () => {
+        if (contactsQ.state.status === 'error') retryContacts()
+        if (statsQ.state.status === 'error') retryStats()
+        if (remindersQ.state.status === 'error') retryReminders()
+      },
+    }),
+    [contactsQ.state, statsQ.state, remindersQ.state, reloadCrm, retryContacts, retryStats, retryReminders],
+  )
   const refreshInq = inq.refresh
   const refreshTouch = touch.refresh
   const reload = useCallback(() => {
@@ -49,7 +102,7 @@ export default function Workspace({ me }: { me: Manager }) {
   }, [refreshInq, refreshTouch])
 
   if (dir.state.status === 'ok' && inq.state.status === 'ok' && touch.state.status !== 'loading')
-    return <Dashboard me={me} directory={dir.state.data} inquiries={inq.state.data} lastTouch={touch.state.status === 'ok' ? touch.state.data : NO_TOUCH} reload={reload} />
+    return <Dashboard me={me} directory={dir.state.data} inquiries={inq.state.data} lastTouch={touch.state.status === 'ok' ? touch.state.data : NO_TOUCH} reload={reload} crm={crm} />
 
   const failed = dir.state.status === 'error' ? dir.state.message : inq.state.status === 'error' ? inq.state.message : null
   return (
@@ -88,12 +141,14 @@ function Dashboard({
   inquiries,
   lastTouch,
   reload,
+  crm,
 }: {
   me: Manager
   directory: Directory
   inquiries: Inquiry[]
   lastTouch: ReadonlyMap<string, string>
   reload: () => void
+  crm: CrmData
 }) {
   const mySlugs = useMemo(
     () => new Set(directory.artists.filter((a) => a.manager_id === me.id).map((a) => a.slug)),
@@ -104,15 +159,33 @@ function Dashboard({
   const [editingId, setEditingId] = useState<string | null>(null)
   const [toast, setToast] = useState<ToastMsg | null>(null)
   const clearToast = useCallback(() => setToast(null), [])
+  const [contactId, setContactId] = useState<string | null>(null)
+  const [contactForm, setContactForm] = useState<{ id?: string } | null>(null)
+  const [merging, setMerging] = useState<string[] | null>(null)
+  const [wa, setWa] = useState<{ contact: Contact | null; inquiry?: Inquiry; phone: string | null; name: string } | null>(null)
+  const [templatesOpen, setTemplatesOpen] = useState(false)
+  const [templatesVersion, setTemplatesVersion] = useState(0)
+  const [mergeUndo, setMergeUndo] = useState<{ historyId: number; text: string } | null>(null)
+  const crmReload = crm.reload
+  const reloadAll = useCallback(() => {
+    reload()
+    crmReload()
+  }, [reload, crmReload])
+  useEffect(() => {
+    if (!mergeUndo) return
+    const t = window.setTimeout(() => setMergeUndo(null), 20000)
+    return () => window.clearTimeout(t)
+  }, [mergeUndo])
   const [resyncBusy, setResyncBusy] = useState(false)
   const onPublish = useCallback(async (id: string) => {
+    const said = (outcome: string) => outcome === 'already_synced' ? 'Already on the site from the sheet' : outcome === 'held_back' ? 'Not put on the website: this event is held back' : 'Website list updated'
     try {
       const outcome = await publishShow(id)
-      if (outcome === 'already_synced') setToast({ kind: 'ok', text: 'Already on the site from the sheet' })
+      if (outcome === 'already_synced' || outcome === 'held_back') setToast({ kind: 'ok', text: said(outcome) })
     } catch (error) {
       setToast({ kind: 'error', text: 'Saved, but the website list was not updated', retry: () => {
         setToast({ kind: 'ok', text: 'Retrying website update…' })
-        void publishShow(id).then(outcome => setToast({ kind: 'ok', text: outcome === 'already_synced' ? 'Already on the site from the sheet' : 'Website list updated' })).catch(err => setToast({ kind: 'error', text: err instanceof Error ? err.message : 'Website update failed', retry: () => void onPublish(id) }))
+        void publishShow(id).then(outcome => setToast({ kind: 'ok', text: said(outcome) })).catch(err => setToast({ kind: 'error', text: err instanceof Error ? err.message : 'Website update failed', retry: () => void onPublish(id) }))
       } })
       // Failure details stay available without leaking any private event values.
       console.warn('Website update failed', id, error instanceof Error ? error.message : 'request failed')
@@ -129,6 +202,26 @@ function Dashboard({
   const ctx = useMemo(() => ({ mySlugs, today: todayISO() }), [mySlugs])
   const open = inquiries.find((i) => i.id === openId) ?? null
   const editing = inquiries.find((i) => i.id === editingId) ?? null
+  const openContact = crm.contacts.find((c) => c.id === contactId) ?? null
+  const formEditing = contactForm?.id ? crm.contacts.find((c) => c.id === contactForm.id) : undefined
+  const followUpCount = useMemo(
+    () => crm.reminders.filter((r) => r.contact_id && (reminderBucket(r, ctx.today) === 'overdue' || reminderBucket(r, ctx.today) === 'today')).length,
+    [crm.reminders, ctx.today],
+  )
+  const whatsAppForContact = (c: Contact) => setWa({ contact: c, inquiry: contextBooking(c.id, inquiries, ctx.today), phone: bestPhone(c), name: c.name })
+  const whatsAppForInquiry = (i: Inquiry) => {
+    const c = crm.contacts.find((x) => x.id === i.contact_id && !x.deleted_at) ?? null
+    setWa({ contact: c, inquiry: i, phone: (c && bestPhone(c)) || i.organizer_phone, name: c?.name ?? i.organizer_name ?? 'there' })
+  }
+  const restoreContact = async (c: Contact) => {
+    try {
+      await setContactDeleted(c.id, false, me.id)
+      setToast({ kind: 'ok', text: 'Restored' })
+      reloadAll()
+    } catch (err) {
+      setToast({ kind: 'error', text: friendlyError(err) })
+    }
+  }
 
   // --- needs-action: flags, and one-tap actions whose write is held for 5 s so Undo never needs a delete ---
   const [hidden, setHidden] = useState<ReadonlySet<string>>(new Set())
@@ -249,7 +342,15 @@ function Dashboard({
 
   return (
     <>
-      <Shell me={me} team={team} needCount={waiting.length} totalCount={inquiries.length} onAdd={pickable.length > 0 ? () => setAdding(true) : undefined} onResync={me.role === 'owner' ? () => void resync() : undefined} resyncBusy={resyncBusy}>
+      {crm.error && (
+        <div role="alert" className="mx-auto flex max-w-[1100px] flex-wrap items-center justify-between gap-3 px-4 pt-4 md:px-8">
+          <p className="font-grotesk text-[14.5px] text-[var(--error)]">{crm.error}</p>
+          <button type="button" onClick={crm.retry} className={BTN_GHOST}>
+            Try again
+          </button>
+        </div>
+      )}
+      <Shell me={me} team={team} needCount={waiting.length} followUpCount={followUpCount} totalCount={inquiries.length} onAdd={pickable.length > 0 ? () => setAdding(true) : undefined} onResync={me.role === 'owner' ? () => void resync() : undefined} resyncBusy={resyncBusy}>
         {({ view, setView, managerFilter, setManagerFilter }) => (
           <Views
             me={me}
@@ -269,6 +370,16 @@ function Dashboard({
             onOpen={setOpenId}
             onChased={onChased}
             onAdvance={onAdvance}
+            crm={crm}
+            onOpenContact={setContactId}
+            onNewContact={() => setContactForm({})}
+            onMerge={() => setMerging([])}
+            onTemplates={() => setTemplatesOpen(true)}
+            onWhatsAppContact={whatsAppForContact}
+            onWhatsAppInquiry={whatsAppForInquiry}
+            onRestoreContact={(c) => void restoreContact(c)}
+            reloadAll={reloadAll}
+            notify={setToast}
           />
         )}
       </Shell>
@@ -287,6 +398,9 @@ function Dashboard({
           }}
           notify={setToast}
           onPublish={onPublish}
+          contacts={crm.contacts}
+          onOpenContact={setContactId}
+          onContactCreated={() => crmReload()}
         />
       )}
       {adding && (
@@ -295,6 +409,9 @@ function Dashboard({
           artists={pickable}
           allArtists={directory.artists}
           managers={directory.managers}
+          contacts={crm.contacts}
+          inquiries={inquiries}
+          onContactCreated={() => crmReload()}
           onClose={() => setAdding(false)}
           onSaved={(id) => {
             setAdding(false)
@@ -313,6 +430,9 @@ function Dashboard({
           artists={directory.artists.filter((a) => pickable.some((p) => p.slug === a.slug) || editing.artists.includes(a.slug))}
           allArtists={directory.artists}
           managers={directory.managers}
+          contacts={crm.contacts}
+          inquiries={inquiries}
+          onContactCreated={() => crmReload()}
           editing={editing}
           onClose={() => setEditingId(null)}
           onSaved={(id) => {
@@ -321,6 +441,91 @@ function Dashboard({
             reload()
             setOpenId(id)
             void onPublish(id)
+          }}
+        />
+      )}
+      {openContact && (
+        <ContactDrawer
+          key={openContact.id}
+          contact={openContact}
+          me={me}
+          managers={directory.managers}
+          stats={crm.stats}
+          inquiries={inquiries}
+          artists={directory.artists}
+          today={ctx.today}
+          onClose={() => setContactId(null)}
+          onChanged={reloadAll}
+          onEdit={() => setContactForm({ id: openContact.id })}
+          onMerge={() => setMerging([openContact.id])}
+          onOpenInquiry={setOpenId}
+          onWhatsApp={() => whatsAppForContact(openContact)}
+          notify={setToast}
+        />
+      )}
+      {contactForm && (
+        <ContactFormDialog
+          me={me}
+          managers={directory.managers}
+          contacts={crm.contacts}
+          editing={formEditing}
+          onClose={() => setContactForm(null)}
+          onSaved={(c) => {
+            const wasNew = !contactForm.id
+            setContactForm(null)
+            setToast({ kind: 'ok', text: wasNew ? 'Contact added' : 'Contact updated' })
+            reloadAll()
+            if (wasNew) setContactId(c.id)
+          }}
+          onOpenExisting={(id) => {
+            setContactForm(null)
+            setContactId(id)
+          }}
+        />
+      )}
+      {merging && (
+        <MergeDialog
+          contacts={crm.contacts}
+          stats={crm.stats}
+          preselect={merging.length > 0 ? merging : undefined}
+          onClose={() => setMerging(null)}
+          onMerged={(keepId, historyId, n) => {
+            setMerging(null)
+            reloadAll()
+            setContactId(keepId)
+            if (historyId) setMergeUndo({ historyId, text: `Merged ${n + 1} contacts into one` })
+            else setToast({ kind: 'ok', text: `Merged ${n + 1} contacts into one` })
+          }}
+        />
+      )}
+      {templatesOpen && <TemplatesDialog onClose={() => setTemplatesOpen(false)} onChanged={() => setTemplatesVersion((v) => v + 1)} />}
+      {wa && (
+        <WhatsAppSheet
+          me={me}
+          contact={wa.contact}
+          inquiry={wa.inquiry}
+          phone={wa.phone}
+          name={wa.name}
+          onClose={() => setWa(null)}
+          onManageTemplates={() => setTemplatesOpen(true)}
+          onLogged={crmReload}
+          notify={setToast}
+          version={templatesVersion}
+        />
+      )}
+      {mergeUndo && (
+        <UndoToast
+          text={mergeUndo.text}
+          onUndo={() => {
+            const id = mergeUndo.historyId
+            setMergeUndo(null)
+            undoMerge(id).then(
+              () => {
+                setToast({ kind: 'ok', text: 'Merge undone' })
+                reloadAll()
+              },
+              (err) => setToast({ kind: 'error', text: friendlyError(err) }),
+            )
           }}
         />
       )}
@@ -349,6 +554,16 @@ function Views({
   onOpen,
   onChased,
   onAdvance,
+  crm,
+  onOpenContact,
+  onNewContact,
+  onMerge,
+  onTemplates,
+  onWhatsAppContact,
+  onWhatsAppInquiry,
+  onRestoreContact,
+  reloadAll,
+  notify,
 }: {
   me: Manager
   directory: Directory
@@ -367,6 +582,16 @@ function Views({
   onOpen: (id: string) => void
   onChased: (i: Inquiry) => void
   onAdvance: (i: Inquiry, kind: AdvanceKind) => void
+  crm: CrmData
+  onOpenContact: (id: string) => void
+  onNewContact: () => void
+  onMerge: () => void
+  onTemplates: () => void
+  onWhatsAppContact: (c: Contact) => void
+  onWhatsAppInquiry: (i: Inquiry) => void
+  onRestoreContact: (c: Contact) => void
+  reloadAll: () => void
+  notify: (t: ToastMsg) => void
 }) {
   // Someone who looks after no artists (the owner) would see an empty "My artists" list.
   const [filters, setFilters] = useState<Filters>(() => ({
@@ -392,8 +617,73 @@ function Views({
     [team, directory.artists],
   )
 
+  const reminders = managerFilter ? crm.reminders.filter((r) => r.manager_id === managerFilter) : crm.reminders
+  const followUps = (title?: string) => (
+    <FollowUpsPanel
+      reminders={reminders}
+      contacts={crm.contacts}
+      managers={directory.managers}
+      me={me}
+      today={today}
+      onOpenContact={onOpenContact}
+      onWhatsApp={onWhatsAppContact}
+      onChanged={reloadAll}
+      notify={notify}
+      title={title}
+    />
+  )
+
+  if (view === 'contacts')
+    return (
+      <ContactsView
+        me={me}
+        managers={directory.managers}
+        contacts={crm.contacts}
+        stats={crm.stats}
+        managerFilter={managerFilter}
+        today={today}
+        onOpen={onOpenContact}
+        onNew={onNewContact}
+        onMerge={onMerge}
+        onTemplates={onTemplates}
+        onWhatsApp={onWhatsAppContact}
+        onRestore={onRestoreContact}
+      />
+    )
+
+  if (view === 'today') {
+    const dueCount = reminders.filter((r) => r.contact_id && (reminderBucket(r, today) === 'overdue' || reminderBucket(r, today) === 'today')).length
+    return (
+      <TodayView
+        me={me}
+        today={today}
+        followUps={followUps()}
+        followUpCount={dueCount}
+        needCount={needsRows.length}
+        needs={
+          needsRows.length > 0 ? (
+            <section aria-label="Needs you">
+              <h2 className="mb-3 font-display text-2xl text-ink">
+                NEEDS YOU <span className="text-[var(--ink-50)]">({needsRows.length})</span>
+              </h2>
+              <NeedsList rows={needsRows} all={inquiries} artists={directory.artists} managers={directory.managers} me={me} ctx={naCtx} nextShow={nextShow} onOpen={onOpen} onChased={onChased} onAdvance={onAdvance} onWhatsApp={onWhatsAppInquiry} compactEmpty />
+            </section>
+          ) : null
+        }
+        payments={pendingPayments(showsFor, today)}
+        quiet={quietContacts(crm.contacts, crm.stats, today, me.role === 'owner' ? null : me.id)}
+        stats={crm.stats}
+        onOpenInquiry={onOpen}
+        onOpenContact={onOpenContact}
+        onWhatsApp={onWhatsAppContact}
+      />
+    )
+  }
+
   if (view === 'overview')
     return (
+      <div>
+      {followUps('TEAM FOLLOW-UPS DUE')}
       <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_300px]">
         <OverviewView
           inquiries={mine}
@@ -423,10 +713,13 @@ function Views({
           version={inquiries}
         />
       </div>
+      </div>
     )
 
   if (view === 'needs')
     return (
+      <>
+      {followUps('TEAM FOLLOW-UPS DUE')}
       <NeedsList
         rows={needsRows}
         all={inquiries}
@@ -438,7 +731,9 @@ function Views({
         onOpen={onOpen}
         onChased={onChased}
         onAdvance={onAdvance}
+        onWhatsApp={onWhatsAppInquiry}
       />
+      </>
     )
 
   return (

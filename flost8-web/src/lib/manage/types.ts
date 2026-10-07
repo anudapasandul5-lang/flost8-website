@@ -52,6 +52,10 @@ export interface Inquiry {
   set_time: string | null
   ticket_link: string | null
   website_show_id: string | null
+  /** The person or organisation this booking is with (null = not linked yet). */
+  contact_id: string | null
+  /** Converted sheet rows stay off the public Shows list until the owner releases them. */
+  no_auto_publish: boolean
   deal_type: string | null
   lead_source: string | null
   platform: string | null
