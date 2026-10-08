@@ -1,0 +1,281 @@
+/* ── Google Fonts ── */
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Grotesk:wght@400;500;600;700&display=swap');
+
+/* ── Local Fonts ── */
+@font-face {
+  font-family: 'Hyperwave';
+  src: url('/fonts/Hyperwave.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Circe';
+  src: url('/fonts/Circe-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Circe';
+  src: url('/fonts/Circe-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Font tokens ── */
+:root {
+  --font-display: 'Bebas Neue', sans-serif;
+  --font-script:  'Hyperwave', cursive;
+  --font-body:    'Circe', sans-serif;
+}
+
+/* ── REBUILD: Single-Purple Editorial System (homepage) ── */
+:root {
+  /* surfaces — near-black, purple-tinted. never pure black */
+  --bg:        #120917;
+  --bg-raise:  #1B0F24;   /* lifted panel / ticket row */
+  --bg-line:   rgba(255,255,255,0.10);
+
+  /* ink */
+  --ink:       #FFFFFF;
+  --ink-72:    rgba(255,255,255,0.72);
+  --ink-50:    rgba(255,255,255,0.50);   /* 5.3:1 on --bg — AA ✓ */
+  --ink-32:    rgba(255,255,255,0.47);   /* §14: was 0.32 (2.8:1, failed AA); 0.47 = 4.8:1 for placeholders + footer copyright */
+
+  /* single accent — electric purple (user-mandated) */
+  --accent:    #9D14FF;
+  --accent-ink:#C88BFF;          /* lighter purple for small text on dark */
+  --accent-soft: rgba(157,20,255,0.14);
+  --accent-line: rgba(157,20,255,0.45);
+
+  /* validation error */
+  --error: #FF6B6B;
+
+  --font-grotesk: 'Space Grotesk', system-ui, -apple-system, sans-serif;
+}
+
+/* ── Base Reset ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-family: var(--font-body);
+  background-color: var(--bg);
+  color: white;
+}
+
+body {
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  background: white;
+}
+
+#root {
+  width: 100%;
+  min-height: 100dvh;
+}
+
+/* ── Tailwind Custom Utilities ── */
+@layer utilities {
+  .font-display  { font-family: var(--font-display); }
+  .font-script   { font-family: var(--font-script); }
+  .font-body     { font-family: var(--font-body); }
+
+  /* ── Film grain — below nav (z-50) and modals (z-60+) ── */
+  .grain {
+    position: fixed;
+    inset: 0;
+    z-index: 40; /* below nav (z-50) and modals (z-60+) */
+    pointer-events: none;
+    mix-blend-mode: overlay;
+    opacity: 0.045;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='flost8-grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23flost8-grain)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
+    background-size: 160px 160px;
+  }
+
+  /* ── REBUILD utilities ── */
+  .font-grotesk { font-family: var(--font-grotesk); }
+
+  .bg-base       { background-color: var(--bg); }
+  .bg-raise      { background-color: var(--bg-raise); }
+  .text-ink      { color: var(--ink); }
+  .text-accent2  { color: var(--accent); }
+
+  /* purple duotone for atmosphere/shows imagery (not portraits) */
+  .duotone-purple {
+    filter: grayscale(1) brightness(0.85) contrast(1.05);
+    background-color: var(--accent);
+    background-blend-mode: multiply;
+  }
+  /* portrait grade: dark + slightly desaturated at rest, warms on hover via group.
+     Active/hover state keeps a gentle floor — never goes fully raw — so 332px
+     low-res sources read as intentional editorial rather than pixelated mistakes. */
+  .grade-portrait {
+    filter: grayscale(0.45) brightness(0.78) contrast(1.06) saturate(0.85);
+    transition: filter 0.5s cubic-bezier(0.16,1,0.3,1);
+  }
+  .group:hover .grade-portrait,
+  .group:focus-within .grade-portrait,
+  .grade-portrait.is-active {
+    /* floor: subtle residual grain-film quality, never fully raw */
+    filter: grayscale(0.12) brightness(0.95) contrast(1.06) saturate(1.05);
+  }
+
+  /* ── Photo treatment wrapper: grain + brand tint ──────────────────────────
+     .photo-treat goes on the *container* around the <img> (or <picture>).
+     Two pseudo-elements stack above the photo, pointer-events:none, static.
+     Both use GPU-friendly properties only (opacity/transform/filter). */
+  .photo-treat {
+    position: relative;
+    isolation: isolate; /* contain blend modes */
+  }
+
+  /* ::before — film grain via static SVG fractal noise */
+  .photo-treat::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='grain'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.72' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23grain)' opacity='1'/%3E%3C/svg%3E");
+    background-size: 200px 200px;
+    background-repeat: repeat;
+    opacity: 0.055;
+    mix-blend-mode: overlay;
+    /* no animation — static tile, zero repaint cost */
+  }
+
+  /* ::after — FLOST8 brand tint: accent purple → near-black gradient */
+  .photo-treat::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(
+      160deg,
+      rgba(157, 20, 255, 0.13) 0%,
+      rgba(18, 9, 23, 0.22) 100%
+    );
+    mix-blend-mode: multiply;
+  }
+
+  /* tinted edge-refraction (NOT a neon outer glow) */
+  .edge-refract {
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.10),
+                inset 0 0 0 1px var(--bg-line);
+  }
+  .accent-press { transition: transform 0.18s cubic-bezier(0.16,1,0.3,1); }
+  .accent-press:active { transform: scale(0.97); }
+
+  /* ── Hide scrollbar + momentum scroll (mobile carousel) ── */
+  .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+  .no-scrollbar::-webkit-scrollbar { display: none; }
+
+  /* ── Horizontal mask for marquee edge fade ── */
+  .mask-fade-x {
+    -webkit-mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 8%,
+      black 92%,
+      transparent 100%
+    );
+    mask-image: linear-gradient(
+      to right,
+      transparent 0%,
+      black 8%,
+      black 92%,
+      transparent 100%
+    );
+  }
+}
+
+/* ── Reduced-motion safety net ── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Hero headline motion layer — isolate transform work to char/glyph spans */
+h1 .word { display: inline-block; white-space: nowrap; }
+h1 .char { display: inline-block; will-change: transform, opacity; }
+h1 .glyph { display: inline-block; will-change: transform; }
+
+/* ── /music ───────────────────────────────────────────────────────────────── */
+/* Artist names are the switcher: outlined when inactive, solid when active. */
+.name-tab {
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.4);
+  transition: color 250ms ease-out, -webkit-text-stroke-color 250ms ease-out;
+}
+.name-tab:hover { -webkit-text-stroke-color: rgba(255, 255, 255, 0.8); }
+.name-tab[aria-selected='true'] { color: var(--ink); -webkit-text-stroke-color: transparent; }
+
+/* One purple light behind the record. */
+.music-stage {
+  background:
+    radial-gradient(60% 70% at 72% 30%, rgba(157, 20, 255, 0.3), transparent 70%),
+    linear-gradient(160deg, #24103a 0%, #1b0f24 55%, #140a1c 100%);
+}
+
+/* Signature: the vinyl slides out from behind the cover and spins while playing. */
+.vinyl {
+  position: absolute;
+  inset: 4%;
+  z-index: 0;
+  border-radius: 9999px;
+  background: repeating-radial-gradient(circle at 50% 50%, #0b0610 0 2px, #1a1022 2px 3px);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+  transform: translateX(0) rotate(0deg);
+  transition: transform 700ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+.vinyl::after {
+  content: '';
+  position: absolute;
+  inset: 34%;
+  border-radius: 9999px;
+  background: var(--label) center / cover;
+  box-shadow: 0 0 0 6px #0b0610;
+}
+.is-playing .vinyl { transform: translateX(38%); animation: vinyl-spin 3.2s linear infinite; }
+@keyframes vinyl-spin {
+  from { transform: translateX(38%) rotate(0deg); }
+  to   { transform: translateX(38%) rotate(360deg); }
+}
+
+.eq { display: inline-flex; gap: 3px; align-items: flex-end; height: 16px; }
+.eq i { width: 3px; background: var(--accent-ink); border-radius: 1px; animation: eq-bar 900ms ease-in-out infinite alternate; }
+.eq i:nth-child(2) { animation-delay: -300ms; }
+.eq i:nth-child(3) { animation-delay: -600ms; }
+@keyframes eq-bar { from { height: 4px; } to { height: 16px; } }
+
+.stage-in { animation: stage-in 380ms cubic-bezier(0.16, 1, 0.3, 1) both; }
+@keyframes stage-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+.cover-lift { transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 220ms ease-out; }
+.cover-lift:hover { transform: translateY(-6px); box-shadow: 0 18px 40px rgba(157, 20, 255, 0.25); }
+
+@media (prefers-reduced-motion: reduce) {
+  .eq i { animation: none; height: 10px; }
+  .is-playing .vinyl { animation: none; }
+  .vinyl, .cover-lift { transition: none; }
+  .stage-in { animation: none; }
+}

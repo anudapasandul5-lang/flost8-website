@@ -1,0 +1,493 @@
+import { useEffect, useState, type ReactNode } from 'react'
+import { motion, useReducedMotion } from 'framer-motion'
+import { ArrowUpRight, CheckCircle, Circle, FileArrowUp, Trash, X } from '@phosphor-icons/react'
+import { addComment, deleteInquiry, friendlyError, updateInquiry, type InquiryPatch } from '../../lib/manage/api'
+import { canCommentOn, canDeleteInquiry, canEditInquiry, isHttpUrl, isPlainEmail } from '../../lib/manage/access'
+import { formatDate } from '../../lib/manage/calendar'
+import { createContact, setInquiryContact, setPublishHold } from '../../lib/manage/contactsApi'
+import { bestPhone, EMPTY_CONTACT, type Contact } from '../../lib/manage/contacts'
+import { artistNames, inquiryTitle, SHEET_URLS } from '../../lib/manage/labels'
+import { STATUS_COLOR, STATUS_LABEL, STATUS_ORDER } from '../../lib/manage/status'
+import type { Inquiry, Manager, Status } from '../../lib/manage/types'
+import ActivityTimeline from './ActivityTimeline'
+import ContactPicker from './ContactPicker'
+import { Sheet } from './contactUi'
+import MoneyPanel from './MoneyPanel'
+import type { Directory } from './Workspace'
+import { BTN_GHOST, BTN_PRIMARY, FOCUS_RING, INPUT, LABEL, PANEL } from './styles'
+import { ConfirmDialog, StatusBadge, type ToastMsg } from './ui'
+import { useLockScroll } from './useLockScroll'
+
+function Row({ label, children }: { label: string; children: ReactNode }) {
+  if (children === null || children === undefined || children === '' || children === false) return null
+  return (
+    <div className="min-w-0">
+      <dt className="font-grotesk text-[13px] text-[var(--ink-50)]">{label}</dt>
+      <dd className="break-words font-grotesk text-[1rem] text-ink">{children}</dd>
+    </div>
+  )
+}
+
+export default function InquiryDrawer({
+  inquiry,
+  me,
+  directory,
+  onClose,
+  onChanged,
+  onEdit,
+  notify,
+  onPublish,
+  contacts,
+  onOpenContact,
+  onContactCreated,
+}: {
+  inquiry: Inquiry
+  me: Manager
+  directory: Directory
+  onClose: () => void
+  onChanged: () => void
+  /** Opens the edit form; only offered for events added in the app. */
+  onEdit: () => void
+  notify: (t: ToastMsg) => void
+  onPublish: (id: string) => Promise<void>
+  contacts: Contact[]
+  onOpenContact: (id: string) => void
+  onContactCreated: (c: Contact) => void
+}) {
+  const reduce = useReducedMotion()
+
+  const imported = inquiry.source === 'sheet_import'
+  const canEdit = canEditInquiry(inquiry, me)
+  const ownerName = directory.managers.find((m) => m.id === inquiry.owner_id)?.name
+  const mySlugs = new Set(directory.artists.filter((a) => a.manager_id === me.id).map((a) => a.slug))
+  const canComment = canCommentOn(inquiry, me, mySlugs)
+  const sheetUrl = ownerName ? SHEET_URLS[ownerName] : undefined
+  const [version, setVersion] = useState(0)
+  const [busy, setBusy] = useState<'status' | 'fields' | 'comment' | 'delete' | null>(null)
+  const [askDelete, setAskDelete] = useState(false)
+  const [linking, setLinking] = useState(false)
+  const [linkText, setLinkText] = useState(inquiry.organizer_name ?? '')
+  const canDelete = canDeleteInquiry(inquiry, me)
+
+  useLockScroll(true)
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && !askDelete && onClose()
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onClose, askDelete])
+
+  const [notes, setNotes] = useState(inquiry.notes ?? '')
+  const [travel, setTravel] = useState(inquiry.travel_notes ?? '')
+  const [contractUrl, setContractUrl] = useState(inquiry.contract_url ?? '')
+  const [signed, setSigned] = useState(inquiry.contract_signed)
+  const [comment, setComment] = useState('')
+
+  const dirty =
+    notes !== (inquiry.notes ?? '') ||
+    travel !== (inquiry.travel_notes ?? '') ||
+    contractUrl !== (inquiry.contract_url ?? '') ||
+    signed !== inquiry.contract_signed
+
+  const changed = () => {
+    setVersion((v) => v + 1)
+    onChanged()
+  }
+
+  async function applyStatus(next: Status) {
+    setBusy('status')
+    try {
+      await updateInquiry(inquiry.id, { status: next })
+      notify({ kind: 'ok', text: `Status set to ${STATUS_LABEL[next]}` })
+      changed()
+      if (inquiry.source === 'manual') void onPublish(inquiry.id)
+    } catch (err) {
+      notify({ kind: 'error', text: friendlyError(err) })
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function saveFields() {
+    if (contractUrl.trim() && !isHttpUrl(contractUrl.trim())) {
+      notify({ kind: 'error', text: 'The contract link must start with https://' })
+      return
+    }
+    const patch: InquiryPatch = {
+      notes: notes.trim() || null,
+      travel_notes: travel.trim() || null,
+      contract_url: contractUrl.trim() || null,
+      contract_signed: signed,
+    }
+    setBusy('fields')
+    try {
+      await updateInquiry(inquiry.id, patch)
+      notify({ kind: 'ok', text: 'Changes saved' })
+      changed()
+    } catch (err) {
+      notify({ kind: 'error', text: friendlyError(err) })
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function postComment() {
+    const text = comment.trim()
+    if (!text) return
+    setBusy('comment')
+    try {
+      await addComment(inquiry.id, me.id, text)
+      setComment('')
+      changed()
+    } catch (err) {
+      notify({ kind: 'error', text: friendlyError(err) })
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function removeEvent() {
+    setAskDelete(false)
+    setBusy('delete')
+    try {
+      await deleteInquiry(inquiry.id)
+      notify({ kind: 'ok', text: 'Event deleted' })
+      onChanged()
+      onClose()
+      void onPublish(inquiry.id)
+    } catch (err) {
+      notify({ kind: 'error', text: friendlyError(err) })
+      setBusy(null)
+    }
+  }
+
+  const linked = inquiry.contact_id ? contacts.find((c) => c.id === inquiry.contact_id && !c.deleted_at) ?? null : null
+
+  async function setLink(contactId: string | null) {
+    try {
+      await setInquiryContact(inquiry.id, contactId)
+      notify({ kind: 'ok', text: contactId ? 'Linked to contact' : 'Unlinked from contact' })
+      setLinking(false)
+      changed()
+    } catch (err) {
+      notify({ kind: 'error', text: friendlyError(err) })
+    }
+  }
+
+  async function releaseHold() {
+    try {
+      await setPublishHold(inquiry.id, false)
+      notify({ kind: 'ok', text: 'Released. It can now go on the website.' })
+      changed()
+      void onPublish(inquiry.id)
+    } catch (err) {
+      notify({ kind: 'error', text: friendlyError(err) })
+    }
+  }
+
+  const place = [inquiry.venue, inquiry.city].filter(Boolean).join(', ')
+  const lineup = artistNames(inquiry.artists, directory.artists)
+
+  return (
+    <div className="fixed inset-0 z-[70] bg-black/60" onClick={onClose}>
+      <motion.aside
+        role="dialog"
+        aria-modal="true"
+        aria-label={inquiryTitle(inquiry)}
+        data-lenis-prevent
+        initial={reduce ? false : { x: 48, opacity: 0 }}
+        animate={{ x: 0, opacity: 1 }}
+        transition={{ type: 'spring', stiffness: 260, damping: 30 }}
+        onClick={(e) => e.stopPropagation()}
+        className="absolute inset-y-0 right-0 flex w-full flex-col overflow-y-auto overscroll-contain bg-base shadow-[-12px_0_40px_rgba(10,4,14,0.6)] md:max-w-[620px] md:border-l md:border-[var(--bg-line)]"
+      >
+        <div className="sticky top-0 z-10 flex items-start justify-between gap-3 border-b border-[var(--bg-line)] bg-base px-4 py-4 md:px-6">
+          <div className="min-w-0">
+            <h2 className="break-words font-display text-3xl leading-tight text-ink md:text-4xl">{inquiryTitle(inquiry)}</h2>
+            <p className="mt-1 font-grotesk text-sm text-[var(--ink-72)]">{formatDate(inquiry.event_date)}</p>
+            <div className="mt-2">
+              <StatusBadge status={inquiry.status} />
+            </div>
+          </div>
+          <button type="button" autoFocus onClick={onClose} aria-label="Close" className={`${BTN_GHOST} !h-11 !w-11 !min-h-0 shrink-0 !p-0`}>
+            <X size={22} aria-hidden="true" />
+          </button>
+        </div>
+
+        <div className="space-y-6 px-4 py-6 md:px-6">
+          {imported && (
+            <div role="note" className={`${PANEL} border-[var(--accent-line)] p-4 font-grotesk text-[15px] leading-relaxed text-ink`}>
+              <p>
+                <span className="font-medium">{ownerName ? `From ${ownerName}'s sheet.` : 'From a Google Sheet.'}</span> Change it there; it updates here within 15 min.
+              </p>
+              {sheetUrl && (
+                <a href={sheetUrl} target="_blank" rel="noreferrer noopener" className={`${BTN_GHOST} mt-3 w-full border-[var(--accent-line)] text-ink`}>
+                  <ArrowUpRight size={18} aria-hidden="true" />
+                  Edit in sheet
+                </a>
+              )}
+            </div>
+          )}
+          {!imported && !canEdit && (
+            <p role="note" className={`${PANEL} p-4 font-grotesk text-[15px] leading-relaxed text-[var(--ink-72)]`}>
+              You can view this but not change it{ownerName ? `. Only ${ownerName} (or Anuda) can edit it.` : '.'}
+            </p>
+          )}
+
+          {canEdit && (inquiry.source === 'manual' || inquiry.status === 'tentative') && (
+            <div className="flex flex-wrap gap-2">
+              {inquiry.source === 'manual' && (
+                <button type="button" onClick={onEdit} disabled={busy !== null} className={`${BTN_GHOST} border-[var(--accent-line)] text-ink`}>
+                  Edit event
+                </button>
+              )}
+              {inquiry.status === 'tentative' && (
+                <button type="button" onClick={() => void applyStatus('booking_confirmed')} disabled={busy !== null} className={BTN_PRIMARY}>
+                  Confirm booking
+                </button>
+              )}
+            </div>
+          )}
+
+          {inquiry.no_auto_publish && (
+            <div role="note" className={`${PANEL} border-[var(--accent-line)] p-4 font-grotesk text-[15px] leading-relaxed text-ink`}>
+              <p>This event is held back from the website. It will not appear on the public Shows list until the owner releases it.</p>
+              {me.role === 'owner' && (
+                <button type="button" onClick={() => void releaseHold()} className={`${BTN_GHOST} mt-3 w-full border-[var(--accent-line)] text-ink`}>
+                  Release to website
+                </button>
+              )}
+            </div>
+          )}
+
+          <section aria-label="Contact">
+            <h3 className="mb-3 font-display text-2xl text-ink">CONTACT</h3>
+            {linked ? (
+              <div className={`${PANEL} flex items-center justify-between gap-3 p-3`}>
+                <button type="button" onClick={() => onOpenContact(linked.id)} className={`min-w-0 flex-1 text-left font-grotesk ${FOCUS_RING}`}>
+                  <span className="block truncate text-[1rem] text-ink">{linked.name}</span>
+                  <span className="block truncate text-[13.5px] text-[var(--ink-72)]">{[linked.organisation, bestPhone(linked)].filter(Boolean).join(', ') || 'Open the contact card'}</span>
+                </button>
+                <button type="button" onClick={() => setLinking(true)} className={BTN_GHOST}>
+                  Change
+                </button>
+              </div>
+            ) : (
+              <div className={`${PANEL} p-4 font-grotesk text-[15px] text-[var(--ink-72)]`}>
+                <p>{inquiry.organizer_name ? `${inquiry.organizer_name} is not linked to a saved contact yet.` : 'No contact linked yet.'}</p>
+                <button type="button" onClick={() => setLinking(true)} className={`${BTN_GHOST} mt-3`}>
+                  Link or add a contact
+                </button>
+              </div>
+            )}
+          </section>
+
+          <section aria-label="Details">
+            <dl className="grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+              <Row label="Lineup">{lineup || 'No artist yet'}</Row>
+              <Row label="Other artists">{inquiry.other_artists}</Row>
+              <Row label="Set type">{inquiry.set_type}</Row>
+              <Row label="Venue and city">{place}</Row>
+              <Row label="Set time">{inquiry.set_time}</Row>
+              <Row label="Ticket link">{isHttpUrl(inquiry.ticket_link) ? <a href={inquiry.ticket_link!} target="_blank" rel="noreferrer noopener" className="text-accent underline">Open ticket link</a> : null}</Row>
+              <Row label="Set length">{inquiry.set_duration_h ? `${inquiry.set_duration_h} hours` : null}</Row>
+              <Row label="Event type">{inquiry.event_type}</Row>
+              <Row label="Deal type">{inquiry.deal_type}</Row>
+              <Row label="Organizer">{inquiry.organizer_name}</Row>
+              <Row label="Phone">
+                {inquiry.organizer_phone && (
+                  <a className="underline" href={`tel:${inquiry.organizer_phone.replace(/\s/g, '')}`}>
+                    {inquiry.organizer_phone}
+                  </a>
+                )}
+              </Row>
+              <Row label="Email">
+                {inquiry.organizer_email &&
+                  (isPlainEmail(inquiry.organizer_email) ? (
+                    <a className="underline" href={`mailto:${inquiry.organizer_email}`}>
+                      {inquiry.organizer_email}
+                    </a>
+                  ) : (
+                    <span>{inquiry.organizer_email}</span>
+                  ))}
+              </Row>
+              <Row label="Brand">{inquiry.brand}</Row>
+              <Row label="Collaboration">{inquiry.collab_type}</Row>
+              <Row label="Lead source">{[inquiry.lead_source, inquiry.platform].filter(Boolean).join(' / ')}</Row>
+              <Row label="Invoice">{inquiry.invoice_no}</Row>
+              <Row label="Owner">{ownerName ?? 'Nobody yet'}</Row>
+              <Row label="Came from">{inquiry.source.replace('_', ' ')}</Row>
+              {inquiry.status === 'lost' && <Row label="Why it was lost">{inquiry.lost_reason}</Row>}
+            </dl>
+          </section>
+
+          <section aria-label="Status">
+            <h3 className="mb-3 font-display text-2xl text-ink">STATUS</h3>
+            {canEdit ? (
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-3" role="group" aria-label="Change status">
+                {STATUS_ORDER.map((s) => {
+                  const on = s === inquiry.status
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      aria-pressed={on}
+                      disabled={busy !== null}
+                      onClick={() => void applyStatus(s)}
+                      className={`min-h-[48px] rounded-full border px-3 font-grotesk text-sm font-medium transition active:scale-[0.98] disabled:opacity-60 ${FOCUS_RING}`}
+                      style={
+                        on
+                          ? { color: STATUS_COLOR[s].fg, backgroundColor: STATUS_COLOR[s].bg, borderColor: STATUS_COLOR[s].fg }
+                          : { color: 'rgba(255,255,255,0.72)', borderColor: 'rgba(255,255,255,0.10)' }
+                      }
+                    >
+                      {STATUS_LABEL[s]}
+                    </button>
+                  )
+                })}
+              </div>
+            ) : (
+              <StatusBadge status={inquiry.status} />
+            )}
+          </section>
+
+          <MoneyPanel
+            key={`${inquiry.id}-${inquiry.updated_at}-${inquiry.money?.fee}-${inquiry.money?.advance}-${inquiry.money?.balance}`}
+            inquiry={inquiry}
+            canEdit={canEdit}
+            onSaved={changed}
+            notify={notify}
+          />
+
+          <section aria-label="Notes and contract" className="space-y-4">
+            <h3 className="font-display text-2xl text-ink">NOTES AND CONTRACT</h3>
+            {canEdit ? (
+              <>
+                <div>
+                  <label htmlFor="d-notes" className={LABEL}>
+                    Notes
+                  </label>
+                  <textarea id="d-notes" rows={4} value={notes} onChange={(e) => setNotes(e.target.value)} className={INPUT} />
+                </div>
+                <div>
+                  <label htmlFor="d-travel" className={LABEL}>
+                    Travel notes
+                  </label>
+                  <textarea id="d-travel" rows={2} value={travel} onChange={(e) => setTravel(e.target.value)} className={INPUT} />
+                </div>
+                <div>
+                  <label htmlFor="d-curl" className={LABEL}>
+                    Contract link
+                  </label>
+                  <input id="d-curl" type="url" inputMode="url" value={contractUrl} onChange={(e) => setContractUrl(e.target.value)} placeholder="https://" className={INPUT} />
+                </div>
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={signed}
+                  onClick={() => setSigned((s) => !s)}
+                  className={`flex min-h-[48px] w-full items-center gap-3 rounded-xl border border-[var(--bg-line)] px-4 text-left font-grotesk text-[1rem] text-ink ${FOCUS_RING}`}
+                >
+                  {signed ? <CheckCircle size={24} weight="fill" className="text-[#86EFAC]" aria-hidden="true" /> : <Circle size={24} aria-hidden="true" className="text-[var(--ink-50)]" />}
+                  {signed ? 'Contract signed' : 'Contract not signed yet'}
+                </button>
+                <button type="button" className={`${BTN_PRIMARY} w-full sm:w-auto`} disabled={!dirty || busy !== null} onClick={() => void saveFields()}>
+                  {busy === 'fields' ? 'Saving...' : 'Save changes'}
+                </button>
+              </>
+            ) : (
+              <dl className="grid gap-3">
+                <Row label="Notes">
+                  <span className="whitespace-pre-wrap">{inquiry.notes}</span>
+                </Row>
+                <Row label="Travel notes">
+                  <span className="whitespace-pre-wrap">{inquiry.travel_notes}</span>
+                </Row>
+                <Row label="Contract">{inquiry.contract_signed ? 'Signed' : 'Not signed yet'}</Row>
+                <Row label="Contract link">
+                  {inquiry.contract_url && isHttpUrl(inquiry.contract_url) && (
+                    <a className="inline-flex items-center gap-1.5 underline" href={inquiry.contract_url} target="_blank" rel="noreferrer noopener">
+                      <FileArrowUp size={18} aria-hidden="true" />
+                      Open contract
+                    </a>
+                  )}
+                </Row>
+                {!inquiry.notes && !inquiry.travel_notes && !inquiry.contract_url && (
+                  <p className="font-grotesk text-sm text-[var(--ink-50)]">Nothing written here yet.</p>
+                )}
+              </dl>
+            )}
+          </section>
+
+          <section aria-label="Activity" className="space-y-4">
+            <h3 className="font-display text-2xl text-ink">ACTIVITY</h3>
+            {canComment && (
+              <div>
+                <label htmlFor="d-comment" className={LABEL}>
+                  Add a comment
+                </label>
+                <textarea id="d-comment" rows={2} value={comment} onChange={(e) => setComment(e.target.value)} className={INPUT} />
+                <button type="button" className={`${BTN_GHOST} mt-2`} disabled={!comment.trim() || busy !== null} onClick={() => void postComment()}>
+                  {busy === 'comment' ? 'Posting...' : 'Post comment'}
+                </button>
+              </div>
+            )}
+            <ActivityTimeline inquiryId={inquiry.id} managers={directory.managers} version={version} />
+          </section>
+
+          {canDelete && (
+            <section aria-label="Delete event" className="border-t border-[var(--bg-line)] pt-6">
+              <p className="mb-3 font-grotesk text-sm text-[var(--ink-50)]">Added in this app by mistake? Deleting removes the event, its comments and its money details for good.</p>
+              <button
+                type="button"
+                disabled={busy !== null}
+                onClick={() => setAskDelete(true)}
+                className={`inline-flex min-h-[48px] items-center gap-2 rounded-full border border-[#7a2f3a] px-5 font-grotesk text-[15px] text-[var(--error)] transition hover:bg-[#2b1219] active:scale-[0.98] disabled:opacity-50 ${FOCUS_RING}`}
+              >
+                <Trash size={18} aria-hidden="true" />
+                {busy === 'delete' ? 'Deleting…' : 'Delete event'}
+              </button>
+            </section>
+          )}
+        </div>
+      </motion.aside>
+
+      {askDelete && (
+        <ConfirmDialog
+          title="DELETE EVENT?"
+          body={
+            <>
+              <span className="block">{inquiryTitle(inquiry)} will be permanently deleted, with its comments and money details.</span>
+              <span className="mt-2 block font-medium text-ink">This cannot be undone.</span>
+            </>
+          }
+          confirmLabel="Delete event"
+          onConfirm={() => void removeEvent()}
+          onCancel={() => setAskDelete(false)}
+        />
+      )}
+      {linking && (
+        <Sheet title="LINK A CONTACT" intro="Pick someone you already have, or add the name as a new contact." onClose={() => setLinking(false)}>
+          <ContactPicker
+            id="link-contact"
+            contacts={contacts}
+            picked={null}
+            text={linkText}
+            onText={setLinkText}
+            onPick={(c) => void setLink(c.id)}
+            onClear={() => undefined}
+            onCreate={async (name) => {
+              const made = await createContact({ ...EMPTY_CONTACT, name, phones: [inquiry.organizer_phone ?? ''], emails: [inquiry.organizer_email ?? ''], types: ['client'], city: inquiry.city ?? '', owner_id: inquiry.owner_id ?? me.id })
+              onContactCreated(made)
+              return made
+            }}
+          />
+          {linked && (
+            <button type="button" onClick={() => void setLink(null)} className={`${BTN_GHOST} w-full`}>
+              Unlink this contact
+            </button>
+          )}
+        </Sheet>
+      )}
+    </div>
+  )
+}

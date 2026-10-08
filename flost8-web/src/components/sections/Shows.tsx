@@ -1,0 +1,203 @@
+import { Link } from 'react-router-dom'
+import { motion, type Variants } from 'framer-motion'
+import { ArrowUpRight } from '@phosphor-icons/react'
+import { useUpcomingShows } from '../../hooks/useUpcomingShows'
+import { useMotionSafe } from '../../hooks/useMotionSafe'
+import EyebrowRule from '../ui/EyebrowRule'
+import { PUBLIC_ARTISTS } from '../../lib/artistRoster'
+import type { UpcomingShow } from '../../lib/bookingContract'
+import { EASE, SPRING, staggerParent } from '../../lib/motion'
+
+interface ShowRow {
+  photos: Array<{ slug: string; photo: string }>
+  dateLabel: string
+  title: string
+  place: string
+  ticketLink: string
+}
+
+function showToRow(show: UpcomingShow): ShowRow {
+  // B2B/B3B sets store "NAME1 B2B NAME2 B2B NAME3" (see showsAdmin.composeArtistDisplay)
+  // — every matched artist gets its own portrait, the title keeps the full combined string.
+  const names = show.artist.split(/\s+B2B\s+/i).map((name) => name.trim())
+  const photos = names.flatMap((name) => {
+    const match = PUBLIC_ARTISTS.find((artist) => artist.name.toLowerCase() === name.toLowerCase())
+    return match ? [{ slug: match.slug, photo: `/photos/${match.slug}.webp` }] : []
+  })
+
+  return {
+    photos,
+    dateLabel: show.date,
+    title: show.artist,
+    place: `${show.venue} · ${show.city}`,
+    ticketLink: show.ticketLink,
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Per-row animation variants (item F)
+// ---------------------------------------------------------------------------
+
+/** Row slides in from the left on viewport enter (whileInView stagger child). */
+const rowSlide: Variants = {
+  hidden: { opacity: 0, x: -32 },
+  visible: { opacity: 1, x: 0, transition: { duration: 0.55, ease: EASE } },
+}
+
+/** Date chip pops in with a spring overshoot — delayed slightly after the row. */
+const chipPop: Variants = {
+  hidden: { opacity: 0, scale: 0.72 },
+  visible: {
+    opacity: 1,
+    scale: 1,
+    transition: { ...SPRING, delay: 0.18 },
+  },
+}
+
+function ShowRowCard({ row, reduce }: { row: ShowRow; reduce: boolean }) {
+  // Ticket link, when set, makes the whole row a click-through to buy tickets —
+  // no link means the card stays a plain (non-interactive) row.
+  const Wrapper = row.ticketLink ? motion.a : motion.div
+  const linkProps = row.ticketLink
+    ? { href: row.ticketLink, target: '_blank', rel: 'noopener noreferrer' }
+    : {}
+
+  return (
+    <Wrapper
+      {...linkProps}
+      // Item F: whileInView slide — child of the staggerParent list wrapper.
+      variants={reduce ? undefined : rowSlide}
+      initial={reduce ? undefined : 'hidden'}
+      whileInView={reduce ? undefined : 'visible'}
+      viewport={{ once: true, margin: '0px 0px -48px 0px' }}
+      className={`group relative flex min-h-[116px] items-stretch overflow-hidden rounded-xl edge-refract bg-base-raise md:min-h-[140px] md:rounded-2xl ${row.ticketLink ? 'cursor-pointer transition-colors hover:bg-base-raise/80' : ''}`}
+    >
+      {/* Text block */}
+      <div className="flex flex-1 flex-col justify-center gap-1.5 px-5 py-5 md:px-8">
+        {/* date chip spring-pops in — gated via reduce */}
+        <motion.span
+          variants={reduce ? undefined : chipPop}
+          initial={reduce ? undefined : 'hidden'}
+          whileInView={reduce ? undefined : 'visible'}
+          viewport={{ once: true }}
+          className="mb-1 self-start whitespace-nowrap rounded-md bg-accent px-3 py-1 font-grotesk text-xs font-semibold text-ink md:text-sm"
+        >
+          {row.dateLabel}
+        </motion.span>
+        <p className="truncate font-display text-2xl leading-tight text-ink md:text-4xl">
+          {row.title}
+        </p>
+        <p className="truncate font-grotesk text-sm text-[var(--ink-50)]">{row.place}</p>
+      </div>
+
+      {/* Portrait(s) — tall narrow right column matches portrait orientation, so the face
+          reads. A B2B/B3B set splits this column evenly, one strip per matched artist. */}
+      {row.photos.length > 0 && (
+        <div className="relative flex w-24 shrink-0 overflow-hidden md:w-40">
+          {row.photos.map((p) => (
+            <div key={p.slug} className="relative h-full flex-1 overflow-hidden">
+              <img
+                src={p.photo}
+                alt=""
+                aria-hidden="true"
+                loading="lazy"
+                decoding="async"
+                className="grade-portrait h-full w-full object-cover object-top transition-transform duration-500 group-hover:scale-105"
+              />
+            </div>
+          ))}
+          {/* blend the photo column's left edge into the card — a fixed seam width
+              regardless of photo count, so a 2-3-up B2B/B3B row doesn't wash out
+              each narrower strip the way a width sized for one photo would */}
+          <div className="pointer-events-none absolute inset-y-0 left-0 w-6 bg-gradient-to-r from-base-raise to-transparent md:w-10" />
+        </div>
+      )}
+
+      {row.ticketLink && (
+        <div className="pointer-events-none absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full bg-accent text-ink opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <ArrowUpRight size={16} weight="bold" />
+        </div>
+      )}
+    </Wrapper>
+  )
+}
+
+export default function Shows() {
+  const { reduce } = useMotionSafe()
+  // Past shows are filtered upstream in normalizeUpcomingShows, so every consumer of the
+  // hook gets the same list — this section and /bookings both.
+  const { shows, loading } = useUpcomingShows(5)
+
+  return (
+    <section id="shows" className="relative bg-base py-10 md:py-20">
+      <div className="max-w-[1400px] mx-auto px-6 md:px-10">
+        <div className="mb-12 md:mb-16">
+          <p className="font-grotesk uppercase tracking-[0.25em] text-[13px] text-accent-ink">
+            Next up
+          </p>
+          <EyebrowRule />
+          <h2 className="mt-3 font-display text-ink text-5xl md:text-7xl leading-[0.9]">
+            UPCOMING SHOWS
+          </h2>
+        </div>
+
+        {loading && (
+          <div className="flex flex-col gap-3 md:gap-4">
+            {[0, 1, 2].map((i) => (
+              <div
+                key={i}
+                className="relative overflow-hidden rounded-xl md:rounded-2xl min-h-[96px] md:min-h-[128px] bg-base-raise edge-refract"
+              >
+                {reduce ? (
+                  <div className="absolute inset-0 bg-base-raise" />
+                ) : (
+                  <motion.div
+                    className="absolute inset-0 bg-gradient-to-r from-base-raise via-[var(--accent-soft)] to-base-raise"
+                    animate={{ opacity: [0.4, 0.8, 0.4] }}
+                    transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut', delay: i * 0.15 }}
+                  />
+                )}
+              </div>
+            ))}
+          </div>
+        )}
+
+        {!loading && shows.length === 0 && (
+          <div className="rounded-2xl bg-base-raise edge-refract p-10 md:p-14 text-center md:text-left">
+            <h3 className="font-display text-ink text-4xl md:text-5xl mb-3">NEW DATES DROPPING SOON</h3>
+            <p className="font-grotesk text-[var(--ink-50)] mb-8 max-w-md md:mx-0 mx-auto">
+              Get on the list. We announce shows here first.
+            </p>
+            <Link
+              to="/bookings"
+              className="inline-flex items-center gap-2 bg-accent text-ink rounded-full px-6 py-3.5 accent-press edge-refract font-grotesk"
+            >
+              Book a Date
+              <ArrowUpRight size={20} weight="bold" />
+            </Link>
+          </div>
+        )}
+
+        {!loading && shows.length > 0 && (
+          // Item F: staggerParent orchestrates the per-row whileInView stagger.
+          // reduce=true → no variants, list renders statically.
+          <motion.div
+            className="flex flex-col gap-3 md:gap-4"
+            variants={reduce ? undefined : staggerParent}
+            initial={reduce ? undefined : 'hidden'}
+            whileInView={reduce ? undefined : 'visible'}
+            viewport={{ once: true, margin: '0px 0px -64px 0px' }}
+          >
+            {shows.map((show, index) => (
+              <ShowRowCard
+                key={`${show.artist}-${show.date}-${index}`}
+                row={showToRow(show)}
+                reduce={reduce}
+              />
+            ))}
+          </motion.div>
+        )}
+      </div>
+    </section>
+  )
+}

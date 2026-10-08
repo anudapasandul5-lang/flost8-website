@@ -1,0 +1,167 @@
+export type MusicLink =
+  | { type: 'youtube'; url: string; title?: string }
+  | { type: 'soundcloud'; url: string; title?: string }
+
+export interface PlatformLink {
+  name: string
+  url: string
+}
+
+export interface PublicArtist {
+  slug: string
+  name: string
+  role: string
+  realName?: string
+  tagline?: string
+  genre?: string
+  instagram?: { handle?: string; followers?: string }
+  platforms?: PlatformLink[]
+  music?: MusicLink[]
+  gigs?: string[]
+  bio?: string
+  /** CSS object-position for the portrait (e.g. 'center top') when centering crops badly. */
+  focal?: string
+}
+
+export const PUBLIC_ARTISTS: PublicArtist[] = [
+  {
+    slug: 'dr-green',
+    name: 'DR. GREEN',
+    role: 'DJ / Producer',
+    realName: 'Daniel Claessen',
+    tagline: 'Groove Engineer',
+    genre: 'Progressive House',
+    instagram: { handle: 'dr_green_sl', followers: '12K' },
+    platforms: [
+      { name: 'SoundCloud', url: 'https://soundcloud.com/dr_green_lk' },
+      { name: 'Traxsource', url: 'https://www.traxsource.com/artist/578267/dr-green' },
+      { name: 'Spotify', url: 'https://open.spotify.com/artist/7iwl8mIIMxzYFmWvMft2tE' },
+      { name: 'Beatport', url: 'https://www.beatport.com/artist/dr-green/925957' },
+    ],
+    music: [
+      { type: 'youtube', url: 'https://www.youtube.com/watch?v=mIzxpKdVS7g' },
+      { type: 'youtube', url: 'https://youtu.be/jlKqCy5K0yk?si=PLM2EXGOiiEanf3O' },
+      { type: 'youtube', url: 'https://www.youtube.com/watch?v=ZP14TK60BIs&t=3297s' },
+      { type: 'youtube', url: 'https://youtu.be/csPIxTQOZwk?si=6V9QnGxn7iT46V9l' },
+    ],
+    gigs: ['Soundgarden Festival', 'Dr Green & Friends', 'International Tours'],
+    bio: 'Hailing from the beautiful island of Sri Lanka, Dr. Green is a DJ and producer who has been making waves in the electronic music scene. With a distinct taste for progressive house, deep house, and melodic techno, his track productions are a true reflection of his personal style.',
+  },
+  {
+    slug: 'maalin',
+    name: 'MAALIN',
+    role: 'DJ / Producer',
+    realName: 'Dev Nawarathne',
+    tagline: 'CrowdHyper',
+    genre: 'Progressive House',
+    instagram: { handle: 'maalin.ofc', followers: '1K' },
+    platforms: [
+      { name: 'SoundCloud', url: 'https://soundcloud.com/user-25002526' },
+    ],
+    music: [
+      {
+        type: 'soundcloud',
+        url: 'https://soundcloud.com/user-25002526/maalin-audiosolo-set-wav?si=474d7dea853042e98df400dfbe3e9135&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing',
+      },
+    ],
+    gigs: [
+      'AGRA Festival',
+      'AudioSolo',
+      'Nexgen',
+      'The Pirates',
+      'Synthesis',
+      'Beyond Seed',
+      'Orix',
+      'Again and Beyond',
+      'Rythm',
+      'Mira',
+      'Beat Synth',
+      'All Day Music',
+      'Noise Of Serendib',
+    ],
+    bio: 'Maalin is a rising force in the progressive electronic scene, carving out a signature sound that blends deep groove with dark, hypnotic energy. What began at just 15 as a wide exploration of genres has evolved into a focused and powerful artistic identity rooted in the underground. Drawing inspiration from talents like Kyotto and global heavyweights such as Guy J and Simon Vuarambon, Maalin delivers immersive DJ sets that go beyond music. They\'re journeys. Each performance is carefully crafted to pull audiences into a world of deep rhythms, rolling basslines, and emotionally charged atmospheres. Sharing stages with names like Kebin Van Reeken, Volen Sentir, Kostya Outta, Hicky and Kalo, Not Demure and Alto Astral, he has quickly built a reputation for delivering sets that resonate long after the night ends. With debut releases on the way, Maalin is stepping onto the global stage with a sound that\'s bold, evolving, and impossible to ignore, positioning himself as one of the most exciting emerging names in progressive electronic music.',
+  },
+  {
+    slug: 'sonal',
+    name: 'SONAL',
+    role: 'DJ / Producer',
+    realName: 'Sonal Kodikara',
+    tagline: 'Powerhouse',
+    genre: 'Progressive House',
+    instagram: { handle: 'sonal.musicc', followers: '2K' },
+    platforms: [
+      { name: 'SoundCloud', url: 'https://soundcloud.com/user-461176365' },
+    ],
+    music: [{ type: 'youtube', url: 'https://www.youtube.com/watch?v=Bou6t7w7SXE&t=12s' }],
+    gigs: ['All Day Music', 'Yaga', 'Odyssey', 'Next Gen', 'Gala', 'Invade', 'Kulture', 'Pirates', 'AGRA Festival', 'Ilovebrunch', 'ORIX'],
+    bio: 'Sonal is a progressive house DJ and producer based in Sri Lanka, and the founder of FLOST8, a label, artist management agency, and content studio pushing the island’s electronic music scene forward. Since 2022, Sonal has performed island-wide, building a reputation for hypnotic, groove-driven sets that blend deep, melodic textures with peak-time energy. Sonal has shared the stage with international and local artists including Guy J, Guy Mantzur, Simon Vuarambon, Sebastian Busto, EMPHI, and Funk Sun, among many others, performing at leading events such as Odyssey, Yaga, and numerous other international and local showcases. Beyond the booth, Sonal leads FLOST8’s roster and creative direction, shaping the label’s sound and its growing footprint in event production and artist management. Rooted in the island, driven by the groove, Sonal continues to champion progressive house as both artist and architect of the scene.',
+  },
+  {
+    slug: 'imthxd',
+    name: 'IMTHXD',
+    role: 'DJ / Producer',
+    realName: 'Imthad Intikab',
+    tagline: 'AllRounder',
+    genre: 'Progressive House',
+    instagram: { handle: 'imthxdtf', followers: '1K' },
+    platforms: [
+      { name: 'SoundCloud', url: 'https://soundcloud.com/imthad-intikab' },
+    ],
+    music: [
+      {
+        type: 'soundcloud',
+        url: 'https://soundcloud.com/imthad-intikab/imthxd-live-at-arcane-one-more?si=4ddcefa0d2d744e9aee2904d4ea35d03&utm_source=clipboard&utm_medium=text&utm_campaign=social_sharing',
+      },
+    ],
+    gigs: ['AudioSolo', 'Balance Festival Day2', 'Ocean Drive'],
+    bio: 'Imthxd is a Sri Lanka-born DJ specializing in Progressive House and Dark Progressive. Known for crafting deep, atmospheric journeys through sound, he draws inspiration from artists like Guy J, Kebin Van Reeken, Mike Rish, Kyotto, Fran Garay, and Tonaco. His sets blend hypnotic grooves, layered melodies, and emotionally driven rhythms that resonate deeply with underground music lovers. Rooted in the raw emotion and tension of dark progressive, Imthxd\'s music bridges intensity and serenity, delivering powerful, transformative experiences every time he steps behind the decks. Now making waves in Sri Lanka\'s electronic music scene, Imthxd is quickly emerging as a rising talent for those who crave depth, energy, and sonic storytelling.',
+  },
+  {
+    slug: 'the-professor',
+    name: 'THE PROFESSOR',
+    role: 'DJ / Producer',
+    realName: 'Rusith Tharuka',
+    tagline: 'Groovinator',
+    genre: 'Progressive House',
+    instagram: { handle: 'professor_music._', followers: '1K' },
+    platforms: [
+      { name: 'SoundCloud', url: 'https://soundcloud.com/the-professor-781456705' },
+    ],
+    music: [
+      { type: 'youtube', url: 'https://www.youtube.com/watch?v=gahOpfpJZkQ' },
+      { type: 'youtube', url: 'https://www.youtube.com/watch?v=ecAFSbPQ-rk' },
+    ],
+    gigs: ['ILoveBrunch', 'Soundgarden AfterParty'],
+    bio: 'Professor is a Sri Lanka-based Electronic Music DJ and Producer whose journey in music began in 2016. In 2025, he stepped into music production, focusing primarily on Progressive House. Known for his passion for energetic and uplifting progressive sounds, Professor enjoys delivering hype-driven sets that captivate audiences and create unforgettable moments on the dance floor. With a deep love for electronic music and a commitment to continuously evolving his craft, he is steadily shaping a unique sound through powerful melodies, driving grooves, and immersive musical experiences as both a DJ and producer.',
+  },
+  {
+    slug: 'anush',
+    name: 'ANUSH',
+    role: 'DJ / Producer',
+    realName: 'Anushka Nilupul',
+    tagline: 'Vinyl Master',
+    genre: 'Progressive House',
+    instagram: { handle: 'anush.music_', followers: '1.3K' },
+    platforms: [
+      { name: 'SoundCloud', url: 'https://soundcloud.com/deejanush' },
+      { name: 'Spotify', url: 'https://open.spotify.com/artist/0OJbT8gHKDiEFXXwkYrtnl' },
+      { name: 'Beatport', url: 'https://www.beatport.com/artist/anush/1191714' },
+      { name: 'Facebook', url: 'https://web.facebook.com/anushonline' },
+    ],
+    music: [
+      { type: 'youtube', url: 'https://www.youtube.com/watch?v=gahOpfpJZkQ' },
+      { type: 'youtube', url: 'https://www.youtube.com/watch?v=ecAFSbPQ-rk' },
+    ],
+    gigs: ['ILoveBrunch', 'Soundgarden AfterParty'],
+    bio: 'ANUSH is a Sri Lanka based Electronic Music DJ/Producer whose journey in music began in 2015. In 2024, he stepped into music production, focusing mainly on Progressive House while also exploring the deeper and melodic sounds of Organic House. With a passion for underground electronic music, ANUSH continues to shape his sound through emotional melodies, driving grooves, and atmospheric rhythms, creating unique musical experiences both as a producer and DJ.',
+  },
+]
+
+export const BOOKING_ARTIST_OPTIONS = PUBLIC_ARTISTS.map((artist) => ({
+  value: artist.slug,
+  label: artist.name,
+}))
+
+export function getPublicArtistBySlug(slug: string): PublicArtist | undefined {
+  return PUBLIC_ARTISTS.find((artist) => artist.slug === slug)
+}

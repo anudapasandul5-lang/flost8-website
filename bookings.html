@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bookings — FLOST8</title>
+<meta name="description" content="Book a FLOST8 artist for your event. View upcoming shows and send an inquiry.">
+<meta property="og:title" content="Bookings — FLOST8">
+<meta property="og:description" content="Book a FLOST8 artist for your event.">
+<meta property="og:url" content="https://flost8.lk/bookings.html">
+<link rel="canonical" href="https://flost8.lk/bookings.html">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300&family=Fragment+Mono&display=swap" rel="stylesheet">
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+<style>
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg:          oklch(10% 0.004 295);
+  --surface:     oklch(12% 0.005 295);
+  --cream:       oklch(94% 0.006 80);
+  --dim:         oklch(94% 0.006 80 / 0.55);
+  --border:      oklch(94% 0.006 80 / 0.08);
+  --purple:      oklch(58% 0.26 295);
+  --cyan:        oklch(88% 0.13 195);
+  --red:         oklch(45% 0.22 27);
+  --ff-display:  'Bebas Neue', sans-serif;
+  --ff-body:     'Chakra Petch', sans-serif;
+  --ff-mono:     'Fragment Mono', monospace;
+}
+html { scroll-behavior: smooth; }
+body { background: var(--bg); color: var(--cream); font-family: var(--ff-body); overflow-x: hidden; }
+nav { position:sticky;top:0;z-index:500;display:flex;align-items:center;justify-content:space-between;padding:18px 56px;background:rgba(9,8,8,.88);backdrop-filter:blur(20px);border-bottom:1px solid var(--border); }
+.nav-logo { font-family:var(--ff-display);font-size:26px;letter-spacing:.08em;color:var(--cream);text-decoration:none; }
+.nav-logo em { color:var(--purple);font-style:normal; }
+.nav-links { display:flex;gap:36px;list-style:none; }
+.nav-links a { font-size:12px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);text-decoration:none;transition:color .2s; }
+.nav-links a:hover { color:var(--cyan); }
+.nav-links a.active { color:var(--purple); }
+.nav-cta { border:1px solid var(--purple)!important;color:var(--purple)!important;padding:7px 22px;transition:background .2s,color .2s!important; }
+.nav-cta:hover { background:var(--purple)!important;color:#000!important; }
+.bk-hero { padding:80px 56px 60px;max-width:1200px;margin:0 auto; }
+.bk-eyebrow { font-family:var(--ff-mono);font-size:10px;letter-spacing:.22em;color:var(--cyan);text-transform:uppercase;margin-bottom:18px; }
+.bk-h1 { font-family:var(--ff-display);font-size:clamp(52px,8vw,96px);line-height:.95;letter-spacing:.02em;margin-bottom:22px; }
+.bk-sub { color:var(--dim);max-width:520px;font-size:15px;line-height:1.6; }
+.bk-section { padding:60px 56px;max-width:1200px;margin:0 auto; }
+.bk-section-label { font-family:var(--ff-mono);font-size:10px;letter-spacing:.22em;color:var(--cyan);text-transform:uppercase;margin-bottom:8px; }
+.bk-section-head { display:flex;justify-content:space-between;align-items:baseline;margin-bottom:40px; }
+.bk-section-title { font-family:var(--ff-display);font-size:40px;letter-spacing:.04em; }
+.bk-section-note { font-family:var(--ff-mono);font-size:10px;letter-spacing:.15em;color:var(--dim);text-transform:uppercase; }
+.shows-list { border-top:1px solid var(--border); }
+.show-row { display:grid;grid-template-columns:140px 160px 1fr 180px 80px;gap:16px;padding:22px 0;border-bottom:1px solid var(--border);align-items:center; }
+.show-date { font-family:var(--ff-mono);font-size:11px;color:var(--cyan);letter-spacing:.15em; }
+.show-artist { font-family:var(--ff-display);font-size:16px;letter-spacing:.06em;color:var(--purple); }
+.show-venue { font-family:var(--ff-display);font-size:20px;letter-spacing:.04em; }
+.show-city { color:var(--dim);font-size:13px; }
+.show-time { text-align:right;font-family:var(--ff-mono);color:var(--dim);font-size:12px; }
+.shows-state { padding:40px 0;color:var(--dim);font-family:var(--ff-mono);font-size:12px;letter-spacing:.12em; }
+.shimmer { background:linear-gradient(90deg,var(--surface) 25%,oklch(16% 0.005 295) 50%,var(--surface) 75%);background-size:200% 100%;animation:shimmer 1.4s infinite;height:14px;border-radius:2px; }
+@keyframes shimmer { to { background-position:-200% 0; } }
+.shimmer-row { display:grid;grid-template-columns:140px 160px 1fr 180px 80px;gap:16px;padding:22px 0;border-bottom:1px solid var(--border);align-items:center; }
+.form-wrap { background:var(--surface);border-top:1px solid var(--border);padding:80px 56px; }
+.form-inner { max-width:860px;margin:0 auto; }
+.form-grid { display:grid;grid-template-columns:1fr 1fr;gap:32px 24px; }
+.field { display:flex;flex-direction:column;gap:8px; }
+.field-full { grid-column:span 2; }
+.field label { font-family:var(--ff-mono);font-size:10px;letter-spacing:.2em;color:var(--dim);text-transform:uppercase; }
+.field input,.field select,.field textarea { background:transparent;border:none;border-bottom:1px solid var(--border);color:var(--cream);font-family:var(--ff-body);font-size:14px;padding:10px 0;outline:none;width:100%;transition:border-color .2s;-webkit-appearance:none; }
+.field select { cursor:pointer; }
+.field select option { background:#111; }
+.field textarea { resize:vertical;min-height:80px; }
+.field input:focus,.field select:focus,.field textarea:focus { border-bottom-color:var(--purple); }
+.field input.err,.field select.err,.field textarea.err { border-bottom-color:var(--red); }
+.field-error { font-family:var(--ff-mono);font-size:10px;color:var(--red);letter-spacing:.1em;min-height:14px; }
+.pill-group { display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border); }
+.pill-group.err { border-bottom-color:var(--red); }
+.pill { border:1px solid var(--border);color:var(--dim);padding:6px 18px;font-family:var(--ff-mono);font-size:10px;letter-spacing:.18em;cursor:pointer;transition:all .2s;background:transparent; }
+.pill.on { border-color:var(--purple);color:var(--purple); }
+.submit-row { display:flex;justify-content:space-between;align-items:center;margin-top:40px;flex-wrap:wrap;gap:16px; }
+.ts-note { font-family:var(--ff-mono);font-size:10px;color:var(--dim);letter-spacing:.1em; }
+.btn-submit { background:var(--purple);color:#000;font-family:var(--ff-display);font-size:18px;letter-spacing:.1em;padding:14px 36px;border:none;cursor:pointer;display:inline-flex;align-items:center;gap:10px;transition:transform .2s,box-shadow .2s;min-width:200px;justify-content:center; }
+.btn-submit:hover:not(:disabled) { transform:translateY(-2px);box-shadow:0 10px 36px oklch(58% 0.26 295 / .45); }
+.btn-submit:disabled { opacity:.5;cursor:not-allowed; }
+.form-success { display:none;text-align:center;padding:60px 20px; }
+.form-success.show { display:block; }
+.err-banner { background:oklch(18% 0.08 27);color:oklch(80% 0.15 27);padding:14px 18px;font-family:var(--ff-mono);font-size:11px;letter-spacing:.1em;margin-bottom:24px;display:none; }
+.err-banner.show { display:block; }
+footer { padding:40px 56px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center; }
+.footer-logo { font-family:var(--ff-display);font-size:22px;letter-spacing:.08em;color:var(--dim); }
+.footer-logo em { color:var(--purple);font-style:normal; }
+.footer-links { display:flex;gap:28px; }
+.footer-links a { font-family:var(--ff-mono);font-size:10px;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);text-decoration:none; }
+.footer-links a:hover { color:var(--cyan); }
+@media (max-width:720px) {
+  nav { padding:14px 24px; }
+  .nav-links { gap:16px; }
+  .bk-hero,.bk-section { padding:50px 24px 40px; }
+  .form-wrap { padding:60px 24px; }
+  .show-row,.shimmer-row { grid-template-columns:1fr 1fr;grid-template-rows:auto auto; }
+  .show-venue { grid-column:span 2; }
+  .show-time { text-align:left; }
+  .form-grid { grid-template-columns:1fr; }
+  .field-full { grid-column:span 1; }
+  footer { flex-direction:column;gap:20px;align-items:flex-start;padding:30px 24px; }
+}
+@media (max-width:480px) { .nav-links { display:none; } }
+</style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">FLO<em>ST8</em></a>
+  <ul class="nav-links">
+    <li><a href="/#about">About</a></li>
+    <li><a href="/#styles">Visual Styles</a></li>
+    <li><a href="/#roster">Roster</a></li>
+    <li><a href="/#services">Services</a></li>
+    <li><a href="/bookings.html" class="active">Bookings</a></li>
+    <li><a href="/#join" class="nav-cta">Join</a></li>
+  </ul>
+</nav>
+
+<div class="bk-hero">
+  <p class="bk-eyebrow">// Bookings &middot; Live calendar &amp; inquiries</p>
+  <h1 class="bk-h1">Book the<br>flow.</h1>
+  <p class="bk-sub">Every show our artists play lives here. If the night feels right, tell us about yours below &#8212; we reply within 24 hrs.</p>
+</div>
+
+<div class="bk-section">
+  <div class="bk-section-head">
+    <div>
+      <p class="bk-section-label">// 01 &#8212; Upcoming</p>
+      <h2 class="bk-section-title">Next shows</h2>
+    </div>
+    <span class="bk-section-note">Live from Google Calendar</span>
+  </div>
+  <div id="shows-container" class="shows-list">
+    <div id="shows-shimmer">
+      <div class="shimmer-row"><div class="shimmer" style="width:100px"></div><div class="shimmer" style="width:80px"></div><div class="shimmer" style="width:160px"></div><div class="shimmer" style="width:120px"></div><div class="shimmer" style="width:40px"></div></div>
+      <div class="shimmer-row"><div class="shimmer" style="width:100px"></div><div class="shimmer" style="width:80px"></div><div class="shimmer" style="width:140px"></div><div class="shimmer" style="width:100px"></div><div class="shimmer" style="width:40px"></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="form-wrap">
+  <div class="form-inner">
+    <p class="bk-section-label" style="margin-bottom:8px">// 02 &#8212; Inquire</p>
+    <h2 class="bk-section-title" style="margin-bottom:40px">Send an inquiry</h2>
+
+    <div id="form-success" class="form-success">
+      <p class="bk-eyebrow" style="margin-bottom:16px">Inquiry received</p>
+      <p style="font-family:var(--ff-display);font-size:48px;margin-bottom:20px">We'll be in touch.</p>
+      <p style="color:var(--dim);font-size:14px;margin-bottom:8px">Expect a reply within 24 hrs.</p>
+      <p id="lead-id-display" style="font-family:var(--ff-mono);font-size:11px;color:var(--dim)"></p>
+      <p style="font-family:var(--ff-mono);font-size:10px;color:var(--dim);margin-top:24px">For events inside 72 hrs, WhatsApp us directly.</p>
+    </div>
+
+    <div id="form-area">
+      <div id="err-banner" class="err-banner" role="alert"></div>
+
+      <form id="inquiry-form" novalidate>
+        <div class="form-grid">
+
+          <div class="field">
+            <label for="f-artist">Artist</label>
+            <select id="f-artist" name="artist">
+              <option value="any">Any FLOST8 artist</option>
+            </select>
+            <span class="field-error" id="err-artist"></span>
+          </div>
+
+          <div class="field">
+            <label for="f-date">Event date *</label>
+            <input type="date" id="f-date" name="event_date" required>
+            <span class="field-error" id="err-event_date"></span>
+          </div>
+
+          <div class="field">
+            <label for="f-venue">Venue *</label>
+            <input type="text" id="f-venue" name="venue" placeholder="Club or festival name" required>
+            <span class="field-error" id="err-venue"></span>
+          </div>
+
+          <div class="field">
+            <label for="f-city">City *</label>
+            <input type="text" id="f-city" name="city" placeholder="City, Country" required>
+            <span class="field-error" id="err-city"></span>
+          </div>
+
+          <div class="field">
+            <label>Event type *</label>
+            <div class="pill-group" id="pill-event-type" role="group" aria-label="Event type">
+              <button type="button" class="pill" data-val="NIGHT">NIGHT</button>
+              <button type="button" class="pill" data-val="DAY">DAY</button>
+            </div>
+            <input type="hidden" id="f-event-type" name="event_type" value="">
+            <span class="field-error" id="err-event_type"></span>
+          </div>
+
+          <div class="field">
+            <label for="f-duration">Set duration (hours) *</label>
+            <input type="number" id="f-duration" name="set_duration_h" min="1" max="8" step="0.5" placeholder="e.g. 3" required>
+            <span class="field-error" id="err-set_duration_h"></span>
+          </div>
+
+          <div class="field">
+            <label for="f-name">Organizer name *</label>
+            <input type="text" id="f-name" name="organizer_name" placeholder="Your full name" required>
+            <span class="field-error" id="err-organizer_name"></span>
+          </div>
+
+          <div class="field">
+            <label for="f-phone">Direct number *</label>
+            <input type="tel" id="f-phone" name="direct_number" placeholder="+94 77 XXX XXXX" required>
+            <span class="field-error" id="err-direct_number"></span>
+          </div>
+
+          <div class="field field-full">
+            <label for="f-email">Organizer email *</label>
+            <input type="email" id="f-email" name="organizer_email" placeholder="you@example.com" required>
+            <span class="field-error" id="err-organizer_email"></span>
+          </div>
+
+          <div class="field field-full">
+            <label for="f-lineup">Other artists on lineup</label>
+            <input type="text" id="f-lineup" name="other_artists" placeholder="Comma separated, or leave blank">
+            <span class="field-error" id="err-other_artists"></span>
+          </div>
+
+          <div class="field field-full">
+            <label for="f-setup">Console &amp; setup venue is providing *</label>
+            <textarea id="f-setup" name="console_setup" rows="3" placeholder="e.g. CDJ-3000 x2, DJM-A9, Funktion-One F88..." required></textarea>
+            <span class="field-error" id="err-console_setup"></span>
+          </div>
+
+        </div>
+
+        <div class="submit-row">
+          <div>
+            <div id="cf-turnstile"></div>
+            <span class="ts-note">&#9654; Protected by Cloudflare Turnstile</span>
+          </div>
+          <button type="submit" id="btn-submit" class="btn-submit" disabled>SEND INQUIRY &#8594;</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="footer-logo">FLO<em>ST8</em></div>
+  <div class="footer-links">
+    <a href="mailto:bookings@flost8.lk">bookings@flost8.lk</a>
+    <a href="https://flost8.lk">flost8.lk</a>
+  </div>
+</footer>
+
+<script src="config.js"></script>
+<script>
+var _tsToken = '';
+var REQUIRED_FIELDS = ['event_date','venue','city','event_type','set_duration_h',
+                       'organizer_name','direct_number','organizer_email','console_setup'];
+
+function initTurnstile() {
+  if (typeof turnstile === 'undefined') { setTimeout(initTurnstile, 300); return; }
+  turnstile.render('#cf-turnstile', {
+    sitekey: window.FLOST8_CONFIG.TURNSTILE_SITE_KEY,
+    callback: function(token) { _tsToken = token; updateSubmitBtn(); },
+    'expired-callback': function() { _tsToken = ''; updateSubmitBtn(); }
+  });
+}
+
+document.getElementById('pill-event-type').addEventListener('click', function(e) {
+  var btn = e.target.closest('.pill');
+  if (!btn) return;
+  this.querySelectorAll('.pill').forEach(function(p) { p.classList.remove('on'); });
+  btn.classList.add('on');
+  this.classList.remove('err');
+  document.getElementById('f-event-type').value = btn.getAttribute('data-val');
+  updateSubmitBtn();
+});
+
+function loadRoster() {
+  fetch(window.FLOST8_CONFIG.API_URL + '?action=roster')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (!data.ok || !data.artists) return;
+      var sel = document.getElementById('f-artist');
+      data.artists.forEach(function(a) {
+        var opt = document.createElement('option');
+        opt.value = a.slug;
+        opt.textContent = a.display_name;
+        sel.appendChild(opt);
+      });
+      var slug = new URLSearchParams(window.location.search).get('artist');
+      if (slug) {
+        for (var i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value === slug) { sel.selectedIndex = i; break; }
+        }
+      }
+    })
+    .catch(function() {});
+}
+
+var MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC'];
+var DAYS   = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+
+function fmtDate(iso) {
+  var p = iso.split('-');
+  var d = new Date(+p[0], +p[1]-1, +p[2]);
+  return DAYS[d.getDay()] + ' ' + d.getDate() + ' ' + MONTHS[d.getMonth()];
+}
+
+function renderShows() {
+  fetch(window.FLOST8_CONFIG.API_URL + '?action=upcoming&n=20')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      var shimmer = document.getElementById('shows-shimmer');
+      if (shimmer) shimmer.remove();
+      var container = document.getElementById('shows-container');
+      if (!data.ok || !data.events.length) {
+        var msg = document.createElement('p');
+        msg.className = 'shows-state';
+        msg.textContent = 'No upcoming shows yet — inquire below to book one.';
+        container.appendChild(msg);
+        return;
+      }
+      data.events.forEach(function(ev) {
+        var row = document.createElement('div');
+        row.className = 'show-row';
+        var dateSp = document.createElement('span'); dateSp.className = 'show-date';
+        var artistSp = document.createElement('span'); artistSp.className = 'show-artist';
+        var venueSp = document.createElement('span'); venueSp.className = 'show-venue';
+        var citySp = document.createElement('span'); citySp.className = 'show-city';
+        var timeSp = document.createElement('span'); timeSp.className = 'show-time';
+        dateSp.textContent = fmtDate(ev.date);
+        artistSp.textContent = ev.artist_display;
+        venueSp.textContent = ev.venue;
+        citySp.textContent = ev.city;
+        timeSp.textContent = ev.time;
+        row.appendChild(dateSp);
+        row.appendChild(artistSp);
+        row.appendChild(venueSp);
+        row.appendChild(citySp);
+        row.appendChild(timeSp);
+        container.appendChild(row);
+      });
+    })
+    .catch(function() {
+      var shimmer = document.getElementById('shows-shimmer');
+      if (shimmer) shimmer.remove();
+      var msg = document.createElement('p');
+      msg.className = 'shows-state';
+      msg.textContent = 'Calendar temporarily unavailable — please refresh.';
+      document.getElementById('shows-container').appendChild(msg);
+    });
+}
+
+function updateSubmitBtn() {
+  var allFilled = REQUIRED_FIELDS.every(function(name) {
+    var el = document.querySelector('[name="' + name + '"]');
+    return el && String(el.value).trim() !== '';
+  });
+  document.getElementById('btn-submit').disabled = !(allFilled && _tsToken !== '');
+}
+
+function clearErrors() {
+  document.querySelectorAll('.field-error').forEach(function(el) { el.textContent = ''; });
+  document.querySelectorAll('.field input,.field select,.field textarea').forEach(function(el) { el.classList.remove('err'); });
+  document.getElementById('pill-event-type').classList.remove('err');
+}
+
+function showErrors(errors) {
+  clearErrors();
+  errors.forEach(function(e) {
+    var errEl = document.getElementById('err-' + e.field);
+    if (errEl) errEl.textContent = e.message;
+    var inputEl = document.querySelector('[name="' + e.field + '"]');
+    if (inputEl) inputEl.classList.add('err');
+    if (e.field === 'event_type') document.getElementById('pill-event-type').classList.add('err');
+  });
+}
+
+function showBanner(msg) {
+  var b = document.getElementById('err-banner');
+  b.textContent = msg;
+  b.classList.add('show');
+}
+
+function hideBanner() {
+  document.getElementById('err-banner').classList.remove('show');
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  loadRoster();
+  renderShows();
+  initTurnstile();
+  var tomorrow = new Date(); tomorrow.setDate(tomorrow.getDate() + 1);
+  var maxDate = new Date(tomorrow.getFullYear() + 2, 11, 31);
+  document.getElementById('f-date').min = tomorrow.toISOString().slice(0,10);
+  document.getElementById('f-date').max = maxDate.toISOString().slice(0,10);
+  document.getElementById('inquiry-form').addEventListener('input', updateSubmitBtn);
+  document.getElementById('inquiry-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    submitInquiry();
+  });
+});
+
+function getFormData() {
+  return {
+    token:           _tsToken,
+    artist:          document.getElementById('f-artist').value,
+    event_date:      document.getElementById('f-date').value,
+    venue:           document.getElementById('f-venue').value.trim(),
+    city:            document.getElementById('f-city').value.trim(),
+    event_type:      document.getElementById('f-event-type').value,
+    set_duration_h:  parseFloat(document.getElementById('f-duration').value) || 0,
+    organizer_name:  document.getElementById('f-name').value.trim(),
+    direct_number:   document.getElementById('f-phone').value.trim(),
+    organizer_email: document.getElementById('f-email').value.trim(),
+    other_artists:   document.getElementById('f-lineup').value.trim(),
+    console_setup:   document.getElementById('f-setup').value.trim()
+  };
+}
+
+function setButtonState(state) {
+  var btn = document.getElementById('btn-submit');
+  if (state === 'sending') {
+    btn.textContent = 'SENDING…';
+    btn.disabled = true;
+  } else {
+    btn.textContent = 'SEND INQUIRY →';
+    btn.disabled = false;
+  }
+}
+
+function submitInquiry() {
+  setButtonState('sending');
+  hideBanner();
+  clearErrors();
+  if (!navigator.onLine) {
+    showBanner('You appear to be offline. Check your connection and try again.');
+    setButtonState('idle');
+    return;
+  }
+  var formData = getFormData();
+  fetch(window.FLOST8_CONFIG.API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/plain' },
+    body: JSON.stringify(formData)
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.ok) {
+      document.getElementById('form-area').style.display = 'none';
+      document.getElementById('form-success').classList.add('show');
+      if (data.lead_id) {
+        document.getElementById('lead-id-display').textContent = 'Reference: ' + data.lead_id;
+      }
+    } else if (data.errors) {
+      showErrors(data.errors);
+      showBanner('Fix the fields below and try again.');
+      setButtonState('idle');
+    } else if (data.reason === 'bot_check_failed') {
+      showBanner('Bot check failed. Refresh the page and try again.');
+      setButtonState('idle');
+    } else if (data.reason === 'rate_limit') {
+      showBanner('Too many submissions. Please wait a few minutes.');
+      setButtonState('idle');
+    } else {
+      showBanner('Something went wrong. Please try again.');
+      setButtonState('idle');
+    }
+  })
+  .catch(function() {
+    showBanner('Could not reach the server. Check your connection and try again.');
+    setButtonState('idle');
+  });
+}
+</script>
+</body>
+</html>

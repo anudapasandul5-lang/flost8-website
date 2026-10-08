@@ -1,0 +1,220 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<title>FLOST8 Bookings: Owner Guide</title>
+<style>
+:root{--bg:#120917;--raise:#1b0f24;--line:rgba(255,255,255,.12);--ink:#fff;--ink72:rgba(255,255,255,.82);--accent:#9d14ff;--accent-ink:#c88bff;--soft:rgba(157,20,255,.16)}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:20px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+.wrap{max-width:760px;margin:0 auto;padding:20px 16px 80px}
+header.top{padding:28px 0 8px}
+.brand{font:700 30px/1 Impact,"Arial Narrow Bold",sans-serif;letter-spacing:.08em}
+.brand span{color:var(--accent-ink)}
+.who{margin:6px 0 0;color:var(--ink72);font-size:18px}
+h1{font:700 40px/1.1 Impact,"Arial Narrow Bold",system-ui,sans-serif;letter-spacing:.02em;margin:18px 0 8px}
+h2{font-size:30px;line-height:1.2;margin:48px 0 12px;padding-top:12px;border-top:1px solid var(--line);scroll-margin-top:12px}
+h3{font-size:22px;margin:28px 0 8px}
+p{margin:12px 0}
+ul,ol{padding-left:1.4em;margin:12px 0}
+li{margin:8px 0}
+strong{color:#fff}
+code{background:var(--soft);padding:1px 6px;border-radius:6px;font-size:.9em}
+.card{background:var(--raise);border:1px solid rgba(157,20,255,.5);border-radius:20px;padding:8px 20px 20px;margin:16px 0 32px}
+.card h2{border-top:0;margin-top:16px;color:var(--accent-ink)}
+nav.toc{background:var(--raise);border:1px solid var(--line);border-radius:16px;padding:12px 20px;margin:0 0 24px}
+nav.toc summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+nav.toc a{display:block;color:var(--accent-ink);padding:10px 0;text-decoration:none;min-height:44px}
+figure{margin:20px 0;text-align:center}
+img{max-width:100%;height:auto;border-radius:14px;border:1px solid var(--line)}
+.table{overflow-x:auto;margin:16px 0}
+table{border-collapse:collapse;width:100%;font-size:18px}
+th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+a:focus-visible,summary:focus-visible{outline:3px solid var(--accent-ink);outline-offset:2px}
+@media (max-width:480px){body{font-size:19px}h1{font-size:34px}h2{font-size:27px}}
+@media print{body{background:#fff;color:#000}.card,nav.toc{background:#fff}strong,h1,h2{color:#000}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top"><div class="brand">FLO<span>ST8</span></div><p class="who">Owner guide</p><h1>FLOST8 Bookings: Owner Guide</h1></header>
+<nav class="toc" aria-label="Contents"><details><summary>Jump to a section</summary><a href="#1-sign-in-and-move-around">1. Sign in and move around</a><a href="#2-overview-and-its-four-tiles">2. Overview and its four tiles</a><a href="#3-team-follow-ups">3. Team follow-ups</a><a href="#4-all-inquiries-and-filters">4. All inquiries and filters</a><a href="#5-calendar">5. Calendar</a><a href="#6-add-and-edit-events">6. Add and edit events</a><a href="#7-change-a-status">7. Change a status</a><a href="#8-snooze">8. Snooze</a><a href="#9-duplicate-an-event">9. Duplicate an event</a><a href="#10-bulk-lost-or-spam">10. Bulk Lost or Spam</a><a href="#11-put-events-on-the-website-upcoming-shows-and-resync">11. Put events on the website (Upcoming Shows) and Resync</a><a href="#12-contacts">12. Contacts</a><a href="#13-reminders">13. Reminders</a><a href="#14-whatsapp-templates">14. WhatsApp templates</a><a href="#15-nudge-a-manager-on-whatsapp">15. Nudge a manager on WhatsApp</a><a href="#16-who-can-see-money">16. Who can see money</a><a href="#17-sheet-rows-and-why-you-cannot-edit-them-yet">17. Sheet rows (and why you cannot edit them yet)</a><a href="#18-keyboard-shortcuts-laptop">18. Keyboard shortcuts (laptop)</a><a href="#19-things-only-you-can-do-once">19. Things only you can do (once)</a><a href="#troubleshooting">Troubleshooting</a><a href="#glossary">Glossary</a></details></nav>
+<main>
+<p>For Anuda. Plain and simple. Every step here matches what the app does today.</p>
+<p>The pictures use made-up names and numbers. Your screen will show your real bookings.</p>
+<section class="card" aria-label="Quick card">
+<h2 id="quick-card-read-this-first">QUICK CARD (read this first)</h2>
+<p><strong>What this app is.</strong> One place to see every booking enquiry for your artists. It shows what needs a reply, who owes money, and what is coming up. Kasuni and Nirbheeth work in it too. You see everything. They see only their own artists.</p>
+<p><strong>How to sign in.</strong></p>
+<ol><li>Open the FLOST8 site and go to the page called <strong>/manage</strong>.</li><li>Tap <strong>Continue with Google</strong>.</li><li>Pick your Google account.</li></ol>
+<p>If you see <strong>NO ACCESS YET</strong>, that Google account is not on the list. Use the account you gave your developer.</p>
+<p><strong>The 5 things you do every day.</strong></p>
+<ol><li>Open <strong>Overview</strong>. Look at the four tiles.</li><li>Open <strong>Team follow-ups</strong>. See what each manager still has to do.</li><li>Tap <strong>Done</strong> on follow-ups that are finished.</li><li>Tap <strong>Nudge</strong> to remind a manager on WhatsApp.</li><li>Check the <strong>Calendar</strong> and add any new event.</li></ol>
+<figure><img src="screens/owner-overview-desktop.webp" alt="Overview on a laptop" loading="lazy"></figure>
+<p><strong>Three things to know.</strong></p>
+<ul><li>Most taps can be undone for 5 seconds. Look for the <strong>Undo</strong> button at the bottom.</li><li>Rows marked <strong>From sheet</strong> cannot be changed here yet. Change them in the sheet.</li><li>Only you and the manager who looks after an artist can see the money for that artist.</li></ul>
+</section>
+<h2 id="1-sign-in-and-move-around">1. Sign in and move around</h2>
+<p><strong>What it is for.</strong> Get in, and know where things are.</p>
+<p><strong>What to tap.</strong></p>
+<ol><li>Go to <strong>/manage</strong>. Tap <strong>Continue with Google</strong>.</li><li>Choose your account.</li></ol>
+<p><strong>What you will see.</strong> The <strong>Overview</strong> page.</p>
+<ul><li>On a laptop the menu is on the left: <strong>Overview, Team follow-ups, Contacts, All inquiries, Calendar</strong>.</li><li>On a phone the menu is the bar at the bottom: <strong>Overview, Follow-ups, Contacts, All, Calendar</strong>.</li><li>Near the top are round buttons: <strong>Everyone</strong>, then one for each manager. Tap a manager to see only that manager's work. Tap <strong>Everyone</strong> to go back.</li><li><strong>Add event</strong> and <strong>Sign out</strong> are on the left (laptop) or at the top (phone).</li><li>The app remembers the page you were on and your filters, on that device.</li></ul>
+<p><strong>If it goes wrong.</strong></p>
+<ul><li><strong>NO ACCESS YET</strong>: your email is not on the list. Ask your developer to add it.</li><li>A grey <strong>Loading</strong> that never ends: check your internet and refresh the page.</li></ul>
+<h2 id="2-overview-and-its-four-tiles">2. Overview and its four tiles</h2>
+<p><strong>What it is for.</strong> A quick look at the whole business.</p>
+<p><strong>What to tap.</strong> Open <strong>Overview</strong>. Tap any tile.</p>
+<p><strong>What you will see.</strong></p>
+<div class="table"><table><thead><tr><th>Tile</th><th>What it shows</th><th>What happens when you tap it</th></tr></thead><tbody><tr><td><strong>Team follow-ups</strong></td><td>How many events need a manager</td><td>Opens the <strong>Team follow-ups</strong> list</td></tr><tr><td><strong>Booked ahead</strong></td><td>Booked shows coming up, and the next one</td><td>Opens <strong>All inquiries</strong> showing upcoming booked shows</td></tr><tr><td><strong>Still owed</strong></td><td>Money still to collect</td><td>Opens <strong>All inquiries</strong> showing upcoming booked shows</td></tr><tr><td><strong>Deposits collected</strong></td><td>How much of the quoted money is paid as deposit</td><td>Opens <strong>All inquiries</strong> showing upcoming live inquiries</td></tr></tbody></table></div>
+<p>Under the tiles you will also see:</p>
+<ul><li><strong>Follow-ups due</strong>: reminders that are due today or late, with the manager's name.</li><li><strong>Pipeline</strong>: how many inquiries are at each status.</li><li><strong>Money by event month</strong>: a small chart.</li><li><strong>Team follow-ups</strong>: the four most urgent items. Tap <strong>View all</strong> for the rest.</li><li>On the right: <strong>Next shows</strong>, <strong>Activity</strong>, and <strong>Managers</strong> (this is where <strong>Nudge</strong> lives).</li></ul>
+<p>The number next to <strong>Team follow-ups</strong> in the menu can be a little higher than the tile. The menu also counts follow-up reminders that are due.</p>
+<p><strong>If it goes wrong.</strong> If a number looks too low, check you are on <strong>Everyone</strong> (not one manager).</p>
+<h2 id="3-team-follow-ups">3. Team follow-ups</h2>
+<p><strong>What it is for.</strong> See what each manager has not done yet.</p>
+<p><strong>What to tap.</strong> Tap <strong>Team follow-ups</strong> in the menu (or the first tile).</p>
+<p><strong>What you will see.</strong> Cards, most urgent first. Each card shows the artist, date, city and the manager's name. It has one line that says what to do, for example:</p>
+<ul><li><strong>Reply to a new inquiry</strong>: the inquiry is <strong>New</strong> and has had no touch for more than 24 hours.</li><li><strong>Follow up on quote</strong>: the status is <strong>Quote sent</strong> and nothing has happened for more than 5 days.</li><li><strong>Chase money</strong>: the show is <strong>Booked</strong> or <strong>Deposit paid</strong>, it is within 14 days, and money is still owed.</li></ul>
+<p>Each card has one big button (like <strong>Reply on WhatsApp</strong> or <strong>Chased today</strong>) and a <strong>three dots</strong> button for more. The three dots menu can hold: <strong>Call</strong>, <strong>Chased today</strong>, <strong>Mark reached out</strong>, <strong>Mark paid</strong>, <strong>Set status</strong>, <strong>Snooze</strong>, <strong>Duplicate</strong> and <strong>Open details</strong>. You only see the ones that fit that card. <strong>Chased today</strong>, <strong>Mark reached out</strong>, <strong>Mark paid</strong>, <strong>Set status</strong> and <strong>Snooze</strong> can be undone for 5 seconds.</p>
+<p>A card goes away when someone acts on it (a comment or a status change). A <strong>Tentative</strong> date never shows here. A date that is already past never shows here.</p>
+<figure><img src="screens/owner-followups-desktop.webp" alt="Team follow-ups" loading="lazy"></figure>
+<p>At the very top you may see <strong>TEAM FOLLOW-UPS DUE</strong>. These are reminders that managers set for themselves. Tap <strong>Done</strong> when one is finished.</p>
+<p><strong>If it goes wrong.</strong> An empty page that says <strong>NOTHING NEEDS YOU RIGHT NOW</strong> is good news.</p>
+<h2 id="4-all-inquiries-and-filters">4. All inquiries and filters</h2>
+<p><strong>What it is for.</strong> Find any inquiry.</p>
+<p><strong>What to tap.</strong> Tap <strong>All inquiries</strong>.</p>
+<p><strong>What you will see.</strong> A list, split by year. Each row shows the date, name, artist, place, status, and money if you may see it. A bar at the top shows how many there are and the money totals.</p>
+<p><strong>Filters</strong> (all stay as you left them):</p>
+<ul><li><strong>My artists</strong> or <strong>Everyone's</strong> (you will want <strong>Everyone's</strong>).</li><li>The search box: event, venue or organizer.</li><li>The artist drop-down.</li><li><strong>All dates</strong>, <strong>Upcoming</strong>, <strong>Past</strong>.</li><li>Status buttons: <strong>All, New, Reached out, Quote sent, Tentative, Deposit paid, Booked, Lost, Spam</strong>. You can pick more than one.</li></ul>
+<figure><img src="screens/owner-all-desktop.webp" alt="All inquiries" loading="lazy"></figure>
+<p>Tap a row to open it.</p>
+<p><strong>If it goes wrong.</strong> <strong>Nothing matches these filters</strong> means the filters are too tight. Tap <strong>Show everyone's inquiries</strong>.</p>
+<h2 id="5-calendar">5. Calendar</h2>
+<p><strong>What it is for.</strong> See the month at a glance.</p>
+<p><strong>What to tap.</strong></p>
+<ol><li>Tap <strong>Calendar</strong>.</li><li>Use the arrows to change month. Tap <strong>Today</strong> to come back.</li><li>Tap a day.</li></ol>
+<p><strong>What you will see.</strong> A month grid. Events are coloured by status. Tap a day. Under the grid you see what is on that day. Below that is a button: <strong>Add event on</strong> that date. Tap it and the <strong>Add event</strong> window opens with that date filled in.</p>
+<p>On a laptop, a free day also shows a small <strong>+</strong> button when you point at it.</p>
+<figure><img src="screens/owner-calendar-desktop.webp" alt="Calendar" loading="lazy"></figure>
+<p><strong>If it goes wrong.</strong> Calendar uses the same filters as the list. If an event is missing, check the filters.</p>
+<h2 id="6-add-and-edit-events">6. Add and edit events</h2>
+<p><strong>What it is for.</strong> Put a booking in the app.</p>
+<p><strong>What to tap.</strong></p>
+<ol><li>Tap <strong>Add event</strong>.</li><li>Tap the artist (or artists).</li><li>Pick the <strong>Date</strong>.</li><li>Type an <strong>Event name</strong> or a <strong>Venue</strong> (you need at least one).</li><li>Fix the <strong>Status</strong> if it is not right. It starts as <strong>Booked</strong>.</li><li>Optional: <strong>Set time</strong>, <strong>City</strong>, <strong>Ticket link</strong>, <strong>Fee</strong> and <strong>Currency</strong>.</li><li>In <strong>Organizer</strong>, start typing a name. Tap a match to fill in the phone, email and more. Or tap <strong>Add "name" as a new contact</strong>.</li><li>Tap <strong>Add event</strong>.</li></ol>
+<figure><img src="screens/owner-add-event-desktop.webp" alt="Add event" loading="lazy"></figure>
+<p><strong>What you will see.</strong> Before you save, the window says who will own it (the manager of that artist). After you tap <strong>Add event</strong>, the event opens.</p>
+<p><strong>To edit.</strong> Open the event. Tap <strong>Edit event</strong>. This works for events added in the app. Sheet rows cannot be edited here. In the event you can also:</p>
+<ul><li>Add <strong>Notes</strong>, <strong>Travel notes</strong>, a <strong>Contract link</strong>, and switch <strong>Contract signed</strong>.</li><li>Add money details.</li><li><strong>Add a comment</strong>.</li><li><strong>Delete event</strong> (only for events added in the app, and it asks first).</li></ul>
+<p><strong>If it goes wrong.</strong></p>
+<ul><li><strong>Pick at least one artist.</strong> Tap an artist button.</li><li><strong>Pick the event date.</strong> Fill the date.</li><li><strong>Add an event name or a venue.</strong> Type one.</li><li><strong>You can view this but not change it.</strong> This is a sheet row, or it is not yours.</li></ul>
+<h2 id="7-change-a-status">7. Change a status</h2>
+<p><strong>What it is for.</strong> Move an inquiry forward (or close it).</p>
+<p><strong>Way one, from the list.</strong></p>
+<ol><li>Tap the <strong>three dots</strong> on the row.</li><li>Tap <strong>Set status</strong>.</li><li>Tap the new status.</li></ol>
+<figure><img src="screens/owner-status-picker-desktop.webp" alt="Status picker" loading="lazy"></figure>
+<p>You get 5 seconds to tap <strong>Undo</strong>.</p>
+<p><strong>Way two, inside the event.</strong> Open the row. Tap a status button. A <strong>Tentative</strong> event also has a <strong>Confirm booking</strong> button.</p>
+<p><strong>If it goes wrong.</strong> There is no <strong>Set status</strong> on a <strong>From sheet</strong> row. That is on purpose (see section 17).</p>
+<h2 id="8-snooze">8. Snooze</h2>
+<p><strong>What it is for.</strong> Hide a row from the follow-up lists until you want to see it again.</p>
+<p><strong>What to tap.</strong></p>
+<ol><li>Tap the <strong>three dots</strong> on the row.</li><li>Tap <strong>Snooze</strong>.</li><li>Tap <strong>Tomorrow</strong>, <strong>Friday</strong>, or <strong>Pick a date</strong>. (On a Thursday there is no <strong>Friday</strong> button, because tomorrow is Friday.)</li></ol>
+<p><strong>What you will see.</strong> The row leaves the follow-ups. In <strong>All inquiries</strong> it says <strong>Snoozed till</strong> that day. On the day itself it comes back by itself. You get 5 seconds to <strong>Undo</strong>.</p>
+<p>To bring it back early: <strong>three dots</strong>, then <strong>Unsnooze</strong>. This happens at once. There is no Undo for it.</p>
+<p>As owner, you still see snoozed items on the <strong>Overview</strong>, under <strong>Team follow-ups</strong>, in a dim colour.</p>
+<p>You can snooze sheet rows too.</p>
+<p><strong>If it goes wrong.</strong> If you get <strong>Something went wrong</strong>, ask your developer to finish the latest database update (see the list at the end).</p>
+<h2 id="9-duplicate-an-event">9. Duplicate an event</h2>
+<p><strong>What it is for.</strong> Make a new event that is like an old one.</p>
+<p><strong>What to tap.</strong></p>
+<ol><li>Tap the <strong>three dots</strong> on the row.</li><li>Tap <strong>Duplicate</strong>.</li><li>Pick the new <strong>Date</strong>.</li><li>Tap <strong>Add event</strong>.</li></ol>
+<p><strong>What you will see.</strong> The <strong>Add event</strong> window opens already filled in. It copies the artists, name, venue, city, set time, fee, currency, organizer and status. It does not copy the date or the ticket link. It does not copy deposits or balances. A copy of a <strong>Deposit paid</strong> event starts as <strong>Booked</strong>, because nobody has paid for the new date yet.</p>
+<figure><img src="screens/owner-duplicate-desktop.webp" alt="Duplicate" loading="lazy"></figure>
+<p><strong>If it goes wrong.</strong> You must pick a date, or the app asks you to.</p>
+<h2 id="10-bulk-lost-or-spam">10. Bulk Lost or Spam</h2>
+<p><strong>What it is for.</strong> Close many rows at once.</p>
+<p><strong>What to tap.</strong></p>
+<ol><li>Open <strong>All inquiries</strong>.</li><li>Tick the small box at the left of each row.</li><li>Tap <strong>Mark lost</strong> or <strong>Mark spam</strong> in the bar at the bottom.</li></ol>
+<figure><img src="screens/owner-bulk-desktop.webp" alt="Bulk bar" loading="lazy"></figure>
+<p><strong>What you will see.</strong> The bar says how many you ticked. After you tap, you have 5 seconds to <strong>Undo</strong>. Then a message says what happened, for example <strong>7 of 8 updated, 1 not allowed</strong>.</p>
+<p>Tap <strong>Clear</strong> to untick everything.</p>
+<p><strong>If it goes wrong.</strong> Rows marked <strong>From sheet</strong> have no tick box. You cannot bulk change them.</p>
+<h2 id="11-put-events-on-the-website-upcoming-shows-and-resync">11. Put events on the website (Upcoming Shows) and Resync</h2>
+<p><strong>What it is for.</strong> Show your booked events to the public.</p>
+<p><strong>How it works.</strong></p>
+<ul><li>Events you add in the app with the status <strong>Booked</strong> or <strong>Deposit paid</strong> are sent to the website's <strong>Upcoming Shows</strong> list. This happens on its own when you save.</li><li>Events from the sheets reach the website through the sheet's own sync, not through this button.</li><li>You will sometimes see <strong>Already on the site from the sheet</strong>. That is fine.</li><li>An event can be <strong>held back</strong>. It shows a note in the event: "held back from the website". Only you can tap <strong>Release to website</strong>.</li></ul>
+<p><strong>Resync website.</strong> This button is at the top right (owner only). Tap it to check every app event against the website. It shows <strong>Updating website...</strong> while it works.</p>
+<p><strong>Good to know.</strong> The website step only works when your developer has switched it on. If it is off, saving still works, but the website list does not change. Resync will tell you: <strong>Website updates are switched off right now, so nothing was changed.</strong></p>
+<p><strong>If it goes wrong.</strong></p>
+<ul><li><strong>Saved, but the website list was not updated</strong>: tap <strong>Retry</strong> on the message.</li><li>If it keeps failing, tell your developer.</li></ul>
+<h2 id="12-contacts">12. Contacts</h2>
+<p><strong>What it is for.</strong> Keep every organizer and venue person in one place.</p>
+<p><strong>What to tap.</strong> Tap <strong>Contacts</strong>.</p>
+<figure><img src="screens/owner-contacts-desktop.webp" alt="Contacts" loading="lazy"></figure>
+<p><strong>What you will see.</strong></p>
+<ul><li>A search box (name, phone, email, venue).</li><li>Filters: <strong>All types, Client, Venue, Promoter, Artist, Supplier, Sponsor</strong>. And <strong>Any stage, Lead, Active, Past, Dormant</strong>.</li><li><strong>New contact</strong> button.</li><li>Each row has a <strong>WhatsApp</strong> and a <strong>Call</strong> button.</li><li>Rows show <strong>Owner:</strong> and the manager's name.</li></ul>
+<p><strong>Add a contact.</strong> Tap <strong>New contact</strong>. Fill in the form. Save.</p>
+<p><strong>Open a contact card.</strong> Tap the name. The card has:</p>
+<ul><li><strong>WhatsApp</strong>, <strong>Call</strong>, <strong>Email</strong>, <strong>Edit</strong> buttons.</li><li><strong>FOLLOW-UPS</strong> (reminders), <strong>BOOKINGS</strong>, <strong>LOG A TOUCH</strong>, <strong>TIMELINE</strong>.</li><li><strong>Show change history</strong>.</li><li><strong>Merge with another contact</strong> and <strong>Move to Trash</strong> at the bottom.</li></ul>
+<figure><img src="screens/owner-contact-card-desktop.webp" alt="Contact card" loading="lazy"></figure>
+<p><strong>Merge duplicates.</strong> (Two entries for the same person.)</p>
+<ol><li>In <strong>Contacts</strong>, tap <strong>Merge duplicates</strong>. The number in brackets is how many pairs the app found.</li><li>Tap <strong>Review and merge</strong> on a pair. Or use <strong>Pick by hand</strong>: search, tick two or more, tap <strong>Review</strong>.</li><li>Pick the one to keep (<strong>KEEP WHICH ONE?</strong>). You can change the name.</li><li>Tap <strong>Merge</strong>.</li></ol>
+<figure><img src="screens/owner-merge-desktop.webp" alt="Merge" loading="lazy"></figure>
+<p>The kept contact gets all phone numbers, emails, notes and bookings. Nothing is erased. The other entries go to Trash.</p>
+<p><strong>Undo a merge.</strong> Right after merging, a bar appears for 20 seconds with <strong>Undo</strong>. After that: open the kept contact, tap <strong>Show change history</strong>, then tap <strong>Undo this merge</strong>.</p>
+<p><strong>Trash.</strong> Tap <strong>Move to Trash</strong> on a card. The contact, its bookings and its notes stay safe. Nothing is erased on its own. After 30 days your developer can clear old ones out for good, so restore a contact before then if you want it back. To get one back: <strong>Contacts</strong>, then <strong>Trash</strong>, then <strong>Restore</strong>.</p>
+<figure><img src="screens/owner-trash-desktop.webp" alt="Trash" loading="lazy"></figure>
+<p><strong>If it goes wrong.</strong> If you see <strong>Contacts could not be loaded, so the lists below may look empty.</strong>, tap <strong>Try again</strong>.</p>
+<h2 id="13-reminders">13. Reminders</h2>
+<p><strong>What it is for.</strong> Never forget to call someone back.</p>
+<p><strong>What to tap.</strong></p>
+<ol><li>Open a contact card.</li><li>Under <strong>FOLLOW-UPS</strong>, pick <strong>Tomorrow</strong>, <strong>In 3 days</strong>, <strong>Next week</strong> or <strong>Pick a date</strong>.</li><li>Type what to follow up on (optional).</li><li>Tap <strong>Set reminder</strong>.</li></ol>
+<p>You can also set a reminder while you log a call: under <strong>LOG A TOUCH</strong>, pick <strong>Remind me</strong>.</p>
+<p><strong>What you will see.</strong> On the day it is due, it shows in <strong>Follow-ups due</strong>. Late ones are red. Tap <strong>Done</strong> when finished. The small chat button opens WhatsApp.</p>
+<p><strong>Good to know.</strong> You see your own reminders and your managers' reminders. Each one shows the manager's name.</p>
+<h2 id="14-whatsapp-templates">14. WhatsApp templates</h2>
+<p><strong>What it is for.</strong> Send a ready-made message in a few taps.</p>
+<p><strong>What to tap.</strong></p>
+<ol><li>Tap the <strong>WhatsApp</strong> button on a contact or on a follow-up card.</li><li>Pick a language if there is more than one.</li><li>Tap a template. The message fills in.</li><li>Change the words if you like.</li><li>Tap <strong>Open WhatsApp</strong>. WhatsApp opens with the message typed. You press send there.</li></ol>
+<p>The app can also <strong>Copy</strong> the message. If the box <strong>Add to their timeline when I open WhatsApp</strong> is ticked, it adds a note on the contact.</p>
+<p><strong>Make or change templates.</strong> In <strong>Contacts</strong>, tap <strong>Message templates</strong> (or <strong>Edit templates</strong> in the WhatsApp window). Tap <strong>New template</strong>. Give it a title, a language, and a message. You can type <code>{name}</code>, <code>{date}</code>, <code>{venue}</code>, <code>{event}</code> and <code>{me}</code>. They fill in by themselves. <strong>Archive</strong> hides a template. <strong>Restore</strong> brings it back. Everyone shares the same templates.</p>
+<p><strong>If it goes wrong.</strong> If it says <strong>There is no usable phone number yet</strong>, add a phone number to the contact.</p>
+<h2 id="15-nudge-a-manager-on-whatsapp">15. Nudge a manager on WhatsApp</h2>
+<p><strong>What it is for.</strong> Remind Kasuni or Nirbheeth about what is waiting, in one tap.</p>
+<p><strong>First, once per manager.</strong> The Nudge button needs the manager's WhatsApp number. You add it once.</p>
+<ol><li>Open <strong>Overview</strong>.</li><li>Find <strong>Managers</strong> on the right (on a phone it is lower on the page).</li><li>Under a manager, tap <strong>Add WhatsApp number</strong>.</li><li>Type the number. Use digits, with an optional <strong>+</strong> at the start. Spaces and dashes are fine. A number that starts with 0 is read as a Sri Lankan number.</li><li>Tap <strong>Save number</strong>.</li></ol>
+<figure><img src="screens/owner-nudge-form-desktop.webp" alt="Add a number" loading="lazy"></figure>
+<p><strong>Then, every time.</strong></p>
+<ol><li>Tap <strong>Nudge</strong> under the manager's name.</li><li>WhatsApp opens in a new tab with the message already written. For example: "Hi Kasuni, 2 things need you: ... Can you pick these up today?"</li><li>Press send in WhatsApp. The app never sends anything by itself.</li></ol>
+<figure><img src="screens/owner-nudge-ready-desktop.webp" alt="Nudge ready" loading="lazy"></figure>
+<p>The message lists the next steps. It leaves out phone numbers and emails on purpose.</p>
+<p><strong>Wrong number?</strong> Tap <strong>Change number</strong> next to <strong>Nudge</strong>. Fix the number and tap <strong>Save number</strong>. Or tap <strong>Remove number</strong> to delete it.</p>
+<p><strong>If it goes wrong.</strong></p>
+<ul><li>The button says <strong>Nothing to nudge</strong> and is grey: that manager has nothing open.</li><li><strong>Enter the number with digits only...</strong>: fix the number.</li><li><strong>Saving numbers is not switched on yet.</strong>: your developer must finish the latest database update first.</li><li><strong>Only the owner can save a number.</strong>: you must be signed in as the owner.</li></ul>
+<p>Only you can read these numbers. The managers cannot.</p>
+<h2 id="16-who-can-see-money">16. Who can see money</h2>
+<ul><li><strong>You</strong> see money on every event.</li><li>A <strong>manager</strong> sees money only on the events of the artists they look after.</li><li>Everyone else sees <strong>Money details are private to the artist's manager.</strong></li><li>Totals on the <strong>Overview</strong> and the <strong>All inquiries</strong> bar only add up what the person looking is allowed to see.</li></ul>
+<h2 id="17-sheet-rows-and-why-you-cannot-edit-them-yet">17. Sheet rows (and why you cannot edit them yet)</h2>
+<p><strong>What it is.</strong> Kasuni and Nirbheeth keep Google Sheets. Every 15 minutes the app copies each sheet row in. The row shows a <strong>From sheet</strong> tag.</p>
+<p><strong>What you can do with a sheet row.</strong></p>
+<ul><li>Open it and read it.</li><li>Call or WhatsApp the organizer.</li><li>Add a comment.</li><li>Link it to a contact.</li><li>Snooze it.</li><li>Tap <strong>Edit in sheet</strong> to open the sheet.</li></ul>
+<p><strong>What you cannot do.</strong> Change the status, edit it, delete it, or bulk change it.</p>
+<p><strong>Why.</strong> The next copy from the sheet would overwrite your change within 15 minutes. So the app does not allow it. This will change in a later step, once your developer switches the copy off.</p>
+<h2 id="18-keyboard-shortcuts-laptop">18. Keyboard shortcuts (laptop)</h2>
+<div class="table"><table><thead><tr><th>Key</th><th>What it does</th></tr></thead><tbody><tr><td><strong>/</strong></td><td>Jumps to the search box (on <strong>All inquiries</strong> and <strong>Calendar</strong>)</td></tr><tr><td><strong>N</strong></td><td>Opens <strong>Add event</strong></td></tr><tr><td><strong>Up</strong> and <strong>Down arrows</strong></td><td>Move from row to row</td></tr><tr><td><strong>Enter</strong></td><td>Opens the row you are on</td></tr><tr><td><strong>Esc</strong></td><td>Closes a window or a menu</td></tr></tbody></table></div>
+<p>They do not work while you are typing in a box, or while a menu or window is open. If an arrow key does nothing, click on an empty part of the page first.</p>
+<h2 id="19-things-only-you-can-do-once">19. Things only you can do (once)</h2>
+<ol><li><strong>Ask your developer to apply the two latest database updates</strong> after reading them: number 12 (snooze and WhatsApp numbers) and number 13 (a privacy fix: contact counts no longer show one manager the other manager's shows). Until 12 is applied, Snooze and saved numbers will not work.</li><li><strong>Add each manager's WhatsApp number</strong> (section 15). Do this once.</li><li><strong>Ask your developer to switch on website updates</strong> if you want events to go to Upcoming Shows from the app.</li><li><strong>A later step, not now:</strong> switching off the sheet copy and moving the sheet rows into the app. When that is done, sheet rows become editable. Do not try to do this inside the app.</li></ol>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<ul><li><strong>NO ACCESS YET.</strong> That Google account is not on the list. Ask your developer to add it.</li><li><strong>You can view this but not change it.</strong> It is a sheet row, or it belongs to someone else.</li><li><strong>Could not reach the server. Check your internet and try again.</strong> Check your internet. Try again.</li><li><strong>Something went wrong. Please try again.</strong> Try again. If it keeps happening, tell your developer.</li><li><strong>A row is missing.</strong> Check the filters. Check <strong>Everyone's</strong>. It may be snoozed, or marked Lost or Spam.</li><li><strong>Saved, but the website list was not updated.</strong> Tap <strong>Retry</strong>.</li><li><strong>No Nudge button.</strong> Add the manager's WhatsApp number first.</li><li><strong>No WhatsApp button on a contact.</strong> The contact has no usable phone number.</li><li><strong>I tapped by mistake.</strong> Tap <strong>Undo</strong> within 5 seconds.</li></ul>
+<h2 id="glossary">Glossary</h2>
+<ul><li><strong>Needs you / Team follow-ups.</strong> The list of things waiting for a reply or for money. A manager sees <strong>Needs you</strong>. You see <strong>Team follow-ups</strong>.</li><li><strong>Sheet row.</strong> An inquiry copied in from a manager's Google Sheet. It has a <strong>From sheet</strong> tag.</li><li><strong>Snooze.</strong> Hide a row from the follow-up lists until a day you pick.</li><li><strong>Hold back.</strong> Keep an event off the website. Only the owner can release it.</li><li><strong>Trash.</strong> Where deleted contacts wait. You can restore them. They can be cleared out for good after 30 days.</li><li><strong>Merge.</strong> Join two entries for the same person into one contact.</li><li><strong>Nudge.</strong> A WhatsApp message to a manager about what is waiting.</li><li><strong>Booked ahead.</strong> Booked shows that have not happened yet.</li><li><strong>Still owed.</strong> Money not yet collected for upcoming shows.</li></ul>
+</main>
+</div>
+</body>
+</html>
