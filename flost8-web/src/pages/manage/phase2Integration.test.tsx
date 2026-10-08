@@ -24,10 +24,10 @@ it('contract: nudgeApi rpc names, arguments and columns match migration 012', ()
   expect(api).toContain('manager_id: string; whatsapp: string')
 })
 
-it('contract: migrations are numbered 1..N with no gap or clash (012 to 015 follow 011), and anon cannot run the new functions', () => {
+it('contract: migrations are numbered 1..N with no gap or clash (012 to 016 follow 011), and anon cannot run the new functions', () => {
   const nums = Object.keys(migrations).sort().map((f) => Number(/\/\d+_(\d+)_[^/]*$/.exec(f)?.[1]))
   expect(nums).toEqual(Array.from({ length: nums.length }, (_, n) => n + 1))
-  expect(nums.at(-1)).toBe(15)
+  expect(nums.at(-1)).toBe(16)
   expect(sql012()).toMatch(/revoke execute on function public\.manager_whatsapps\(\), public\.set_manager_whatsapp\(uuid, text\) from public, anon/)
 })
 

@@ -12,6 +12,8 @@
 --   4. The owner can permanently delete a contact that is already in Trash, unless merged-away contacts still point at it. Contact notes, history and reminders go with it;
 --      inquiries that pointed at it are kept and just lose the link (inquiries.contact_id is ON DELETE SET NULL).
 
+begin;
+
 -- ---------- 1. managers delete their own inquiries, whatever the source ----------
 drop policy if exists inquiries_delete_own_app on public.inquiries;
 create policy inquiries_delete_own on public.inquiries for delete to authenticated
@@ -109,3 +111,5 @@ drop policy if exists contacts_delete on public.contacts;
 create policy contacts_delete on public.contacts for delete to authenticated
   using (public.is_owner() and deleted_at is not null
          and not exists (select 1 from public.contacts m where m.merged_into = contacts.id));   -- keep the target of a merge, its merged-away rows still point at it
+
+commit;

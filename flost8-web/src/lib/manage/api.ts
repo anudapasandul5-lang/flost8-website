@@ -251,6 +251,7 @@ export async function updateEvent(id: string, input: NewEventInput, existingMone
 export async function takeOverInquiry(id: string): Promise<void> {
   const { error } = await getSupabase().rpc('take_over_sheet_inquiry', { p_inquiry: id })
   if (error) {
+    if (error.code === '22023') return   // already switched (double click, second tab): carry on to the edit form
     if (isRlsError(error) || error.code === '42501') throw new NotAllowedError()
     throw error
   }

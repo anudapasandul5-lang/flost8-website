@@ -174,7 +174,7 @@ export default function InquiryDrawer({
       notify({ kind: 'ok', text: 'Event deleted' })
       onChanged()
       onClose()
-      void onPublish(inquiry.id)
+      if (inquiry.source === 'manual') void onPublish(inquiry.id)
     } catch (err) {
       notify({ kind: 'error', text: friendlyError(err) })
       setBusy(null)
@@ -483,7 +483,7 @@ export default function InquiryDrawer({
           body={
             <>
               <span className="block">{inquiryTitle(inquiry)} becomes a normal event in this app. Only this one event stops syncing from the sheet.</span>
-              <span className="mt-2 block">Changes made in the sheet will no longer show here, and changes made here will not reach the sheet. It is not added to the public website automatically.</span>
+              <span className="mt-2 block">Changes made in the sheet will no longer show here, and changes made here will not reach the sheet. If the sheet row's date or name is changed later, it can appear here again as a new event. It is not added to the public website automatically.</span>
               <span className="mt-2 block font-medium text-ink">This cannot be switched back.</span>
             </>
           }

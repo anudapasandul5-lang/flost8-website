@@ -56,6 +56,7 @@ export default function ContactsView({
   const [mineOnly, setMineOnly] = useState(false)
   const [trash, setTrash] = useState(false)
   const [erasing, setErasing] = useState<Contact | null>(null)
+  const mergeTargets = useMemo(() => new Set(contacts.map((c) => c.merged_into).filter(Boolean)), [contacts])
 
   const ownerId = me.role === 'owner' ? (managerFilter ?? '') : mineOnly ? me.id : ''
   const shown = useMemo(() => filterContacts(contacts, { q, type, ownerId, stage, stats, today }), [contacts, q, type, ownerId, stage, stats, today])
@@ -91,7 +92,7 @@ export default function ContactsView({
                   <button type="button" onClick={() => onRestore(c)} className={BTN_GHOST}>
                     Restore
                   </button>
-                  {me.role === 'owner' && onErase && (
+                  {me.role === 'owner' && onErase && !mergeTargets.has(c.id) && (
                     <button type="button" onClick={() => setErasing(c)} className={`${BTN_GHOST} text-[#FCA5A5]`}>
                       Delete forever
                     </button>
