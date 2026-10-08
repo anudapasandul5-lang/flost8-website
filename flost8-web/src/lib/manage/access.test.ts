@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { canCommentOn, canDeleteInquiry, canEditInquiry, parseAuthError, isHttpUrl, isPlainEmail } from './access'
+import { canCommentOn, canDeleteInquiry, canEditInquiry, canTakeOverInquiry, parseAuthError, isHttpUrl, isPlainEmail } from './access'
 import { KASUNI, makeInquiry, OWNER } from './testFixtures'
 
 describe('parseAuthError', () => {
@@ -82,5 +82,21 @@ describe('canDeleteInquiry', () => {
       expect(canDeleteInquiry(makeInquiry({ source, owner_id: 'someone-else' }), KASUNI)).toBe(false)
       expect(canDeleteInquiry(makeInquiry({ source, owner_id: null }), KASUNI)).toBe(false)
     }
+  })
+})
+
+describe('canTakeOverInquiry', () => {
+  it('lets the owner take over any imported event, ownerless ones too', () => {
+    expect(canTakeOverInquiry(makeInquiry({ source: 'sheet_import', owner_id: 'someone-else' }), OWNER)).toBe(true)
+    expect(canTakeOverInquiry(makeInquiry({ source: 'sheet_import', owner_id: null }), OWNER)).toBe(true)
+  })
+  it('lets a manager take over only their own imported events', () => {
+    expect(canTakeOverInquiry(makeInquiry({ source: 'sheet_import', owner_id: KASUNI.id }), KASUNI)).toBe(true)
+    expect(canTakeOverInquiry(makeInquiry({ source: 'sheet_import', owner_id: 'someone-else' }), KASUNI)).toBe(false)
+    expect(canTakeOverInquiry(makeInquiry({ source: 'sheet_import', owner_id: null }), KASUNI)).toBe(false)
+  })
+  it('only applies to imported events', () => {
+    expect(canTakeOverInquiry(makeInquiry({ source: 'manual', owner_id: KASUNI.id }), OWNER)).toBe(false)
+    expect(canTakeOverInquiry(makeInquiry({ source: 'website', owner_id: KASUNI.id }), KASUNI)).toBe(false)
   })
 })

@@ -2,7 +2,8 @@
 // Proofs for migration 015 (owner's request 2026-10-08: delete any inquiry, erase a trashed contact for good):
 //   1. a manager deletes their OWN inquiry of any source, never another manager's or an ownerless one; the owner deletes any
 //   2. a deleted sheet-imported inquiry leaves its key behind, only the importer (service role) can read it, and its children go with it
-//   3. only the owner can erase a contact, and only one already in Trash; linked inquiries survive with no contact
+//   3. take_over_sheet_inquiry: owner or the owning manager turns ONE imported event into an editable app event and the importer is told to skip it
+//   4. only the owner can erase a contact, and only one already in Trash; linked inquiries survive with no contact
 // In-memory Postgres (PGlite), real migrations, no live database.
 import { PGlite } from '@electric-sql/pglite'
 import { readFileSync, readdirSync } from 'node:fs'
@@ -119,6 +120,42 @@ await db.exec(`insert into public.inquiries (id, source, status, event_name, eve
 await db.exec(`delete from public.inquiries where id = '${id(9)}'`)
 ok((await rows(`select 1 from public.deleted_sheet_keys where sheet_key = 'Kasuni|2026-12-09|script row'`)) === 0, 'a delete run from SQL (no signed-in manager) is not remembered')
 ok((await rows(`select 1 from public.deleted_sheet_keys`)) === 2, 'only the two signed-in deletes are remembered')
+
+// --- 3b. taking over an imported event so it can be edited ----------------------------------------------------------
+const T1 = id(20), T2 = id(21), T3 = id(22), T4 = id(23)
+await su()
+await db.exec(`
+  insert into public.inquiries (id, source, status, event_name, event_date, owner_id, sheet_key) values
+    ('${T1}', 'sheet_import', 'booking_confirmed', 'Take one', current_date + 50, '${K.id}', 'Kasuni|2027-01-01|take one'),
+    ('${T2}', 'sheet_import', 'booking_confirmed', 'Take two', current_date + 51, '${N.id}', 'Nirbheeth|2027-01-02|take two'),
+    ('${T3}', 'sheet_import', 'quoted', 'Take three', current_date + 52, null, 'Ownerless|2027-01-03|take three'),
+    ('${T4}', 'sheet_import', 'quoted', 'Take four', current_date + 53, '${K.id}', 'Kasuni|2027-01-04|take four');
+  insert into public.inquiry_artists values ('${T1}', 1, 'sonal');
+`)
+await as(K.user_id)
+await fails(`update public.inquiries set event_name = 'Edited' where id = '${T1}'`, /read-only/, 'baseline: a manager cannot edit an imported row directly')
+await fails(`update public.inquiries set source = 'manual' where id = '${T1}'`, /read-only/, 'a manager cannot flip source by hand either')
+await fails(`select public.take_over_sheet_inquiry('${T2}')`, /not allowed/, "a manager cannot take over another manager's event")
+await fails(`select public.take_over_sheet_inquiry('${T3}')`, /not allowed/, 'a manager cannot take over an ownerless event')
+await fails(`select public.take_over_sheet_inquiry('${id(99)}')`, /not allowed/, 'a missing id gives the same answer, so ids cannot be probed')
+await as(null, 'anon')
+await fails(`select public.take_over_sheet_inquiry('${T1}')`, /permission denied/, 'anon cannot take over')
+await as(K.user_id)
+await db.query(`select public.take_over_sheet_inquiry('${T1}')`)
+const t1 = (await q(`select source, no_auto_publish from public.inquiries where id = '${T1}'`))[0]
+ok(t1.source === 'manual' && t1.no_auto_publish === true, 'the owning manager takes over her own imported event: now an app event, held off the website', JSON.stringify(t1))
+ok((await rows(`update public.inquiries set event_name = 'Edited' where id = '${T1}' returning 1`)) === 1, 'she can now edit it')
+ok((await rows(`update public.inquiry_artists set artist_slug = 'sonal' where inquiry_id = '${T1}' returning 1`)) === 1, 'and its lineup')
+await fails(`select public.take_over_sheet_inquiry('${T1}')`, /only an imported event/, 'taking over twice is refused')
+await as(O.user_id)
+await db.query(`select public.take_over_sheet_inquiry('${T3}')`)
+await su()
+ok((await q(`select source from public.inquiries where id = '${T3}'`))[0].source === 'manual', 'the owner takes over an ownerless event')
+const kept = await q(`select sheet_key from public.deleted_sheet_keys where reason = 'taken_over' order by sheet_key`)
+ok(kept.length === 2 && kept[0].sheet_key === 'Kasuni|2027-01-01|take one' && kept[1].sheet_key === 'Ownerless|2027-01-03|take three', 'both taken-over keys are on the importer skip list', JSON.stringify(kept))
+ok((await q(`select source from public.inquiries where id = '${T4}'`))[0].source === 'sheet_import', 'an event nobody took over is untouched and still syncs')
+await as(K.user_id)
+await fails(`update public.inquiries set event_name = 'Edited' where id = '${T4}'`, /read-only/, 'the take-over switch does not leak: other imported rows are still read-only afterwards')
 
 // --- 3. contacts ---------------------------------------------------------------------------------------------------------
 await as(K.user_id)

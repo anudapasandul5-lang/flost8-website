@@ -1,8 +1,8 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import { motion, useReducedMotion } from 'framer-motion'
 import { ArrowUpRight, CheckCircle, Circle, FileArrowUp, Trash, X } from '@phosphor-icons/react'
-import { addComment, deleteInquiry, friendlyError, updateInquiry, type InquiryPatch } from '../../lib/manage/api'
-import { canCommentOn, canDeleteInquiry, canEditInquiry, isHttpUrl, isPlainEmail } from '../../lib/manage/access'
+import { addComment, deleteInquiry, friendlyError, takeOverInquiry, updateInquiry, type InquiryPatch } from '../../lib/manage/api'
+import { canCommentOn, canDeleteInquiry, canEditInquiry, canTakeOverInquiry, isHttpUrl, isPlainEmail } from '../../lib/manage/access'
 import { formatDate } from '../../lib/manage/calendar'
 import { createContact, setInquiryContact, setPublishHold } from '../../lib/manage/contactsApi'
 import { bestPhone, EMPTY_CONTACT, type Contact } from '../../lib/manage/contacts'
@@ -63,11 +63,13 @@ export default function InquiryDrawer({
   const canComment = canCommentOn(inquiry, me, mySlugs)
   const sheetUrl = ownerName ? SHEET_URLS[ownerName] : undefined
   const [version, setVersion] = useState(0)
-  const [busy, setBusy] = useState<'status' | 'fields' | 'comment' | 'delete' | null>(null)
+  const [busy, setBusy] = useState<'status' | 'fields' | 'comment' | 'delete' | 'takeover' | null>(null)
   const [askDelete, setAskDelete] = useState(false)
+  const [askTakeOver, setAskTakeOver] = useState(false)
   const [linking, setLinking] = useState(false)
   const [linkText, setLinkText] = useState(inquiry.organizer_name ?? '')
   const canDelete = canDeleteInquiry(inquiry, me)
+  const canTakeOver = canTakeOverInquiry(inquiry, me)
   const deleteIntro = imported
     ? "Deleting removes this event, its comments and its money details here for good, and it will not be imported again."
     : inquiry.source === 'website'
@@ -143,6 +145,20 @@ export default function InquiryDrawer({
       await addComment(inquiry.id, me.id, text)
       setComment('')
       changed()
+    } catch (err) {
+      notify({ kind: 'error', text: friendlyError(err) })
+    } finally {
+      setBusy(null)
+    }
+  }
+
+  async function takeOver() {
+    setAskTakeOver(false)
+    setBusy('takeover')
+    try {
+      await takeOverInquiry(inquiry.id)
+      notify({ kind: 'ok', text: 'You can now edit this event here' })
+      onChanged()
     } catch (err) {
       notify({ kind: 'error', text: friendlyError(err) })
     } finally {
@@ -229,6 +245,11 @@ export default function InquiryDrawer({
                   <ArrowUpRight size={18} aria-hidden="true" />
                   Edit in sheet
                 </a>
+              )}
+              {canTakeOver && (
+                <button type="button" disabled={busy !== null} onClick={() => setAskTakeOver(true)} className={`${BTN_GHOST} mt-2 w-full border-[var(--accent-line)] text-ink`}>
+                  {busy === 'takeover' ? 'Switching…' : 'Edit here instead'}
+                </button>
               )}
             </div>
           )}
@@ -456,6 +477,21 @@ export default function InquiryDrawer({
         </div>
       </motion.aside>
 
+      {askTakeOver && (
+        <ConfirmDialog
+          title="EDIT THIS EVENT HERE?"
+          body={
+            <>
+              <span className="block">{inquiryTitle(inquiry)} becomes a normal event in this app. Only this one event stops syncing from the sheet.</span>
+              <span className="mt-2 block">Changes made in the sheet will no longer show here, and changes made here will not reach the sheet. It is not added to the public website automatically.</span>
+              <span className="mt-2 block font-medium text-ink">This cannot be switched back.</span>
+            </>
+          }
+          confirmLabel="Edit here"
+          onConfirm={() => void takeOver()}
+          onCancel={() => setAskTakeOver(false)}
+        />
+      )}
       {askDelete && (
         <ConfirmDialog
           title="DELETE EVENT?"
