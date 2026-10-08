@@ -36,6 +36,7 @@ function start(): Promise<void> {
         person_profiles: 'identified_only', // anonymous visitors, no profiles
         respect_dnt: true,
         disable_session_recording: true,
+        capture_exceptions: true, // uncaught errors + unhandled promise rejections
         // Clicks on links and buttons only: never form-field changes or typed text.
         autocapture: { dom_event_allowlist: ['click'], element_allowlist: ['a', 'button'] },
         before_send: e => (e && isPrivatePath(window.location.pathname) ? null : e),
