@@ -45,6 +45,19 @@ assert.strictEqual(r.rows[1].inquiry.lost_reason, 'Cancelled (from sheet)')
 assert.strictEqual(r.rows[0].money, null)
 assert.strictEqual(r.issues.length, 1)
 
+// rows deleted in the app are dropped before the upsert, everything else is kept
+r = read('Dr Green', [
+  hdr('OCTOBER'),
+  row({ ...base, 'Event Date': 'D:2026-10-12', 'Event Name': 'Ritual - 150K' }),
+  row({ ...base, 'Event Date': 'D:2026-10-03', 'Event Name': 'Old gig' }),
+])
+let dropped = ctx.fimp_dropDeleted_(r.rows, ['Dr Green|2026-10-12|ritual150k', 'Somebody Else|2026-01-01|x'])
+assert.strictEqual(dropped.skipped, 1)
+assert.deepStrictEqual([...dropped.rows.map((x) => x.inquiry.event_date)], ['2026-10-03'])
+dropped = ctx.fimp_dropDeleted_(r.rows, [])
+assert.strictEqual(dropped.skipped, 0)
+assert.strictEqual(dropped.rows.length, 2)
+
 // bad date still imports (no date) and is listed; same date+event twice gets distinct keys
 r = read('Sonal', [
   row({ ...base, 'Event Date': 'TBC', 'Event Name': 'Mystery' }),

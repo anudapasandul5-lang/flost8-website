@@ -66,16 +66,21 @@ describe('canCommentOn', () => {
 })
 
 describe('canDeleteInquiry', () => {
-  it('lets the owner delete any app-added event', () => {
-    expect(canDeleteInquiry(makeInquiry({ source: 'manual', owner_id: 'someone-else' }), OWNER)).toBe(true)
+  it('lets the owner delete any event, whatever its source', () => {
+    for (const source of ['manual', 'website', 'sheet_import'] as const) {
+      expect(canDeleteInquiry(makeInquiry({ source, owner_id: 'someone-else' }), OWNER)).toBe(true)
+      expect(canDeleteInquiry(makeInquiry({ source, owner_id: null }), OWNER)).toBe(true)
+    }
   })
-  it('lets a manager delete only their own app-added events', () => {
-    expect(canDeleteInquiry(makeInquiry({ source: 'manual', owner_id: KASUNI.id }), KASUNI)).toBe(true)
-    expect(canDeleteInquiry(makeInquiry({ source: 'manual', owner_id: 'someone-else' }), KASUNI)).toBe(false)
-    expect(canDeleteInquiry(makeInquiry({ source: 'manual', owner_id: null }), KASUNI)).toBe(false)
+  it('lets a manager delete their own events of any source', () => {
+    for (const source of ['manual', 'website', 'sheet_import'] as const) {
+      expect(canDeleteInquiry(makeInquiry({ source, owner_id: KASUNI.id }), KASUNI)).toBe(true)
+    }
   })
-  it('never offers delete on sheet or website rows, even to the owner', () => {
-    expect(canDeleteInquiry(makeInquiry({ source: 'sheet_import', owner_id: KASUNI.id }), OWNER)).toBe(false)
-    expect(canDeleteInquiry(makeInquiry({ source: 'website', owner_id: KASUNI.id }), KASUNI)).toBe(false)
+  it("never offers a manager another manager's or an ownerless event", () => {
+    for (const source of ['manual', 'website', 'sheet_import'] as const) {
+      expect(canDeleteInquiry(makeInquiry({ source, owner_id: 'someone-else' }), KASUNI)).toBe(false)
+      expect(canDeleteInquiry(makeInquiry({ source, owner_id: null }), KASUNI)).toBe(false)
+    }
   })
 })

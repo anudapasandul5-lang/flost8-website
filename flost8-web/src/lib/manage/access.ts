@@ -43,11 +43,10 @@ export function isPlainEmail(value: string | null | undefined): boolean {
 }
 
 /**
- * Delete is offered only on events added in the app (source 'manual'): the owner role can delete any, a manager only their own.
- * Sheet rows are never deletable here (the importer would put them straight back) and website rows are real leads.
- * Mirrors the database: inquiries_delete (owner) plus inquiries_delete_own_app (migration 007).
+ * Delete is offered on any event, whatever its source: the owner role can delete any, a manager only their own.
+ * Mirrors the database: inquiries_delete (owner) plus inquiries_delete_own (migration 015).
+ * A deleted sheet row is remembered by the database so the importer does not bring it back.
  */
 export function canDeleteInquiry(i: Inquiry, me: Manager): boolean {
-  if (i.source !== 'manual') return false
   return me.role === 'owner' || i.owner_id === me.id
 }

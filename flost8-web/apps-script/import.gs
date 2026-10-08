@@ -134,6 +134,15 @@ function fimp_build_(tabs) {
   return { rows: rows, issues: issues };
 }
 
+// Rows whose sheet_key was deleted in the app (migration 015, table deleted_sheet_keys) must not be imported again.
+// keys = array of sheet_key strings -> { rows: the rest, skipped: how many were dropped }
+function fimp_dropDeleted_(rows, keys) {
+  var gone = {};
+  keys.forEach(function (k) { gone[k] = true; });
+  var kept = rows.filter(function (r) { return !gone[r.inquiry.sheet_key]; });
+  return { rows: kept, skipped: rows.length - kept.length };
+}
+
 // ---------------------------------------------------------------------------
 // Apps Script glue
 // ---------------------------------------------------------------------------
@@ -153,6 +162,17 @@ function fimp_call_(method, path, body, prefer) {
   return text ? JSON.parse(text) : null;
 }
 
+// Every key deleted in the app. Throws if it cannot be read: better to skip a run than to bring deleted rows back.
+function fimp_deletedKeys_() {
+  var keys = [], page = 1000, from = 0, got;
+  do {
+    got = fimp_call_('get', 'deleted_sheet_keys?select=sheet_key&order=sheet_key&limit=' + page + '&offset=' + from, null, null) || [];
+    got.forEach(function (g) { keys.push(g.sheet_key); });
+    from += page;
+  } while (got.length === page);
+  return keys;
+}
+
 function fimpRun() { fimp_run_(false); }
 function fimpDryRun() { fimp_run_(true); }   // reads the sheets, writes nothing
 
@@ -170,6 +190,9 @@ function fimp_run_(dry) {
       });
     });
     var built = fimp_build_(tabs);
+    var kept = fimp_dropDeleted_(built.rows, fimp_deletedKeys_());
+    built.rows = kept.rows;
+    if (kept.skipped) Logger.log('skipped ' + kept.skipped + ' rows deleted in the app');
     var counts = {};
     built.rows.forEach(function (r) { counts[r.inquiry.status] = (counts[r.inquiry.status] || 0) + 1; });
     Logger.log((dry ? 'DRY RUN. ' : '') + 'inquiries ' + built.rows.length + ' ' + JSON.stringify(counts) +

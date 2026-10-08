@@ -15,7 +15,7 @@ import { nudgeLines } from '../../lib/manage/nudge'
 import { summarise } from '../../lib/manage/summaries'
 import type { Artist, Inquiry, Manager, Status } from '../../lib/manage/types'
 import { publishShow, resyncWebsite } from '../../lib/manage/publishShow'
-import { fetchContacts, fetchContactStats, fetchOpenReminders, setContactDeleted, undoMerge } from '../../lib/manage/contactsApi'
+import { fetchContacts, fetchContactStats, fetchOpenReminders, setContactDeleted, eraseContact, undoMerge } from '../../lib/manage/contactsApi'
 import { bestPhone, contextBooking, pendingPayments, quietContacts, reminderBucket, type Contact, type ContactStats, type Reminder } from '../../lib/manage/contacts'
 import ContactDrawer from './ContactDrawer'
 import ContactFormDialog from './ContactFormDialog'
@@ -226,6 +226,16 @@ function Dashboard({
     try {
       await setContactDeleted(c.id, false, me.id)
       setToast({ kind: 'ok', text: 'Restored' })
+      reloadAll()
+    } catch (err) {
+      setToast({ kind: 'error', text: friendlyError(err) })
+    }
+  }
+
+  const eraseTrashedContact = async (c: Contact) => {
+    try {
+      await eraseContact(c.id)
+      setToast({ kind: 'ok', text: 'Deleted for good' })
       reloadAll()
     } catch (err) {
       setToast({ kind: 'error', text: friendlyError(err) })
@@ -445,6 +455,7 @@ function Dashboard({
             onWhatsAppContact={whatsAppForContact}
             onWhatsAppInquiry={whatsAppForInquiry}
             onRestoreContact={(c) => void restoreContact(c)}
+            onEraseContact={(c) => void eraseTrashedContact(c)}
             reloadAll={reloadAll}
             notify={setToast}
           />
@@ -636,6 +647,7 @@ function Views({
   onWhatsAppContact,
   onWhatsAppInquiry,
   onRestoreContact,
+  onEraseContact,
   reloadAll,
   notify,
 }: {
@@ -671,6 +683,7 @@ function Views({
   onWhatsAppContact: (c: Contact) => void
   onWhatsAppInquiry: (i: Inquiry) => void
   onRestoreContact: (c: Contact) => void
+  onEraseContact: (c: Contact) => void
   reloadAll: () => void
   notify: (t: ToastMsg) => void
 }) {
@@ -767,6 +780,7 @@ function Views({
         onTemplates={onTemplates}
         onWhatsApp={onWhatsAppContact}
         onRestore={onRestoreContact}
+        onErase={onEraseContact}
       />
     )
 

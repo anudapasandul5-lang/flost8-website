@@ -68,6 +68,11 @@ export default function InquiryDrawer({
   const [linking, setLinking] = useState(false)
   const [linkText, setLinkText] = useState(inquiry.organizer_name ?? '')
   const canDelete = canDeleteInquiry(inquiry, me)
+  const deleteIntro = imported
+    ? "Deleting removes this event, its comments and its money details here for good, and it will not be imported again."
+    : inquiry.source === 'website'
+      ? 'A test or a spam enquiry? Deleting removes it, its comments and its money details for good.'
+      : 'Added in this app by mistake? Deleting removes the event, its comments and its money details for good.'
 
   useLockScroll(true)
   useEffect(() => {
@@ -436,7 +441,7 @@ export default function InquiryDrawer({
 
           {canDelete && (
             <section aria-label="Delete event" className="border-t border-[var(--bg-line)] pt-6">
-              <p className="mb-3 font-grotesk text-sm text-[var(--ink-50)]">Added in this app by mistake? Deleting removes the event, its comments and its money details for good.</p>
+              <p className="mb-3 font-grotesk text-sm text-[var(--ink-50)]">{deleteIntro}</p>
               <button
                 type="button"
                 disabled={busy !== null}
@@ -457,6 +462,7 @@ export default function InquiryDrawer({
           body={
             <>
               <span className="block">{inquiryTitle(inquiry)} will be permanently deleted, with its comments and money details.</span>
+              {imported && <span className="mt-2 block">It will not come back from the sheet. The row stays in the manager's own Google Sheet until it is removed there.</span>}
               <span className="mt-2 block font-medium text-ink">This cannot be undone.</span>
             </>
           }

@@ -8,6 +8,7 @@ import {
 import { waLink } from '../../lib/manage/needsAction'
 import type { Manager } from '../../lib/manage/types'
 import { EmptyNote, StageBadge, TypeTags } from './contactUi'
+import { ConfirmDialog } from './ui'
 import { BTN_GHOST, BTN_PRIMARY, CHIP_BASE, CHIP_OFF, CHIP_ON, FOCUS_RING, INPUT } from './styles'
 
 const STAGES: Stage[] = ['lead', 'active', 'past', 'dormant']
@@ -31,6 +32,7 @@ export default function ContactsView({
   onTemplates,
   onWhatsApp,
   onRestore,
+  onErase,
 }: {
   me: Manager
   managers: Manager[]
@@ -45,12 +47,15 @@ export default function ContactsView({
   onTemplates: () => void
   onWhatsApp: (c: Contact) => void
   onRestore: (c: Contact) => void
+  /** Owner only: erase a trashed contact for good. */
+  onErase?: (c: Contact) => void
 }) {
   const [q, setQ] = useState('')
   const [type, setType] = useState<ContactType | ''>('')
   const [stage, setStage] = useState<Stage | ''>('')
   const [mineOnly, setMineOnly] = useState(false)
   const [trash, setTrash] = useState(false)
+  const [erasing, setErasing] = useState<Contact | null>(null)
 
   const ownerId = me.role === 'owner' ? (managerFilter ?? '') : mineOnly ? me.id : ''
   const shown = useMemo(() => filterContacts(contacts, { q, type, ownerId, stage, stats, today }), [contacts, q, type, ownerId, stage, stats, today])
@@ -82,12 +87,37 @@ export default function ContactsView({
                   <span className="block truncate text-[1rem] text-ink">{c.name}</span>
                   <span className="block text-[13px] text-[var(--ink-50)]">Deleted {ago(c.deleted_at, today)}</span>
                 </button>
-                <button type="button" onClick={() => onRestore(c)} className={BTN_GHOST}>
-                  Restore
-                </button>
+                <div className="flex shrink-0 gap-2">
+                  <button type="button" onClick={() => onRestore(c)} className={BTN_GHOST}>
+                    Restore
+                  </button>
+                  {me.role === 'owner' && onErase && (
+                    <button type="button" onClick={() => setErasing(c)} className={`${BTN_GHOST} text-[#FCA5A5]`}>
+                      Delete forever
+                    </button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
+        )}
+        {erasing && (
+          <ConfirmDialog
+            title="DELETE FOR GOOD?"
+            body={
+              <>
+                <span className="block">{erasing.name} and their notes, history and reminders will be erased. Events linked to them stay, with no contact.</span>
+                <span className="mt-2 block font-medium text-ink">This cannot be undone.</span>
+              </>
+            }
+            confirmLabel="Delete forever"
+            onConfirm={() => {
+              const c = erasing
+              setErasing(null)
+              onErase?.(c)
+            }}
+            onCancel={() => setErasing(null)}
+          />
         )}
       </div>
     )
