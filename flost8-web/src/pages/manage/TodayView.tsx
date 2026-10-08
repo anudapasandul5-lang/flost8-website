@@ -4,7 +4,7 @@ import { formatDate } from '../../lib/manage/calendar'
 import { ago, bestPhone, type Contact, type ContactStats, type PendingPayment } from '../../lib/manage/contacts'
 import { inquiryTitle } from '../../lib/manage/labels'
 import { formatAmount } from '../../lib/manage/money'
-import type { Manager } from '../../lib/manage/types'
+import type { Inquiry, Manager } from '../../lib/manage/types'
 import { EmptyNote } from './contactUi'
 import { BTN_GHOST, FOCUS_RING, PANEL } from './styles'
 
@@ -34,6 +34,8 @@ export default function TodayView({
   onOpenInquiry,
   onOpenContact,
   onWhatsApp,
+  canMarkPaid,
+  onMarkPaid,
 }: {
   me: Manager
   today: string
@@ -47,6 +49,9 @@ export default function TodayView({
   onOpenInquiry: (id: string) => void
   onOpenContact: (id: string) => void
   onWhatsApp: (c: Contact) => void
+  /** Settling a balance is offered only where the viewer may change the money (or switch an imported event to be edited here). */
+  canMarkPaid?: (i: Inquiry) => boolean
+  onMarkPaid?: (i: Inquiry) => void
 }) {
   const nothing = followUpCount === 0 && needCount === 0 && payments.length === 0 && quiet.length === 0
   return (
@@ -69,12 +74,12 @@ export default function TodayView({
           </h2>
           <ul className="space-y-2">
             {payments.map((p) => (
-              <li key={p.inquiry.id}>
+              <li key={p.inquiry.id} className="flex items-stretch gap-2">
                 <button
                   type="button"
                   data-row-id={p.inquiry.id}
                   onClick={() => onOpenInquiry(p.inquiry.id)}
-                  className={`${PANEL} flex min-h-[60px] w-full flex-wrap items-center justify-between gap-x-3 gap-y-1 p-3 text-left ${FOCUS_RING}`}
+                  className={`${PANEL} flex min-h-[60px] min-w-0 flex-1 flex-wrap items-center justify-between gap-x-3 gap-y-1 p-3 text-left ${FOCUS_RING}`}
                   style={{ borderLeft: `3px solid ${p.overdue ? '#FF6B6B' : '#FCD34D'}` }}
                 >
                   <span className="min-w-0 font-grotesk">
@@ -86,6 +91,11 @@ export default function TodayView({
                   </span>
                   <span className="font-grotesk text-[14.5px] font-medium text-ink">{p.amount === null ? 'Payment pending' : `${formatAmount(p.amount, p.currency)} owed`}</span>
                 </button>
+                {p.amount !== null && onMarkPaid && canMarkPaid?.(p.inquiry) && (
+                  <button type="button" onClick={() => onMarkPaid(p.inquiry)} aria-label={`Mark ${inquiryTitle(p.inquiry)} paid`} className={`${BTN_GHOST} shrink-0 self-stretch`}>
+                    Mark paid
+                  </button>
+                )}
               </li>
             ))}
           </ul>

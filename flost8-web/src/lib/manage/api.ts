@@ -233,7 +233,9 @@ export async function createEvent(input: NewEventInput, ownerId: string | null, 
  */
 export async function updateEvent(id: string, input: NewEventInput, existingMoney: Money | null): Promise<void> {
   const sb = getSupabase()
-  const done = await sb.from('inquiries').update(toEditPatch(input)).eq('id', id).select('id')
+  // updated_at changes on every save: the database drops an UPDATE that changes nothing and reports zero rows,
+  // which would read as "not allowed" when only the fee was edited.
+  const done = await sb.from('inquiries').update({ ...toEditPatch(input), updated_at: new Date().toISOString() }).eq('id', id).select('id')
   if (done.error) {
     if (isRlsError(done.error)) throw new NotAllowedError()
     throw done.error

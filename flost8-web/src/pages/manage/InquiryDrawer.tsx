@@ -65,7 +65,7 @@ export default function InquiryDrawer({
   const [version, setVersion] = useState(0)
   const [busy, setBusy] = useState<'status' | 'fields' | 'comment' | 'delete' | 'takeover' | null>(null)
   const [askDelete, setAskDelete] = useState(false)
-  const [askTakeOver, setAskTakeOver] = useState(false)
+  const [askTakeOver, setAskTakeOver] = useState<'edit' | 'payments' | null>(null)
   const [linking, setLinking] = useState(false)
   const [linkText, setLinkText] = useState(inquiry.organizer_name ?? '')
   const canDelete = canDeleteInquiry(inquiry, me)
@@ -152,13 +152,13 @@ export default function InquiryDrawer({
     }
   }
 
-  async function takeOver() {
-    setAskTakeOver(false)
+  async function takeOver(then: 'edit' | 'payments') {
+    setAskTakeOver(null)
     setBusy('takeover')
     try {
       await takeOverInquiry(inquiry.id)
       onChanged()
-      onEdit()
+      if (then === 'edit') onEdit()
     } catch (err) {
       notify({ kind: 'error', text: friendlyError(err) })
     } finally {
@@ -247,7 +247,7 @@ export default function InquiryDrawer({
                 </a>
               )}
               {canTakeOver && (
-                <button type="button" disabled={busy !== null} onClick={() => setAskTakeOver(true)} className={`${BTN_GHOST} mt-2 w-full border-[var(--accent-line)] text-ink`}>
+                <button type="button" disabled={busy !== null} onClick={() => setAskTakeOver('edit')} className={`${BTN_GHOST} mt-2 w-full border-[var(--accent-line)] text-ink`}>
                   {busy === 'takeover' ? 'Switching…' : 'Edit event'}
                 </button>
               )}
@@ -383,6 +383,11 @@ export default function InquiryDrawer({
             onSaved={changed}
             notify={notify}
           />
+          {imported && canTakeOver && (
+            <button type="button" disabled={busy !== null} onClick={() => setAskTakeOver('payments')} className={`${BTN_GHOST} -mt-3 w-full border-[var(--accent-line)] text-ink`}>
+              Edit payments
+            </button>
+          )}
 
           <section aria-label="Notes and contract" className="space-y-4">
             <h3 className="font-display text-2xl text-ink">NOTES AND CONTRACT</h3>
@@ -479,7 +484,7 @@ export default function InquiryDrawer({
 
       {askTakeOver && (
         <ConfirmDialog
-          title="EDIT THIS EVENT?"
+          title={askTakeOver === 'payments' ? 'EDIT THESE PAYMENTS?' : 'EDIT THIS EVENT?'}
           body={
             <>
               <span className="block">{inquiryTitle(inquiry)} becomes a normal event in this app. Only this one event stops syncing from the sheet.</span>
@@ -487,9 +492,9 @@ export default function InquiryDrawer({
               <span className="mt-2 block font-medium text-ink">This cannot be switched back.</span>
             </>
           }
-          confirmLabel="Edit event"
-          onConfirm={() => void takeOver()}
-          onCancel={() => setAskTakeOver(false)}
+          confirmLabel={askTakeOver === 'payments' ? 'Edit payments' : 'Edit event'}
+          onConfirm={() => void takeOver(askTakeOver)}
+          onCancel={() => setAskTakeOver(null)}
         />
       )}
       {askDelete && (

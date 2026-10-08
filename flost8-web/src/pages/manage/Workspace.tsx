@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { SignOut } from '@phosphor-icons/react'
-import { addComment, snoozeInquiry, fetchDirectory, fetchInquiries, fetchLastTouch, friendlyError, saveMoney, updateInquiry } from '../../lib/manage/api'
+import { addComment, snoozeInquiry, fetchDirectory, fetchInquiries, fetchLastTouch, friendlyError, saveMoney, takeOverInquiry, updateInquiry } from '../../lib/manage/api'
+import { canEditInquiry, canTakeOverInquiry } from '../../lib/manage/access'
 import { applyFilters, DEFAULT_FILTERS, type Filters } from '../../lib/manage/filters'
 import { canSetStatus, duplicateInput, bulkSummary, runBulk } from '../../lib/manage/rowActions'
 import { EMPTY_EVENT, type NewEventInput } from '../../lib/manage/newEvent'
@@ -8,7 +9,7 @@ import { isSnoozed, snoozedLabel } from '../../lib/manage/snooze'
 import { STATUS_LABEL } from '../../lib/manage/status'
 import { signOut, useLoad, useToday } from '../../lib/manage/hooks'
 import { inquiryTitle } from '../../lib/manage/labels'
-import { formatAmount, totalsByCurrency } from '../../lib/manage/money'
+import { formatAmount, paidInFull, totalsByCurrency } from '../../lib/manage/money'
 import { focusableRows, loadFilters, moveHighlight, overlayIsOpen, saveFilters, shortcutFor, tileTarget } from '../../lib/manage/navState'
 import { needsAction, nextBookedShow, REASON_RANK, type NeedsActionContext } from '../../lib/manage/needsAction'
 import { nudgeLines } from '../../lib/manage/nudge'
@@ -36,7 +37,7 @@ import Shell, { type TeamItem, type View } from './Shell'
 import OverviewView from './OverviewView'
 import TotalsBar from './TotalsBar'
 import { BTN_GHOST } from './styles'
-import { ErrorPanel, Skeleton, Toast, UndoToast, type ToastMsg } from './ui'
+import { ConfirmDialog, ErrorPanel, Skeleton, Toast, UndoToast, type ToastMsg } from './ui'
 
 // If the last-touch lookup fails, flags fall back to each row's updated_at instead of blocking the page.
 const NO_TOUCH: ReadonlyMap<string, string> = new Map()
@@ -240,6 +241,21 @@ function Dashboard({
     } catch (err) {
       setToast({ kind: 'error', text: friendlyError(err) })
     }
+  }
+
+  const [markPay, setMarkPay] = useState<Inquiry | null>(null)
+  const canMarkPaid = (i: Inquiry) => !!i.money && (i.money.balance ?? 0) > 0 && (canEditInquiry(i, me) || canTakeOverInquiry(i, me))
+  const markPaid = async (i: Inquiry) => {
+    setMarkPay(null)
+    try {
+      if (i.source === 'sheet_import') await takeOverInquiry(i.id)
+      const next = i.money ? paidInFull(i.money) : null
+      if (next) await saveMoney(i.id, next)
+      setToast({ kind: 'ok', text: 'Marked paid' })
+    } catch (err) {
+      setToast({ kind: 'error', text: friendlyError(err) })
+    }
+    reloadAll()
   }
 
   // --- needs-action: flags, and one-tap actions whose write is held for 5 s so Undo never needs a delete ---
@@ -456,6 +472,8 @@ function Dashboard({
             onWhatsAppInquiry={whatsAppForInquiry}
             onRestoreContact={(c) => void restoreContact(c)}
             onEraseContact={(c) => void eraseTrashedContact(c)}
+            canMarkPaid={canMarkPaid}
+            onMarkPaid={setMarkPay}
             reloadAll={reloadAll}
             notify={setToast}
           />
@@ -479,6 +497,22 @@ function Dashboard({
           contacts={crm.contacts}
           onOpenContact={setContactId}
           onContactCreated={() => crmReload()}
+        />
+      )}
+      {markPay && (
+        <ConfirmDialog
+          title="MARK AS PAID?"
+          body={
+            <>
+              <span className="block">{inquiryTitle(markPay)}: the deposit becomes the full amount and the balance becomes zero.</span>
+              {markPay.source === 'sheet_import' && (
+                <span className="mt-2 block">This event comes from a sheet. It will be edited here from now on and stop syncing from the sheet.</span>
+              )}
+            </>
+          }
+          confirmLabel="Mark paid"
+          onConfirm={() => void markPaid(markPay)}
+          onCancel={() => setMarkPay(null)}
         />
       )}
       {adding && (
@@ -648,6 +682,8 @@ function Views({
   onWhatsAppInquiry,
   onRestoreContact,
   onEraseContact,
+  canMarkPaid,
+  onMarkPaid,
   reloadAll,
   notify,
 }: {
@@ -684,6 +720,8 @@ function Views({
   onWhatsAppInquiry: (i: Inquiry) => void
   onRestoreContact: (c: Contact) => void
   onEraseContact: (c: Contact) => void
+  canMarkPaid: (i: Inquiry) => boolean
+  onMarkPaid: (i: Inquiry) => void
   reloadAll: () => void
   notify: (t: ToastMsg) => void
 }) {
@@ -809,6 +847,8 @@ function Views({
         onOpenInquiry={onOpen}
         onOpenContact={onOpenContact}
         onWhatsApp={onWhatsAppContact}
+        canMarkPaid={canMarkPaid}
+        onMarkPaid={onMarkPaid}
       />
     )
   }
