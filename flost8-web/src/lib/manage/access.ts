@@ -21,6 +21,11 @@ export function canEditInquiry(i: Inquiry, me: Manager): boolean {
   return me.role === 'owner' || i.owner_id === null || i.owner_id === me.id
 }
 
+/** The owner, or the manager an imported sheet event belongs to, may switch that one event to be edited in the app. Mirrors take_over_sheet_inquiry(). */
+export function canTakeOverInquiry(i: Inquiry, me: Manager): boolean {
+  return i.source === 'sheet_import' && (me.role === 'owner' || (i.owner_id !== null && i.owner_id === me.id))
+}
+
 /** Mirrors can_view(): the owner role, the inquiry owner, or a manager with one of their artists on it. Read-only sheet rows are fine; commenting is not editing. */
 export function canCommentOn(i: Inquiry, me: Manager, mySlugs: ReadonlySet<string>): boolean {
   return me.role === 'owner' || i.owner_id === me.id || i.artists.some((s) => mySlugs.has(s))
@@ -43,11 +48,10 @@ export function isPlainEmail(value: string | null | undefined): boolean {
 }
 
 /**
- * Delete is offered only on events added in the app (source 'manual'): the owner role can delete any, a manager only their own.
- * Sheet rows are never deletable here (the importer would put them straight back) and website rows are real leads.
- * Mirrors the database: inquiries_delete (owner) plus inquiries_delete_own_app (migration 007).
+ * Delete is offered on any event, whatever its source: the owner role can delete any, a manager only their own.
+ * Mirrors the database: inquiries_delete (owner) plus inquiries_delete_own (migration 015).
+ * A deleted sheet row is remembered by the database so the importer does not bring it back.
  */
 export function canDeleteInquiry(i: Inquiry, me: Manager): boolean {
-  if (i.source !== 'manual') return false
   return me.role === 'owner' || i.owner_id === me.id
 }

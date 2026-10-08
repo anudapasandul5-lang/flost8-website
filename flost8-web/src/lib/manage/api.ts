@@ -247,6 +247,16 @@ export async function updateEvent(id: string, input: NewEventInput, existingMone
   if (money) await saveMoney(id, money)
 }
 
+/** One imported sheet event becomes a normal app event; the importer stops touching it. No way back to the sheet. */
+export async function takeOverInquiry(id: string): Promise<void> {
+  const { error } = await getSupabase().rpc('take_over_sheet_inquiry', { p_inquiry: id })
+  if (error) {
+    if (error.code === '22023') return   // already switched (double click, second tab): carry on to the edit form
+    if (isRlsError(error) || error.code === '42501') throw new NotAllowedError()
+    throw error
+  }
+}
+
 /** Permanent. Comments, lineup and money go with it (cascade). A delete the database filters out comes back as zero rows. */
 export async function deleteInquiry(id: string): Promise<void> {
   const { data, error } = await getSupabase().from('inquiries').delete().eq('id', id).select('id')

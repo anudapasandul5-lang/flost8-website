@@ -138,7 +138,7 @@ const anonFns = await q(`select p.proname from pg_proc p where p.pronamespace = 
 ok(anonFns.length === 0, 'anon can execute no public function', anonFns.map((f) => f.proname).join())
 // the full list of functions a signed-in user may execute, so a new one cannot slip in unnoticed
 const authFns = (await q(`select distinct p.proname from pg_proc p where p.pronamespace = 'public'::regnamespace and has_function_privilege('authenticated', p.oid, 'execute') and p.prorettype <> 'trigger'::regtype order by 1`)).map((r) => r.proname)
-const allowedAuth = ['can_edit', 'can_see_money', 'can_view', 'contact_stats', 'current_manager_id', 'is_manager', 'is_owner', 'manager_whatsapps', 'merge_contacts', 'set_inquiry_contact', 'set_inquiry_publish_hold', 'set_manager_whatsapp', 'undo_merge']
+const allowedAuth = ['can_edit', 'can_see_money', 'can_view', 'contact_stats', 'current_manager_id', 'is_manager', 'is_owner', 'manager_whatsapps', 'merge_contacts', 'set_inquiry_contact', 'set_inquiry_publish_hold', 'set_manager_whatsapp', 'take_over_sheet_inquiry', 'undo_merge']
 const extra = authFns.filter((f) => !allowedAuth.includes(f))
 ok(extra.length === 0, 'signed-in users can execute only the expected functions', extra.join())
 

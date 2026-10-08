@@ -64,6 +64,13 @@ export async function setContactDeleted(id: string, deleted: boolean, meId: stri
   if (!data || data.length === 0) throw new NotAllowedError()
 }
 
+/** Permanent, owner only, and only for a contact already in Trash. Notes, history and reminders go with it; linked events stay and lose the link. */
+export async function eraseContact(id: string): Promise<void> {
+  const { data, error } = await getSupabase().from('contacts').delete().eq('id', id).select('id')
+  check(error)
+  if (!data || data.length === 0) throw new NotAllowedError()
+}
+
 export interface MergeFields {
   name?: string
   whatsapp?: string
