@@ -58,6 +58,15 @@ dropped = ctx.fimp_dropDeleted_(r.rows, [])
 assert.strictEqual(dropped.skipped, 0)
 assert.strictEqual(dropped.rows.length, 2)
 
+// deleted keys are read page by page until an empty page, even when the server caps pages below the requested size
+{
+  const all = Array.from({ length: 1250 }, (_, i) => ({ sheet_key: 'k' + i }))
+  ctx.fimp_call_ = (method, p) => { const off = Number(/offset=(\d+)/.exec(p)[1]); return all.slice(off, off + 500) }
+  assert.strictEqual(ctx.fimp_deletedKeys_().length, 1250)
+  ctx.fimp_call_ = () => { throw new Error('GET deleted_sheet_keys -> 404') }
+  assert.throws(() => ctx.fimp_deletedKeys_(), /404/)   // unreadable list aborts the run instead of importing blind
+}
+
 // bad date still imports (no date) and is listed; same date+event twice gets distinct keys
 r = read('Sonal', [
   row({ ...base, 'Event Date': 'TBC', 'Event Name': 'Mystery' }),

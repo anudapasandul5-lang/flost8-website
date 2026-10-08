@@ -113,6 +113,13 @@ await fails(`select * from public.deleted_sheet_keys`, /permission denied/, 'ano
 await as(null, 'service_role')
 ok((await rows(`select 1 from public.deleted_sheet_keys`)) === 2, 'the importer (service role) can read the remembered keys')
 
+// a delete with no signed-in manager (SQL editor, a script) leaves nothing behind
+await su()
+await db.exec(`insert into public.inquiries (id, source, status, event_name, event_date, owner_id, sheet_key) values ('${id(9)}', 'sheet_import', 'quoted', 'Script row', current_date + 40, '${K.id}', 'Kasuni|2026-12-09|script row')`)
+await db.exec(`delete from public.inquiries where id = '${id(9)}'`)
+ok((await rows(`select 1 from public.deleted_sheet_keys where sheet_key = 'Kasuni|2026-12-09|script row'`)) === 0, 'a delete run from SQL (no signed-in manager) is not remembered')
+ok((await rows(`select 1 from public.deleted_sheet_keys`)) === 2, 'only the two signed-in deletes are remembered')
+
 // --- 3. contacts ---------------------------------------------------------------------------------------------------------
 await as(K.user_id)
 ok((await rows(`delete from public.contacts where id = '${id(51)}' returning 1`)) === 0, 'a manager cannot erase a trashed contact')
@@ -124,6 +131,17 @@ ok((await rows(`select 1 from public.contact_notes where contact_id = '${id(51)}
 ok((await rows(`select 1 from public.contact_history where contact_id = '${id(51)}'`)) === 0, 'its history went with it')
 await as(null, 'anon')
 await fails(`delete from public.contacts where id = '${id(52)}'`, /permission denied/, 'anon cannot erase a contact')
+
+// the target of a merge cannot be erased while merged-away contacts still point at it
+await su()
+await db.exec(`
+  insert into public.contacts (id, name, deleted_at) values ('${id(60)}', 'Merge target', now());
+  insert into public.contacts (id, name, deleted_at, merged_into) values ('${id(61)}', 'Merged away', now(), '${id(60)}');
+`)
+await as(O.user_id)
+ok((await rows(`delete from public.contacts where id = '${id(60)}' returning 1`)) === 0, 'a merge target cannot be erased while merged-away contacts point at it')
+ok((await rows(`delete from public.contacts where id = '${id(61)}' returning 1`)) === 1, 'the merged-away contact can be erased')
+ok((await rows(`delete from public.contacts where id = '${id(60)}' returning 1`)) === 1, 'then the merge target can too')
 
 // an inquiry that pointed at an erased contact is kept and just loses the link
 await su()

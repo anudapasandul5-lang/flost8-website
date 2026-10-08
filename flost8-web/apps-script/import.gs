@@ -164,12 +164,12 @@ function fimp_call_(method, path, body, prefer) {
 
 // Every key deleted in the app. Throws if it cannot be read: better to skip a run than to bring deleted rows back.
 function fimp_deletedKeys_() {
-  var keys = [], page = 1000, from = 0, got;
-  do {
-    got = fimp_call_('get', 'deleted_sheet_keys?select=sheet_key&order=sheet_key&limit=' + page + '&offset=' + from, null, null) || [];
+  var keys = [], from = 0, got;
+  do {   // advance by what came back, so a server-side row cap smaller than the page never cuts the list short
+    got = fimp_call_('get', 'deleted_sheet_keys?select=sheet_key&order=sheet_key&limit=1000&offset=' + from, null, null) || [];
     got.forEach(function (g) { keys.push(g.sheet_key); });
-    from += page;
-  } while (got.length === page);
+    from += got.length;
+  } while (got.length > 0);
   return keys;
 }
 
