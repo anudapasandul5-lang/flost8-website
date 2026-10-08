@@ -8,7 +8,8 @@ const env = { SUPABASE_URL: 'https://db', SUPABASE_SERVICE_ROLE_KEY: 'key', ADMI
 const request = (body: unknown = { id }) => new Request('https://site/api/publish-show', { method: 'POST', headers: { authorization: 'Bearer access-token' }, body: JSON.stringify(body) })
 const manager = { id: 'manager', role: 'manager', user_id: 'user' }
 const inquiry = { id, source: 'manual', owner_id: 'manager', status: 'booking_confirmed', event_date: '2026-11-14', event_name: 'ZZ TEST - ignore', city: 'Colombo', venue: 'Factory', set_time: '10 pm', ticket_link: 'https://tickets.test', inquiry_artists: [{ position: 1, artist_slug: 'sonal' }], organizer_name: 'PRIVATE', organizer_phone: 'PRIVATE', notes: 'PRIVATE', fee: 'PRIVATE' }
-function fakeBackend(options: { event?: typeof inquiry | null; role?: string; invalidToken?: boolean; noManager?: boolean; shows?: unknown[]; phase?: string; showId?: string | null; addFails?: boolean; locked?: boolean; touchOnFinish?: boolean; busy?: number; shiftDate?: 'add' | 'always' } = {}) {
+function fakeBackend(options: { event?: typeof inquiry | null; role?: string; invalidToken?: boolean; noManager?: boolean; shows?: unknown[]; phase?: string; showId?: string | null; addFails?: boolean; locked?: boolean; touchOnFinish?: boolean; busy?: number; shiftDate?: 'add' | 'always'; holdFromRead?: number } = {}) {
+  let reads = 0
   let busyLeft = options.busy ?? 0
   const store: Record<string, unknown>[] = [...((options.shows ?? []) as Record<string, unknown>[])]
   const dayBefore = (d: string) => new Date(Date.parse(`${d}T00:00:00Z`) - 86_400_000).toISOString().slice(0, 10)
@@ -19,7 +20,7 @@ function fakeBackend(options: { event?: typeof inquiry | null; role?: string; in
     const body = init?.body ? JSON.parse(String(init.body)) : {}
     if (url.endsWith('/auth/v1/user')) return Response.json(options.invalidToken ? {} : { id: 'user' }, { status: options.invalidToken ? 401 : 200 })
     if (url.includes('/managers?')) return Response.json(options.noManager ? [] : [{ ...manager, role: options.role ?? 'manager' }])
-    if (url.includes('/inquiries?')) return Response.json(options.event === null ? [] : [{ ...(options.event ?? inquiry), ...(finished && options.touchOnFinish ? { updated_at: '2026-10-07T00:00:00Z' } : {}) }])
+    if (url.includes('/inquiries?')) { reads += 1; return Response.json(options.event === null ? [] : [{ ...(options.event ?? inquiry), ...(options.holdFromRead && reads >= options.holdFromRead ? { no_auto_publish: true } : {}), ...(finished && options.touchOnFinish ? { updated_at: '2026-10-07T00:00:00Z' } : {}) }]) }
     if (url.includes('/artists?')) return Response.json([{ slug: 'sonal', name: 'SONAL', manager_id: 'manager' }])
     if (url.endsWith('/rpc/claim_website_publication')) return Response.json(options.locked ? null : mapping)
     if (url.endsWith('/rpc/finish_website_publication')) { finished = true; mapping = { ...mapping, show_id: body.p_show_id, phase: 'idle' }; return new Response(null, { status: 204 }) }
@@ -53,6 +54,13 @@ it('verifies tokens, rejects non-managers, wrong owners and manager resync', asy
 })
 it('leaves an event that is held back off the website without claiming or writing anything', async () => {
   const backend = fakeBackend({ event: { ...inquiry, no_auto_publish: true } as typeof inquiry })
+  const result = await onRequest({ request: request(), env })
+  expect(await result.json()).toMatchObject({ ok: true, outcome: 'held_back' })
+  expect(backend.writes).toEqual([])
+  expect(backend.mapping().show_id).toBeNull()
+})
+it('does not publish when the owner holds the event after the first check but before the claim is used', async () => {
+  const backend = fakeBackend({ holdFromRead: 2 })
   const result = await onRequest({ request: request(), env })
   expect(await result.json()).toMatchObject({ ok: true, outcome: 'held_back' })
   expect(backend.writes).toEqual([])
