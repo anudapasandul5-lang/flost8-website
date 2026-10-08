@@ -123,6 +123,21 @@ describe('ContactsView', () => {
     fireEvent.click(screen.getAllByRole('button', { name: 'Restore' })[0])
     expect(onRestore).toHaveBeenCalledWith(expect.objectContaining({ id: 'a' }))
   })
+  it('the owner can erase a trashed contact for good, after a confirm; a manager never sees the button', () => {
+    const onErase = vi.fn()
+    const contacts = [contact({ id: 'a', name: 'Fresh', deleted_at: '2026-10-01T00:00:00Z' })]
+    const { unmount } = render(<ContactsView {...baseProps} me={OWNER} contacts={contacts} onErase={onErase} />)
+    fireEvent.click(screen.getByRole('button', { name: /^Trash/ }))
+    fireEvent.click(screen.getByRole('button', { name: 'Delete forever' }))
+    expect(onErase).not.toHaveBeenCalled()
+    expect(screen.getByText(/cannot be undone/i)).toBeTruthy()
+    fireEvent.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Delete forever' }))
+    expect(onErase).toHaveBeenCalledWith(expect.objectContaining({ id: 'a' }))
+    unmount()
+    render(<ContactsView {...baseProps} me={KASUNI} contacts={contacts} onErase={onErase} />)
+    fireEvent.click(screen.getByRole('button', { name: /^Trash/ }))
+    expect(screen.queryByRole('button', { name: 'Delete forever' })).toBeNull()
+  })
   it('an empty book explains how it fills up', () => {
     render(<ContactsView {...baseProps} contacts={[]} />)
     expect(screen.getByText(/No contacts yet/)).toBeTruthy()
