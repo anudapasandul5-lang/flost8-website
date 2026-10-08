@@ -36,6 +36,7 @@ export function makeInquiry(over: Partial<Inquiry> = {}): Inquiry {
     contract_url: null,
     travel_notes: null,
     lost_reason: null,
+    snoozed_until: null,
     artists: ['dr-green'],
     money: null,
     ...over,

@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from 'react'
 import type { Session } from '@supabase/supabase-js'
 import { getSupabase } from './supabase'
 import { friendlyError } from './api'
+import { todayISO } from './filters'
 
 export type LoadState<T> =
   | { status: 'loading' }
@@ -60,4 +61,28 @@ export function signInWithGoogle(): Promise<unknown> {
 
 export function signOut(): Promise<unknown> {
   return getSupabase().auth.signOut()
+}
+
+/**
+ * Today's date (YYYY-MM-DD, device time), kept current. A phone tab can stay open for days: without this, "today" froze at
+ * the first render, so after midnight Snooze "Tomorrow" picked the day that had already started and the row came straight
+ * back. Rechecked every minute and whenever the tab comes back into view.
+ */
+export function useToday(): string {
+  const [today, setToday] = useState(() => todayISO())
+  useEffect(() => {
+    const check = () => setToday((prev) => {
+      const now = todayISO()
+      return now === prev ? prev : now
+    })
+    const timer = window.setInterval(check, 60_000)
+    document.addEventListener('visibilitychange', check)
+    window.addEventListener('focus', check)
+    return () => {
+      window.clearInterval(timer)
+      document.removeEventListener('visibilitychange', check)
+      window.removeEventListener('focus', check)
+    }
+  }, [])
+  return today
 }

@@ -27,6 +27,7 @@ export default function AddEventDialog({
   onClose,
   onSaved,
   editing,
+  initial,
 }: {
   me: Manager
   /** Artists this person may pick. */
@@ -43,8 +44,10 @@ export default function AddEventDialog({
   onSaved: (id: string) => void
   /** Set to edit a saved event instead of adding one. Status is changed in the drawer, not here. */
   editing?: Inquiry
+  /** Starting values for a new event (Duplicate). Ignored when editing. */
+  initial?: NewEventInput
 }) {
-  const [f, setF] = useState<NewEventInput>(() => (editing ? toEditInput(editing) : EMPTY_EVENT))
+  const [f, setF] = useState<NewEventInput>(() => (editing ? toEditInput(editing) : (initial ?? EMPTY_EVENT)))
   const [error, setError] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
   const eventId = useRef(newId()) // same id on every retry, so a retry never makes a duplicate
@@ -234,7 +237,11 @@ export default function AddEventDialog({
 
           {!editing && (
           <p className="font-grotesk text-[13px] text-[var(--ink-50)]">
-            {me.role === 'owner' ? (ownerName ? `Will be owned by ${ownerName}.` : 'Pick an artist to see who will own it.') : 'Will be added to your list.'} Money stays visible only to you and Anuda.
+            {me.role === 'owner'
+              ? ownerName
+                ? `Will be owned by ${ownerName}. Money stays visible only to you and ${ownerName}.`
+                : 'Pick an artist to see who will own it.'
+              : 'Will be added to your list. Money stays visible only to you and Anuda.'}
           </p>
           )}
 

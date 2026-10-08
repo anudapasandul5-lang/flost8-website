@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react'
-import { CaretLeft, CaretRight, Warning } from '@phosphor-icons/react'
+import { CaretLeft, CaretRight, Plus, Warning } from '@phosphor-icons/react'
 import { formatDate, groupByDate, monthGrid, monthTitle, shiftMonth } from '../../lib/manage/calendar'
 import { todayISO } from '../../lib/manage/filters'
 import { artistNames, inquiryTitle } from '../../lib/manage/labels'
@@ -14,14 +14,19 @@ export default function CalendarView({
   items,
   artists,
   conflicts,
+  today = todayISO(),
   onOpen,
+  onAddOnDate,
 }: {
   items: Inquiry[]
   artists: Artist[]
   conflicts: ReadonlySet<string>
+  /** YYYY-MM-DD; the caller keeps it current (useToday). */
+  today?: string
   onOpen: (id: string) => void
+  /** Opens Add event on that day (YYYY-MM-DD). Omit when this person cannot add events. */
+  onAddOnDate?: (date: string) => void
 }) {
-  const today = todayISO()
   const [ty, tm] = today.split('-').map(Number)
   const [{ year, month0 }, setMonth] = useState({ year: ty, month0: tm - 1 })
   const [picked, setPicked] = useState<string | null>(null)
@@ -68,15 +73,15 @@ export default function CalendarView({
           const isPicked = picked === c.iso
           const label = `${formatDate(c.iso)}${events.length ? `, ${events.length} ${events.length === 1 ? 'inquiry' : 'inquiries'}` : ''}${clash ? ', possible double booking' : ''}`
           return (
+            <div key={c.iso} className={`group relative ${c.inMonth ? 'bg-[var(--bg-raise)]' : 'bg-base'}`}>
             <button
-              key={c.iso}
               type="button"
               aria-label={label}
               aria-pressed={isPicked}
               onClick={() => setPicked(c.iso)}
-              className={`relative flex min-h-[64px] flex-col items-stretch gap-1 p-1.5 text-left md:min-h-[104px] md:p-2 ${
-                c.inMonth ? 'bg-[var(--bg-raise)]' : 'bg-base'
-              } ${isPicked ? 'outline outline-2 -outline-offset-2 outline-[var(--accent-ink)]' : ''} ${FOCUS_RING}`}
+              className={`relative flex h-full min-h-[64px] w-full flex-col items-stretch gap-1 p-1.5 text-left md:min-h-[104px] md:p-2 ${
+                isPicked ? 'outline outline-2 -outline-offset-2 outline-[var(--accent-ink)]' : ''
+              } ${FOCUS_RING}`}
             >
               <span
                 className={`font-grotesk text-[13px] md:text-sm ${
@@ -104,6 +109,21 @@ export default function CalendarView({
                 {events.length > 2 && <span className="font-grotesk text-[12px] text-[var(--ink-50)]">+{events.length - 2} more</span>}
               </span>
             </button>
+            {/* Desktop shortcut on a free day; the Add button under the grid does the same for touch and keyboard. */}
+            {onAddOnDate && events.length === 0 && (
+              <button
+                type="button"
+                tabIndex={-1}
+                // Mouse-only shortcut: hidden from screen readers so the grid does not read out ~30 extra buttons.
+                aria-hidden="true"
+                aria-label={`Add event on ${formatDate(c.iso)}`}
+                onClick={() => onAddOnDate(c.iso)}
+                className={`absolute bottom-1 right-1 hidden h-11 w-11 place-items-center rounded-full border border-[var(--accent-line)] bg-[var(--accent-soft)] text-ink opacity-0 transition-opacity group-hover:opacity-100 focus-visible:opacity-100 motion-reduce:transition-none md:grid ${FOCUS_RING}`}
+              >
+                <Plus size={18} weight="bold" aria-hidden="true" />
+              </button>
+            )}
+            </div>
           )
         })}
       </div>
@@ -151,6 +171,12 @@ export default function CalendarView({
                   </li>
                 ))}
               </ul>
+            )}
+            {onAddOnDate && (
+              <button type="button" onClick={() => onAddOnDate(picked)} className={`${BTN_GHOST} mt-3`}>
+                <Plus size={18} weight="bold" aria-hidden="true" />
+                Add event on {formatDate(picked)}
+              </button>
             )}
           </>
         ) : (

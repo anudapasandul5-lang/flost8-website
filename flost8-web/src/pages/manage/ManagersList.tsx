@@ -1,5 +1,7 @@
 import { REASON_COLOR, FOCUS_RING } from './styles'
 import type { Reason } from '../../lib/manage/needsAction'
+import NudgeControl from './NudgeControl'
+import { useManagerWhatsapps } from './useManagerWhatsapps'
 
 export interface ManagerRow {
   id: string
@@ -8,6 +10,8 @@ export interface ManagerRow {
   open: number
   /** Most urgent reason in this manager's open items; colours the count. */
   top: Reason | null
+  /** Owner only: next-step lines for this manager's open items. Leave undefined and no Nudge control shows. */
+  nudgeLines?: string[]
 }
 
 /** Owner only. Tap a manager to look at just their rows everywhere; tap again to clear. */
@@ -20,6 +24,7 @@ export default function ManagersList({
   selectedId: string | null
   onSelect: (id: string | null) => void
 }) {
+  const { numbers, save } = useManagerWhatsapps(rows.some((r) => r.nudgeLines))
   if (rows.length === 0) return null
   return (
     <section aria-labelledby="managers-h">
@@ -54,6 +59,11 @@ export default function ManagersList({
                   {m.open === 0 ? 'all clear' : `${m.open} open`}
                 </span>
               </button>
+              {m.nudgeLines && (
+                <div className="flex justify-end px-2.5 pb-1.5">
+                  <NudgeControl name={m.name} lines={m.nudgeLines} whatsapp={numbers.get(m.id)} onSave={(n) => save(m.id, n)} />
+                </div>
+              )}
             </li>
           )
         })}

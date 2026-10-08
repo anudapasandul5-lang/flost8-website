@@ -66,7 +66,6 @@ const A1 = '00000000-0000-0000-0000-0000000000a1', B1 = '00000000-0000-0000-0000
 const owners = await q(`select id, owner_id from public.inquiries order by id`)
 ok(owners[0].owner_id === K.id && owners[1].owner_id === N.id, 'assign_owner trigger gave Kasuni the Sonal row and Nirbheeth the Anush row')
 
-const baseline = String((await q(`select updated_at from public.inquiries where id = '00000000-0000-0000-0000-0000000000a1'`))[0].updated_at)
 // --- contacts basics -------------------------------------------------------------------------------------------
 await as(K.user_id)
 const c1 = (await q(`insert into public.contacts (name, types, phones, owner_id) values ('Ruwan Perera', '{client}', '{0771234567}', $1) returning id`, [K.id]))[0].id
@@ -220,10 +219,105 @@ await db.query(`update public.contact_history set data = data - 'after' where id
 await as(K.user_id)
 await fails(`select public.undo_merge(${mh4})`, /cannot be undone/, 'a merge recorded without an after-snapshot is refused')
 
+// --- migration 012: snooze ------------------------------------------------------------------------------------
+await su()
+const touchBefore = String((await q(`select updated_at from public.inquiries where id = $1`, [A1]))[0].updated_at)
+await as(K.user_id)
+await db.query(`update public.inquiries set snoozed_until = '2026-10-16' where id = $1`, [A1])
+await su()
+{
+  const r = (await q(`select snoozed_until::text s, updated_at from public.inquiries where id = $1`, [A1]))[0]
+  ok(r.s === '2026-10-16', 'a manager can snooze a sheet-imported row they can edit')
+  ok(String(r.updated_at) === touchBefore, 'snoozing does not bump updated_at (a snooze is not a touch)')
+}
+await as(K.user_id)
+await db.query(`update public.inquiries set snoozed_until = null where id = $1`, [A1])
+ok((await q(`select snoozed_until from public.inquiries where id = $1`, [A1]))[0].snoozed_until === null, 'a manager can unsnooze a sheet row')
+await db.query(`update public.inquiries set snoozed_until = '2026-10-16', contact_id = $2 where id = $1`, [A1, c1])
+ok(true, 'snoozed_until and contact_id may change together on a sheet row')
+const sheetCols = ['status', 'lost_reason', 'sheet_updated_at', 'event_name', 'event_date', 'venue', 'city', 'deal_type', 'lead_source', 'platform', 'brand', 'collab_type', 'invoice_no', 'organizer_name', 'organizer_phone', 'organizer_email', 'set_time', 'notes', 'contract_url', 'travel_notes', 'ticket_link', 'owner_id', 'source', 'sheet_key']
+const sample = { status: `'lost'`, lost_reason: `'x'`, sheet_updated_at: `'2026-02-02'`, event_name: `'hacked'`, event_date: `'2027-01-01'`, venue: `'v'`, city: `'c'`, deal_type: `'d'`, lead_source: `'l'`, platform: `'p'`, brand: `'b'`, collab_type: `'c'`, invoice_no: `'1'`, organizer_name: `'o'`, organizer_phone: `'1'`, organizer_email: `'e@x.y'`, set_time: `'9pm'`, notes: `'n'`, contract_url: `'https://x.y'`, travel_notes: `'t'`, ticket_link: `'https://x.y'`, owner_id: `'${N.id}'`, source: `'manual'`, sheet_key: `'zz'` }
+for (const col of sheetCols) {
+  await as(K.user_id)
+  await fails(`update public.inquiries set snoozed_until = '2026-10-17', ${col} = ${sample[col]} where id = '${A1}'`, /read-only/, `a manager cannot change ${col} on a sheet row (even alongside a snooze)`)
+}
+await as(K.user_id)
+await fails(`update public.inquiries set contract_signed = true where id = '${A1}'`, /read-only/, 'a manager cannot change contract_signed on a sheet row')
+await su()
+await db.query(`update public.inquiries set snoozed_until = '2026-10-16' where id = $1`, [A1])
+// the importer (service role, no auth.uid) upserts only the columns it sends
+await as(null, 'service_role')
+await db.query(`insert into public.inquiries (sheet_key, source, status, lost_reason, sheet_updated_at, event_name, event_date, venue, deal_type, lead_source, platform, brand, collab_type, invoice_no, organizer_name, set_time, notes)
+  values ('k|1', 'sheet_import', 'quoted', null, '2026-10-05', 'Sheet gig', '2026-12-01', 'New venue', null, null, null, null, null, null, 'Ruwan Perera', '9pm', 'changed in sheet')
+  on conflict (sheet_key) do update set source = excluded.source, status = excluded.status, lost_reason = excluded.lost_reason, sheet_updated_at = excluded.sheet_updated_at,
+    event_name = excluded.event_name, event_date = excluded.event_date, venue = excluded.venue, deal_type = excluded.deal_type, lead_source = excluded.lead_source,
+    platform = excluded.platform, brand = excluded.brand, collab_type = excluded.collab_type, invoice_no = excluded.invoice_no, organizer_name = excluded.organizer_name,
+    set_time = excluded.set_time, notes = excluded.notes`)
+await su()
+{
+  const r = (await q(`select snoozed_until::text s, venue, status from public.inquiries where id = $1`, [A1]))[0]
+  ok(r.venue === 'New venue' && r.status === 'quoted', 'importer-style upsert did update the sheet columns')
+  ok(r.s === '2026-10-16', 'importer-style upsert leaves snoozed_until untouched', r.s)
+}
+await db.query(`update public.inquiries set venue = null, status = 'booking_confirmed', notes = null where id = $1`, [A1])
+// The importer and this reset are legitimate writers and bump updated_at; from here on nothing a signed-in user does may move it.
+const quietFrom = (await q(`select updated_at::text t from public.inquiries where id = '00000000-0000-0000-0000-0000000000a1'`))[0].t
+await as(N.user_id)
+await db.query(`update public.inquiries set snoozed_until = '2026-10-20' where id = $1`, [B1])
+ok((await q(`select snoozed_until::text s from public.inquiries where id = $1`, [B1]))[0].s === '2026-10-20', 'a manager can snooze their own app-added row')
+await as(K.user_id)
+const cross = await q(`update public.inquiries set snoozed_until = '2026-10-20' where id = $1 returning id`, [B1])
+ok(cross.length === 0, "a manager cannot snooze another manager's row (RLS filters it out)")
+await as(O.user_id)
+await db.query(`update public.inquiries set snoozed_until = '2026-10-21' where id = $1`, [A1])
+ok((await q(`select snoozed_until::text s from public.inquiries where id = $1`, [A1]))[0].s === '2026-10-21', 'the owner can snooze any row')
+await su()
+await db.query(`update public.inquiries set snoozed_until = null where id in ($1, $2)`, [A1, B1])
+
+// --- migration 012: manager whatsapp ---------------------------------------------------------------------------
+await su()
+await db.query(`update public.managers set whatsapp = '+94771234567' where id = $1`, [K.id])
+await fails(`update public.managers set whatsapp = 'call me' where id = '${K.id}'`, /managers_whatsapp_format|check/, 'the column itself refuses a malformed number')
+await as(O.user_id)
+await db.query(`select public.set_manager_whatsapp($1, '+94 77 765 4321')`, [N.id]).then(() => ok(false, 'spaces are not valid digits'), () => ok(true, 'the owner cannot store a number with spaces'))
+await db.query(`select public.set_manager_whatsapp($1, '0777654321')`, [N.id])
+{
+  const rows = await q(`select * from public.manager_whatsapps()`)
+  const by = Object.fromEntries(rows.map((r) => [r.manager_id, r.whatsapp]))
+  ok(by[N.id] === '0777654321' && by[K.id] === '+94771234567', 'the owner reads every number through manager_whatsapps()', JSON.stringify(rows))
+  ok(rows.every((r) => Object.keys(r).sort().join() === 'manager_id,whatsapp'), 'manager_whatsapps() returns exactly (manager_id, whatsapp)')
+}
+for (const bad of ['12345', '1234567890123456', '+', 'abc1234567', '+94-77-1234567', '++9477123456']) await fails(`select public.set_manager_whatsapp('${N.id}', '${bad}')`, /WhatsApp number must be/, `owner cannot set invalid number ${bad}`)
+await db.query(`select public.set_manager_whatsapp($1, '+1234567')`, [N.id])
+await db.query(`select public.set_manager_whatsapp($1, '+123456789012345')`, [N.id])
+ok(true, '7 and 15 digits (with +) are accepted')
+await db.query(`select public.set_manager_whatsapp($1, null)`, [N.id])
+await db.query(`select public.set_manager_whatsapp($1, '  ')`, [K.id])
+ok((await q(`select manager_id from public.manager_whatsapps()`)).length === 0, 'null or blank clears the number')
+await fails(`select public.set_manager_whatsapp('00000000-0000-0000-0000-00000000dead', '+94771234567')`, /no such manager/, 'setting for an unknown manager is an error')
+await db.query(`select public.set_manager_whatsapp($1, '+94771234567')`, [K.id])
+ok((await q(`select id, name, email, role, user_id from public.managers`)).length === 3, 'the owner can still read the ordinary manager columns')
+await fails(`select whatsapp from public.managers`, /permission denied/, 'even the owner cannot read the column through the table')
+await fails(`select * from public.managers`, /permission denied/, 'select * on managers is refused for clients (app lists its columns)')
+await as(K.user_id)
+await fails(`select whatsapp from public.managers`, /permission denied/, 'a manager cannot read whatsapp through the table')
+await fails(`select m.* from public.managers m`, /permission denied/, 'a manager cannot select * either')
+await fails(`select id from public.managers where whatsapp is not null`, /permission denied/, 'a manager cannot probe whatsapp through a WHERE clause')
+await fails(`select * from public.manager_whatsapps()`, /owner only/, 'a manager cannot call manager_whatsapps()')
+await fails(`select public.set_manager_whatsapp('${K.id}', '+94771111111')`, /owner only/, 'a manager cannot set a number (not even their own)')
+ok((await q(`update public.managers set whatsapp = '+94771111111' where id = $1 returning id`, [K.id])).length === 0, 'a manager cannot write the column through the table (RLS filters the row out)')
+ok((await q(`select id, name, email, role, user_id, created_at from public.managers`)).length === 3, 'a manager can still read the ordinary manager columns')
+await as(null, 'anon')
+await fails(`select * from public.manager_whatsapps()`, /permission denied/, 'anon cannot call manager_whatsapps()')
+await fails(`select public.set_manager_whatsapp('${K.id}', '+94771111111')`, /permission denied/, 'anon cannot call set_manager_whatsapp()')
+await fails(`select whatsapp from public.managers`, /permission denied/, 'anon cannot read the column')
+await su()
+ok((await q(`select whatsapp from public.managers where id = $1`, [K.id]))[0].whatsapp === '+94771234567', 'nothing the non-owners tried changed the stored number')
+
 // --- what 010 left untouched -----------------------------------------------------------------------------------
 await su()
-const bad = [{ n: String((await q(`select updated_at from public.inquiries where id = '00000000-0000-0000-0000-0000000000a1'`))[0].updated_at) === baseline ? 0 : 1 }]
-ok(bad[0].n === 0, 'sheet row updated_at never moved through any of the above')
+const bad = [{ n: (await q(`select updated_at::text t from public.inquiries where id = '00000000-0000-0000-0000-0000000000a1'`))[0].t === quietFrom ? 0 : 1 }]
+ok(bad[0].n === 0, 'sheet row updated_at never moved through any of the signed-in steps after the importer step')
 
 console.log(`\n${pass} passed, ${fail} failed`)
 process.exit(fail ? 1 : 0)

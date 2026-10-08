@@ -83,7 +83,7 @@ export default function FilterBar({
                 type="button"
                 aria-pressed={filters.timeframe === t.id}
                 onClick={() => set({ timeframe: t.id })}
-                className={`flex min-h-[40px] flex-1 items-center justify-center whitespace-nowrap rounded-full px-4 font-grotesk text-sm transition ${FOCUS_RING} ${
+                className={`flex min-h-[44px] flex-1 items-center justify-center whitespace-nowrap rounded-full px-4 font-grotesk text-sm transition ${FOCUS_RING} ${
                   filters.timeframe === t.id ? 'bg-[var(--accent-soft)] font-medium text-ink shadow-[inset_0_0_0_1px_var(--accent-line)]' : 'text-[var(--ink-72)]'
                 }`}
               >

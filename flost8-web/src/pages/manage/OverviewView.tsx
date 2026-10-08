@@ -3,6 +3,7 @@ import { ArrowRight, ArrowUpRight, Check, ChatCircle } from '@phosphor-icons/rea
 import { formatDate } from '../../lib/manage/calendar'
 import { artistNames, inquiryTitle } from '../../lib/manage/labels'
 import { formatAmount } from '../../lib/manage/money'
+import { snoozedLabel } from '../../lib/manage/snooze'
 import { nextStep, REASON_RANK, waLink, type NeedsActionContext, type Reason } from '../../lib/manage/needsAction'
 import { moneyByMonth, pipeline, tiles } from '../../lib/manage/overview'
 import { STATUS_LABEL } from '../../lib/manage/status'
@@ -19,6 +20,8 @@ export interface OverviewViewProps {
   inquiries: Inquiry[]
   /** Rows with an open flag, most urgent first (the same list the Needs you view uses). */
   waiting: NeedsRow[]
+  /** Owner only: rows hidden by a snooze, shown dimmed under the open ones. */
+  snoozed?: NeedsRow[]
   /** Local date, YYYY-MM-DD. */
   today: string
   /** Owner sees "Team follow-ups" with a With column; a manager sees "Needs you" with action buttons. */
@@ -285,8 +288,8 @@ function Charts({ filtered, today, owner }: { filtered: Inquiry[]; today: string
 
 const ROW_COLS = 'md:grid-cols-[minmax(0,2.1fr)_minmax(0,1fr)_88px_minmax(0,2fr)_minmax(88px,auto)]'
 
-function FollowUps({ props, rows }: { props: OverviewViewProps; rows: NeedsRow[] }) {
-  const { role, managers, artists, ctx, inquiries, onOpen, onChased, onViewAll } = props
+function FollowUps({ props, rows, snoozed }: { props: OverviewViewProps; rows: NeedsRow[]; snoozed: NeedsRow[] }) {
+  const { role, managers, artists, ctx, inquiries, today, onOpen, onChased, onViewAll } = props
   const owner = role === 'owner'
   const top = rows.slice(0, TOP_ROWS)
   const title = owner ? 'Team follow-ups' : 'Needs you'
@@ -359,7 +362,7 @@ function FollowUps({ props, rows }: { props: OverviewViewProps; rows: NeedsRow[]
                 <li key={i.id} className={`relative grid gap-x-3 gap-y-0.5 border-b border-[var(--bg-line)] py-3 pl-4 pr-1 last:border-b-0 md:items-center md:px-3 ${ROW_COLS}`}>
                   <span aria-hidden="true" className="absolute bottom-3 left-0 top-3 w-1 rounded-r md:left-0" style={{ backgroundColor: color }} />
                   <div className="min-w-0">
-                    <button type="button" onClick={() => onOpen(i.id)} className={`block max-w-full truncate rounded text-left font-grotesk text-[15px] font-medium text-ink hover:underline ${FOCUS_RING}`}>
+                    <button type="button" data-row-id={i.id} onClick={() => onOpen(i.id)} className={`block max-w-full truncate rounded text-left font-grotesk text-[15px] font-medium text-ink hover:underline ${FOCUS_RING}`}>
                       {inquiryTitle(i)}
                     </button>
                     <small className="block truncate font-grotesk text-xs text-[var(--ink-50)]">
@@ -386,6 +389,24 @@ function FollowUps({ props, rows }: { props: OverviewViewProps; rows: NeedsRow[]
           </ul>
         </>
       )}
+
+      {owner && snoozed.length > 0 && (
+        <ul aria-label="Snoozed" className="m-0 mt-2 list-none border-t border-[var(--bg-line)] p-0 pt-1 opacity-60">
+          {snoozed.slice(0, TOP_ROWS).map(({ inquiry: i }) => (
+            <li key={i.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-0.5 py-2 pl-4 pr-1">
+              <div className="min-w-0">
+                <button type="button" data-row-id={i.id} onClick={() => onOpen(i.id)} className={`flex min-h-[44px] max-w-full items-center rounded text-left font-grotesk text-[14.5px] text-ink hover:underline ${FOCUS_RING}`}>
+                  <span className="truncate">{inquiryTitle(i)}</span>
+                </button>
+                <small className="block font-grotesk text-xs text-[var(--ink-72)]">{snoozedLabel(i.snoozed_until!, today)}</small>
+              </div>
+              {managers.find((m) => m.id === i.owner_id)?.name && (
+                <span className="inline-block rounded-full bg-[var(--accent-soft)] px-2.5 py-0.5 font-grotesk text-[11.5px] text-[var(--accent-ink)]">{managers.find((m) => m.id === i.owner_id)?.name}</span>
+              )}
+            </li>
+          ))}
+        </ul>
+      )}
     </section>
   )
 }
@@ -396,15 +417,17 @@ function FollowUps({ props, rows }: { props: OverviewViewProps; rows: NeedsRow[]
  * move above the follow-ups. Right-column content (next shows, activity, managers) lives elsewhere.
  */
 export default function OverviewView(props: OverviewViewProps) {
-  const { inquiries, waiting, managerFilter } = props
+  const { inquiries, waiting, managerFilter, snoozed = [] } = props
   const filtered = useMemo(() => (managerFilter ? inquiries.filter((i) => i.owner_id === managerFilter) : inquiries), [inquiries, managerFilter])
   const rows = useMemo(() => (managerFilter ? waiting.filter((r) => r.inquiry.owner_id === managerFilter) : waiting), [waiting, managerFilter])
+
+  const snoozedRows = useMemo(() => (managerFilter ? snoozed.filter((r) => r.inquiry.owner_id === managerFilter) : snoozed), [snoozed, managerFilter])
 
   return (
     <div className="flex flex-col gap-3">
       <Tiles props={props} filtered={filtered} waiting={rows} />
       <div className="lg:order-last">
-        <FollowUps props={props} rows={rows} />
+        <FollowUps props={props} rows={rows} snoozed={snoozedRows} />
       </div>
       <Charts filtered={filtered} today={props.today} owner={props.role === 'owner'} />
     </div>
