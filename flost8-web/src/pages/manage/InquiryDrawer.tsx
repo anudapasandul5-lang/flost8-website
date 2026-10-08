@@ -157,8 +157,8 @@ export default function InquiryDrawer({
     setBusy('takeover')
     try {
       await takeOverInquiry(inquiry.id)
-      notify({ kind: 'ok', text: 'You can now edit this event here' })
       onChanged()
+      onEdit()
     } catch (err) {
       notify({ kind: 'error', text: friendlyError(err) })
     } finally {
@@ -248,7 +248,7 @@ export default function InquiryDrawer({
               )}
               {canTakeOver && (
                 <button type="button" disabled={busy !== null} onClick={() => setAskTakeOver(true)} className={`${BTN_GHOST} mt-2 w-full border-[var(--accent-line)] text-ink`}>
-                  {busy === 'takeover' ? 'Switching…' : 'Edit here instead'}
+                  {busy === 'takeover' ? 'Switching…' : 'Edit event'}
                 </button>
               )}
             </div>
@@ -479,7 +479,7 @@ export default function InquiryDrawer({
 
       {askTakeOver && (
         <ConfirmDialog
-          title="EDIT THIS EVENT HERE?"
+          title="EDIT THIS EVENT?"
           body={
             <>
               <span className="block">{inquiryTitle(inquiry)} becomes a normal event in this app. Only this one event stops syncing from the sheet.</span>
@@ -487,7 +487,7 @@ export default function InquiryDrawer({
               <span className="mt-2 block font-medium text-ink">This cannot be switched back.</span>
             </>
           }
-          confirmLabel="Edit here"
+          confirmLabel="Edit event"
           onConfirm={() => void takeOver()}
           onCancel={() => setAskTakeOver(false)}
         />
