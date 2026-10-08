@@ -1,4 +1,4 @@
-import type { Currency, Inquiry } from './types'
+import type { Currency, Inquiry, Money } from './types'
 
 export function formatAmount(n: number | null | undefined, currency: Currency): string {
   if (n === null || n === undefined || Number.isNaN(n)) return '-'
@@ -39,4 +39,11 @@ export function parseAmountInput(raw: string): number | null | undefined {
   if (t === '') return null
   const n = Number(t)
   return Number.isFinite(n) ? n : undefined
+}
+
+/** The money row after the balance is settled: the deposit becomes the full amount and nothing is owed. null when nothing is owed. */
+export function paidInFull(m: Money): Money | null {
+  const owed = m.balance ?? 0
+  if (owed <= 0) return null
+  return { ...m, advance: m.fee ?? (m.advance ?? 0) + owed, balance: 0, balance_note: null }
 }

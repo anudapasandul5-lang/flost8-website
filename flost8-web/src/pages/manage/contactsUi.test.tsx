@@ -1,7 +1,7 @@
 import { cleanup, fireEvent, render, screen, waitFor, within } from '@testing-library/react'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Contact, ContactStats, Reminder } from '../../lib/manage/contacts'
-import { KASUNI, OWNER } from '../../lib/manage/testFixtures'
+import { KASUNI, makeInquiry, OWNER } from '../../lib/manage/testFixtures'
 import ContactPicker from './ContactPicker'
 import ContactsView from './ContactsView'
 import FollowUpsPanel from './FollowUpsPanel'
@@ -178,5 +178,16 @@ describe('TodayView', () => {
     render(<TodayView {...base} quiet={[contact({ name: 'Hotel Lakeside' })]} />)
     expect(screen.queryByText(/All clear/)).toBeNull()
     expect(screen.getByText('Hotel Lakeside')).toBeTruthy()
+  })
+  it('Payments pending offers Mark paid only where the viewer may change the money', () => {
+    const inq = makeInquiry({ id: 'p1', event_name: 'Atmosphere', status: 'booking_confirmed', event_date: '2026-10-20', money: { currency: 'LKR', fee: 150000, advance: 0, balance: 150000, balance_note: null, total: null, booking_fee: null } })
+    const payments = [{ inquiry: inq, amount: 150000, currency: 'LKR' as const, overdue: false }]
+    const onMarkPaid = vi.fn()
+    const { unmount } = render(<TodayView {...base} payments={payments} canMarkPaid={() => true} onMarkPaid={onMarkPaid} />)
+    fireEvent.click(screen.getByRole('button', { name: /Mark Atmosphere paid/ }))
+    expect(onMarkPaid).toHaveBeenCalledWith(expect.objectContaining({ id: 'p1' }))
+    unmount()
+    render(<TodayView {...base} payments={payments} canMarkPaid={() => false} onMarkPaid={onMarkPaid} />)
+    expect(screen.queryByRole('button', { name: /Mark Atmosphere paid/ })).toBeNull()
   })
 })

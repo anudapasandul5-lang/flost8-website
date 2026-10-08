@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { formatAmount, parseAmountInput, totalsByCurrency } from './money'
+import { formatAmount, paidInFull, parseAmountInput, totalsByCurrency } from './money'
 import { makeInquiry } from './testFixtures'
 import type { Money } from './types'
 
@@ -47,5 +47,20 @@ describe('parseAmountInput', () => {
     expect(parseAmountInput('')).toBeNull()
     expect(parseAmountInput(' 1,500 ')).toBe(1500)
     expect(parseAmountInput('abc')).toBeUndefined()
+  })
+})
+
+describe('paidInFull', () => {
+  it('sets the deposit to the full quote and clears the balance and its note', () => {
+    expect(paidInFull(money({ fee: 150000, advance: 50000, balance: 100000, balance_note: 'POSTPONED' }))).toEqual(
+      money({ fee: 150000, advance: 150000, balance: 0, balance_note: null }),
+    )
+  })
+  it('without a quote, the deposit becomes everything paid plus owed', () => {
+    expect(paidInFull(money({ advance: 20000, balance: 30000 }))?.advance).toBe(50000)
+  })
+  it('returns null when nothing is owed', () => {
+    expect(paidInFull(money({ fee: 100, advance: 100, balance: 0 }))).toBeNull()
+    expect(paidInFull(money({ fee: 100 }))).toBeNull()
   })
 })
