@@ -271,7 +271,7 @@ export default function Roster() {
                       ? {}
                       : {
                           scale: isActive || isMobile ? 1 : 0.9,
-                          opacity: isActive || isMobile ? 1 : 0.5,
+                          opacity: isActive || isMobile ? 1 : 0.85,
                         }
                   }
                   transition={reduce ? { duration: 0 } : { ...SPRING }}
@@ -295,7 +295,14 @@ export default function Roster() {
                     alt={artist.name}
                     loading="lazy"
                     decoding="async"
-                    style={{ objectPosition: artist.focal ?? 'center' }}
+                    style={{
+                      objectPosition: artist.focal ?? 'center',
+                      // Roster-only lift: the shared grade-portrait rest state (78% brightness)
+                      // under 50% card opacity sank the darker 7/28 portraits into black.
+                      ...(isActive || isMobile
+                        ? {}
+                        : { filter: 'grayscale(0.15) brightness(1.1) contrast(1.05) saturate(1)' }),
+                    }}
                     className={`grade-portrait absolute inset-0 h-full w-full object-cover ${isActive || isMobile ? 'is-active' : ''}`}
                     onError={(e) => {
                       const el = e.currentTarget;
