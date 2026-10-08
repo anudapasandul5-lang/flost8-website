@@ -1,4 +1,4 @@
--- FLOST8 /manage: fixes for the 2026-10-08 security audit leads (Batch A). NOT APPLIED. Needs Anuda's explicit OK.
+-- FLOST8 /manage: fixes for the 2026-10-08 security audit leads (Batch A). APPLIED to the live DB 2026-10-08 (Anuda said "apply").
 -- Proofs: supabase/proofs/audit_batch_a.proof.mjs (fails on 001-013, passes with this file).
 --
 --   1. Unowned inquiries. can_edit let ANY caller through when an inquiry had no owner (even a manager whose link was removed),
