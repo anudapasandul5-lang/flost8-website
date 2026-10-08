@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useLayoutEffect, useRef } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, useNavigationType } from 'react-router-dom'
 import { ReactLenis, useLenis } from 'lenis/react'
 import TopNav from './components/nav/TopNav'
+import ConsentBanner from './components/ui/ConsentBanner'
 import MainPage from './pages/MainPage'
 import BookingsPage from './pages/BookingsPage'
 import NotFound from './pages/NotFound'
@@ -109,6 +110,7 @@ export default function App() {
         </a>
         <ScrollRestorer />
         <SiteChrome />
+        <ConsentBanner />
         <Suspense fallback={<div className="bg-base min-h-[100dvh]" />}>
           <Routes>
             <Route path="/" element={<MainPage />} />

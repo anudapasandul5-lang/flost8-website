@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { InstagramLogo, YoutubeLogo, FacebookLogo, TiktokLogo } from '@phosphor-icons/react'
+import { OPEN_SETTINGS_EVENT, POSTHOG_KEY } from '../../lib/analytics'
 
 const socialLinks = [
   { label: 'Instagram', href: 'https://www.instagram.com/flost8.lk/', Icon: InstagramLogo },
@@ -111,6 +112,18 @@ export default function Footer() {
         </div>
         <p className="text-center font-grotesk text-sm text-[var(--ink-32)]">
           © 2026 FLOST8. All rights reserved. · flost8.lk
+          {POSTHOG_KEY && (
+            <>
+              {' · '}
+              <button
+                type="button"
+                onClick={() => window.dispatchEvent(new Event(OPEN_SETTINGS_EVENT))}
+                className="underline underline-offset-2 hover:text-ink"
+              >
+                Cookie settings
+              </button>
+            </>
+          )}
         </p>
       </div>
     </footer>

@@ -6,6 +6,7 @@ import { useMotionSafe } from '../hooks/useMotionSafe'
 import { BOOKING_API_URL, CONTACT_EMAIL, TURNSTILE_SITE_KEY } from '../lib/config'
 import { fadeUp, staggerParent } from '../lib/motion'
 import { errorsFromApi } from '../lib/bookingContract'
+import { track } from '../lib/analytics'
 import Turnstile from './Turnstile'
 
 /** Superset field shape covering both the intake and booking contracts. */
@@ -140,8 +141,10 @@ export default function FormRenderer({
       }
 
       setSubmitted(true)
+      track('form_submitted', { form: title })
     } catch (err) {
       console.error('form submit failed', err)
+      track('form_failed', { form: title })
       setSubmitError(true)
       window.turnstile?.reset?.()
       setTurnstileToken('')
