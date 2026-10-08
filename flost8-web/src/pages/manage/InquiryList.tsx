@@ -1,7 +1,8 @@
 import { useState } from 'react'
-import { Warning } from '@phosphor-icons/react'
+import { CaretDown, CaretRight, Warning } from '@phosphor-icons/react'
 import { formatDate } from '../../lib/manage/calendar'
 import { artistNames, inquiryTitle } from '../../lib/manage/labels'
+import { groupInquiries, type MonthGroup } from '../../lib/manage/listGroups'
 import { formatAmount } from '../../lib/manage/money'
 import { isSnoozed, snoozedLabel } from '../../lib/manage/snooze'
 import { canSetStatus } from '../../lib/manage/rowActions'
@@ -67,6 +68,7 @@ export default function InquiryList({
   onClear: () => void
 }) {
   const [picked, setPicked] = useState<ReadonlySet<string>>(new Set())
+  const [expanded, setExpanded] = useState<Record<string, boolean>>({})
   const actions: RowActions = { onDuplicate, onSetStatus, onSnooze, today }
   // Ticks for rows that have left the list (a filter changed) must not be acted on.
   const ticked = items.filter((i) => picked.has(i.id) && canSetStatus(i, me)).map((i) => i.id)
@@ -92,71 +94,143 @@ export default function InquiryList({
       </div>
     )
 
+  const thisYear = today.slice(0, 4)
+  const groups = groupInquiries(items, today)
+  // Upcoming months and the first month on the list start open; older past months start folded.
+  const isOpen = (g: MonthGroup, idx: number) => expanded[g.key] ?? (g.side === 'upcoming' || idx === 0)
+  const SIDE_LABEL = { upcoming: 'Upcoming', past: 'Past', undated: 'No date yet' } as const
+
+  const badges = (i: Inquiry) => (
+    <div className="flex shrink-0 flex-col items-end gap-1.5">
+      <StatusBadge status={i.status} />
+      {isSnoozed(i, today) && <span className="font-grotesk text-[12px] text-[var(--ink-50)]">{snoozedLabel(i.snoozed_until!, today)}</span>}
+      {i.source === 'manual' && (
+        <span className="hidden rounded-full border border-[var(--accent-line)] px-2 py-0.5 font-grotesk text-[11.5px] text-[var(--accent-ink)] sm:inline">Added in app</span>
+      )}
+      {conflicts.has(i.id) && (
+        <span className="inline-flex items-center gap-1 font-grotesk text-[12px] text-[#FCD34D]">
+          <Warning size={14} weight="fill" aria-hidden="true" />
+          Double booked
+        </span>
+      )}
+      {i.money && i.money.fee !== null && i.money.fee !== undefined && (
+        <span className="font-grotesk text-[13px] tabular-nums text-[var(--ink-72)]">{formatAmount(i.money.fee, i.money.currency)}</span>
+      )}
+    </div>
+  )
+
+  const checkbox = (i: Inquiry, label: string) =>
+    canSetStatus(i, me) ? (
+      <label className="grid h-12 w-11 shrink-0 cursor-pointer place-items-center pl-1">
+        <input type="checkbox" checked={picked.has(i.id)} onChange={() => toggle(i.id)} aria-label={`Select ${label}`} className="h-5 w-5 accent-[#9D14FF]" />
+      </label>
+    ) : (
+      <span aria-hidden="true" className="w-3 shrink-0" />
+    )
+
+  const menu = (i: Inquiry) => <RowMenu items={[...commonRowItems(i, me, managers, actions), { label: 'Open details', onClick: () => onOpen(i.id) }]} />
+  const placeOf = (i: Inquiry) => [i.venue, i.city].filter(Boolean).join(', ')
+  const CARD = 'rounded-2xl border border-[var(--bg-line)] bg-[var(--bg-raise)] transition hover:border-[var(--accent-line)]'
+
   return (
     <>
-    <ul className="space-y-2">
-      {items.map((i, n) => {
-        // Upcoming years come first, then past ones; a section label changes when the year or the upcoming/past side changes.
-        const section = (x: Inquiry | undefined) => (x?.event_date ? `${x.event_date < today ? 'Past · ' : ''}${x.event_date.slice(0, 4)}` : undefined)
-        const year = section(i)
-        const prev = n > 0 ? section(items[n - 1]) : undefined
-        const place = [i.venue, i.city].filter(Boolean).join(', ')
-        const fee = i.money?.fee
-        const selectable = canSetStatus(i, me)
-        return (
-          <li key={i.id}>
-            {year && year !== prev && (
-              <h3 className={`mb-2 font-display text-2xl leading-none ${n > 0 ? 'mt-5' : ''} ${year.endsWith(today.slice(0, 4)) ? 'text-ink' : 'text-[#FCD34D]'}`}>{year}</h3>
-            )}
-            <div className="flex items-center gap-1 rounded-2xl border border-[var(--bg-line)] bg-[var(--bg-raise)] pr-2 transition hover:border-[var(--accent-line)]">
-              {selectable ? (
-                <label className="grid h-12 w-11 shrink-0 cursor-pointer place-items-center pl-1">
-                  <input
-                    type="checkbox"
-                    checked={picked.has(i.id)}
-                    onChange={() => toggle(i.id)}
-                    aria-label={`Select ${inquiryTitle(i)}`}
-                    className="h-5 w-5 accent-[#9D14FF]"
-                  />
-                </label>
-              ) : (
-                <span aria-hidden="true" className="w-3 shrink-0" />
+      <div className="space-y-3">
+        {groups.map((g, idx) => {
+          const open = isOpen(g, idx)
+          const otherYear = g.side !== 'undated' && !g.key.includes(`-${thisYear}-`)
+          const sideHeading = g.side !== groups[idx - 1]?.side
+          return (
+            <section key={g.key} aria-label={`${g.label}, ${g.side}`}>
+              {sideHeading && (
+                <h3 className={`mb-2 font-grotesk text-[12px] font-medium uppercase tracking-[0.14em] text-[var(--ink-50)] ${idx > 0 ? 'mt-6' : ''}`}>{SIDE_LABEL[g.side]}</h3>
               )}
-            <button
-              type="button"
-              data-row-id={i.id}
-              onClick={() => onOpen(i.id)}
-              className={`flex min-h-[72px] min-w-0 flex-1 items-center gap-3 rounded-2xl py-3 pr-1 text-left active:scale-[0.99] ${FOCUS_RING}`}
-            >
-              <DateBlock date={i.event_date} thisYear={Number(today.slice(0, 4))} />
-              <div className="min-w-0 flex-1">
-                <p className="line-clamp-2 break-words font-grotesk text-[1.0625rem] font-medium leading-snug text-ink">{inquiryTitle(i)}</p>
-                <p className="truncate font-grotesk text-sm text-[var(--ink-72)]">{artistNames(i.artists, artists) || 'No artist yet'}</p>
-                {place && <p className="truncate font-grotesk text-[13px] text-[var(--ink-50)]">{place}</p>}
-              </div>
-              <div className="flex shrink-0 flex-col items-end gap-1.5">
-                <StatusBadge status={i.status} />
-                {isSnoozed(i, today) && <span className="font-grotesk text-[12px] text-[var(--ink-50)]">{snoozedLabel(i.snoozed_until!, today)}</span>}
-                {i.source === 'manual' && (
-                  <span className="rounded-full border border-[var(--accent-line)] px-2 py-0.5 font-grotesk text-[11.5px] text-[var(--accent-ink)]">Added in app</span>
+              <button
+                type="button"
+                aria-expanded={open}
+                onClick={() => setExpanded((e) => ({ ...e, [g.key]: !open }))}
+                className={`flex w-full items-center gap-2 rounded-xl border border-[var(--bg-line)] bg-[var(--bg-raise)]/60 px-3 py-2.5 text-left ${FOCUS_RING}`}
+              >
+                {open ? (
+                  <CaretDown size={16} aria-hidden="true" className="shrink-0 text-[var(--ink-50)]" />
+                ) : (
+                  <CaretRight size={16} aria-hidden="true" className="shrink-0 text-[var(--ink-50)]" />
                 )}
-                {conflicts.has(i.id) && (
-                  <span className="inline-flex items-center gap-1 font-grotesk text-[12px] text-[#FCD34D]">
-                    <Warning size={14} weight="fill" aria-hidden="true" />
-                    Double booked
-                  </span>
-                )}
-                {i.money && fee !== null && fee !== undefined && (
-                  <span className="font-grotesk text-[13px] tabular-nums text-[var(--ink-72)]">{formatAmount(fee, i.money.currency)}</span>
-                )}
-              </div>
-            </button>
-              <RowMenu items={[...commonRowItems(i, me, managers, actions), { label: 'Open details', onClick: () => onOpen(i.id) }]} />
-            </div>
-          </li>
-        )
-      })}
-    </ul>
+                <span className={`font-display text-xl leading-none ${otherYear ? 'text-[#FCD34D]' : 'text-ink'}`}>{g.label}</span>
+                <span className="font-grotesk text-sm text-[var(--ink-72)]">
+                  {g.showCount} {g.showCount === 1 ? 'show' : 'shows'}
+                  {g.fee && (
+                    <>
+                      {' · '}
+                      <span className="tabular-nums">{formatAmount(g.fee.total, g.fee.currency)}</span>
+                    </>
+                  )}
+                </span>
+              </button>
+              {open && (
+                <ul className="mt-2 space-y-2">
+                  {g.shows.map((s) => {
+                    const first = s.items[0]
+                    if (s.items.length === 1)
+                      return (
+                        <li key={s.key}>
+                          <div className={`flex items-center gap-1 pr-2 ${CARD}`}>
+                            {checkbox(first, inquiryTitle(first))}
+                            <button
+                              type="button"
+                              data-row-id={first.id}
+                              onClick={() => onOpen(first.id)}
+                              className={`flex min-h-[72px] min-w-0 flex-1 items-center gap-3 rounded-2xl py-3 pr-1 text-left active:scale-[0.99] ${FOCUS_RING}`}
+                            >
+                              <DateBlock date={first.event_date} thisYear={Number(thisYear)} />
+                              <div className="min-w-0 flex-1">
+                                <p className="line-clamp-2 break-words font-grotesk text-[1.0625rem] font-medium leading-snug text-ink">{inquiryTitle(first)}</p>
+                                <p className="truncate font-grotesk text-sm text-[var(--ink-72)]">{artistNames(first.artists, artists) || 'No artist yet'}</p>
+                                {placeOf(first) && <p className="truncate font-grotesk text-[13px] text-[var(--ink-50)]">{placeOf(first)}</p>}
+                              </div>
+                              {badges(first)}
+                            </button>
+                            {menu(first)}
+                          </div>
+                        </li>
+                      )
+                    // Joint show: one card, a tappable line per artist so every row keeps its own status, fee and menu.
+                    return (
+                      <li key={s.key}>
+                        <div className={`${CARD} pb-1`}>
+                          <div className="flex items-center gap-3 px-3 pb-2 pt-3">
+                            <DateBlock date={first.event_date} thisYear={Number(thisYear)} />
+                            <div className="min-w-0 flex-1">
+                              <p className="line-clamp-2 break-words font-grotesk text-[1.0625rem] font-medium leading-snug text-ink">{inquiryTitle(first)}</p>
+                              {placeOf(first) && <p className="truncate font-grotesk text-[13px] text-[var(--ink-50)]">{placeOf(first)}</p>}
+                            </div>
+                          </div>
+                          <ul className="divide-y divide-[var(--bg-line)] border-t border-[var(--bg-line)]">
+                            {s.items.map((i) => (
+                              <li key={i.id} className="flex items-center gap-1 pr-2">
+                                {checkbox(i, `${inquiryTitle(i)}, ${artistNames(i.artists, artists) || 'no artist'}`)}
+                                <button
+                                  type="button"
+                                  data-row-id={i.id}
+                                  onClick={() => onOpen(i.id)}
+                                  className={`flex min-h-[56px] min-w-0 flex-1 items-center gap-3 rounded-xl py-2 pr-1 text-left ${FOCUS_RING}`}
+                                >
+                                  <p className="min-w-0 flex-1 truncate font-grotesk text-[1rem] text-ink">{artistNames(i.artists, artists) || 'No artist yet'}</p>
+                                  {badges(i)}
+                                </button>
+                                {menu(i)}
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      </li>
+                    )
+                  })}
+                </ul>
+              )}
+            </section>
+          )
+        })}
+      </div>
     {ticked.length > 0 && (
       <div role="region" aria-label="Selected inquiries" className="sticky bottom-[calc(4.5rem+env(safe-area-inset-bottom))] z-20 mt-4 flex flex-wrap items-center gap-2 rounded-2xl border border-[var(--accent-line)] bg-[#241433] p-2 pl-4 shadow-[0_8px_30px_rgba(10,4,14,0.6)] lg:bottom-4">
         <span className="mr-auto font-grotesk text-[15px] text-ink" aria-live="polite">{ticked.length} selected</span>
