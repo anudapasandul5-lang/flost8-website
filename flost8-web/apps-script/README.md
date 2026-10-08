@@ -160,6 +160,9 @@ only, same as the email `ROUTE` map above.
 
 - **Turnstile (spam) check** is stubbed off in `functions/api/script.ts`. Enable it
   by setting `TURNSTILE_SECRET` and uncommenting the block there once you have keys.
+- **Block direct posts (optional):** set the same random string in both places, then
+  redeploy. Cloudflare Pages env var `APPS_SCRIPT_PROXY_SECRET` and Apps Script Script
+  property `PROXY_SECRET`. Unset on both = open, as before.
 - **Upcoming shows (read):** `doGet` reads the `Shows` tab (see above), sorts by date
   ascending, and returns `{ events: [...] }`. Empty/missing tab → empty list.
 - **Dedup** (same submission or show twice) is not implemented — add if duplicates

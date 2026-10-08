@@ -278,6 +278,12 @@ function generateLeadId() {
 
 // ─── Block 11: writeBookingRow ────────────────────────────────────────────────
 
+// Same as the modern Code.gs: a value starting with = + - @ is stored as literal text.
+function safeCell_(v) {
+  var s = String(v == null ? '' : v).trim();
+  return /^[=+\-@]/.test(s) ? "'" + s : s;
+}
+
 function writeBookingRow(body, leadId) {
   var ss = SpreadsheetApp.openById(
     PropertiesService.getScriptProperties().getProperty('BOOKINGS_SHEET_ID')
@@ -285,17 +291,17 @@ function writeBookingRow(body, leadId) {
   var ts = Utilities.formatDate(new Date(), 'Asia/Colombo', 'yyyy-MM-dd HH:mm:ss');
   ss.getSheetByName('Bookings').appendRow([
     leadId, ts, 'site', '2-Qualified', 'skip',
-    String(body.artist || 'any'),
-    String(body.event_date || ''),
-    String(body.venue || ''),
-    String(body.city || ''),
-    String(body.event_type || ''),
+    safeCell_(body.artist || 'any'),
+    safeCell_(body.event_date),
+    safeCell_(body.venue),
+    safeCell_(body.city),
+    safeCell_(body.event_type),
     parseFloat(body.set_duration_h) || 0,
-    String(body.organizer_name || ''),
-    String(body.direct_number || ''),
-    String(body.organizer_email || ''),
-    String(body.other_artists || 'TBD'),
-    String(body.console_setup || ''),
+    safeCell_(body.organizer_name),
+    safeCell_(body.direct_number),
+    safeCell_(body.organizer_email),
+    safeCell_(body.other_artists || 'TBD'),
+    safeCell_(body.console_setup),
     '', ''  // owner notes, quote status
   ]);
 }
@@ -371,8 +377,8 @@ function logEmailRetry(body, leadId, err) {
   if (!sheet) sheet = ss.insertSheet('email_retry');
   sheet.appendRow([
     new Date().toISOString(), leadId, 'owner+booker',
-    String(body.organizer_email), JSON.stringify(body),
-    String(err), 0, '', 'pending'
+    safeCell_(body.organizer_email), JSON.stringify(body),
+    safeCell_(err), 0, '', 'pending'
   ]);
 }
 

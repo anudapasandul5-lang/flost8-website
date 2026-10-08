@@ -48,7 +48,7 @@ var SUBJECT = {
 };
 
 // Fields never shown in the email body / sheet.
-var SKIP_FIELDS = { type: true, token: true };
+var SKIP_FIELDS = { type: true, token: true, secret: true };
 
 // --- Shows admin -----------------------------------------------------------
 var SHOWS_TAB = 'Shows';
@@ -65,6 +65,13 @@ function doPost(e) {
     // public ("Anyone"), so the Function's password check alone is bypassable.
     if (payload.action && ADMIN_ACTIONS[payload.action]) {
       return handleAdmin(payload);
+    }
+
+    // Public forms must come through the Pages proxy when PROXY_SECRET is set
+    // (see README). Unset = open, as before.
+    var proxySecret = PropertiesService.getScriptProperties().getProperty('PROXY_SECRET');
+    if (proxySecret && String(payload.secret) !== proxySecret) {
+      return json({ ok: false, errors: [{ message: 'Unauthorized' }] });
     }
 
     var type = String(payload.type || 'booking');
@@ -315,13 +322,13 @@ function logToSheet(type, payload) {
 
   // Write a header row the first time the tab is used.
   if (sheet.getLastRow() === 0) {
-    sheet.appendRow(['timestamp'].concat(keys));
+    sheet.appendRow(['timestamp'].concat(keys.map(safeCell_)));
   }
 
   var headerRow = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
   var row = headerRow.map(function (h) {
     if (h === 'timestamp') return new Date();
-    return payload[h] != null ? payload[h] : '';
+    return safeCell_(payload[h] != null ? payload[h] : '');
   });
   sheet.appendRow(row);
 }
