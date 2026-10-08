@@ -72,6 +72,8 @@ async function publish(id: string, me: Manager, api: ReturnType<typeof backend>)
     if (claim.phase === 'adding') throw new Failure('A previous website add has an uncertain result. Ask the owner to reconcile it before retrying.', 409)
     const row = await api.event(id)
     if (row && me.role !== 'owner' && row.owner_id !== me.id) throw new Failure('Forbidden', 403)
+    // The owner may set a hold between the first check and here; re-check now that the claim is held.
+    if (row?.no_auto_publish) return 'held_back'
     const artists = row ? await api.db<Artist[]>('artists?select=slug,name,manager_id') : []
     const map = (event: EventRow | undefined) => event ? toShow({ ...event, artists: [...(event.inquiry_artists ?? [])].sort((a, b) => a.position - b.position).map(a => a.artist_slug) }, artists) : null
     const desired = map(row)

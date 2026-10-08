@@ -3,6 +3,8 @@ import { MAX_BODY_BYTES, saveInquiry, type IntakeEnv } from './_intake'
 interface Env extends IntakeEnv {
   APPS_SCRIPT_URL: string
   TURNSTILE_SECRET?: string
+  // Opt-in. Must equal the Apps Script Script property PROXY_SECRET.
+  APPS_SCRIPT_PROXY_SECRET?: string
 }
 
 export const onRequest = async (context: {
@@ -80,10 +82,21 @@ export const onRequest = async (context: {
       }
     }
 
+    // Opt-in proof that the post came through this proxy (Apps Script checks PROXY_SECRET).
+    // Only the forwarded copy carries it; the Supabase mirror below still parses the original body.
+    let forwardBody = body
+    if (env.APPS_SCRIPT_PROXY_SECRET) {
+      try {
+        forwardBody = JSON.stringify({ ...JSON.parse(body), secret: env.APPS_SCRIPT_PROXY_SECRET })
+      } catch {
+        // unparseable: forwarded as-is, Apps Script rejects it
+      }
+    }
+
     const upstream = await fetch(env.APPS_SCRIPT_URL, {
       method: 'POST',
       headers: { 'content-type': 'text/plain;charset=utf-8' },
-      body,
+      body: forwardBody,
       redirect: 'follow',
     })
 

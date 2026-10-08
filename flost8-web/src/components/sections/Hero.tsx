@@ -135,7 +135,7 @@ export default function Hero() {
         >
           <h1
             aria-label="NOT AN AGENCY. A MOVEMENT."
-            className="font-display text-[52px] leading-[0.92] text-ink sm:text-[62px] md:text-[80px] lg:text-[94px]"
+            className="font-display text-[56px] leading-[0.92] text-ink sm:text-[68px] md:text-[92px] lg:text-[108px]"
           >
             <span ref={line1Ref}>NOT AN AGENCY.</span>
             <br />

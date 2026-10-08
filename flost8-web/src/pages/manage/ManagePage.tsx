@@ -56,7 +56,8 @@ export default function ManagePage() {
   }, [authError])
 
   if (session.loading) return <LoadingScreen />
-  if (session.session) return <SignedIn userId={session.session.user.id} />
+  // keyed so an in-place account change starts a fresh workspace instead of showing the previous manager's loaded data
+  if (session.session) return <SignedIn key={session.session.user.id} userId={session.session.user.id} />
   if (authError)
     return (
       <AccessDenied
