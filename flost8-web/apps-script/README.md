@@ -75,9 +75,11 @@ protects the sheet — the password check at the Function is a first gate.
    rule on `/api/admin` (e.g. 10 requests / minute / IP) to blunt password guessing.
 
 The `Shows` tab and its `id` column are created automatically on the first add —
-no manual sheet setup. Columns: `id, date, time, venue, city, artist, artist_display`.
-The date should be `YYYY-MM-DD`; `artist` is the roster slug, `artist_display` the
-display name (both set from the dropdown).
+no manual sheet setup. Columns: `id, date, time, venue, city, artist, artist_display,
+ticket_link`. The date should be `YYYY-MM-DD`; `artist` is the roster slug,
+`artist_display` the display name (both set from the dropdown). `ticket_link` is
+optional — when set, the whole Upcoming Shows card on the homepage links straight
+to it.
 
 **Testing the admin page locally:** it only works under `wrangler pages dev`
 (with `ADMIN_PASSWORD` + `ADMIN_SECRET` + `APPS_SCRIPT_URL` in `.dev.vars`, and the

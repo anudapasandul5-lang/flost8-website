@@ -52,7 +52,7 @@ var SKIP_FIELDS = { type: true, token: true };
 
 // --- Shows admin -----------------------------------------------------------
 var SHOWS_TAB = 'Shows';
-var SHOWS_HEADERS = ['id', 'date', 'time', 'venue', 'city', 'artist', 'artist_display'];
+var SHOWS_HEADERS = ['id', 'date', 'time', 'venue', 'city', 'artist', 'artist_display', 'ticket_link'];
 var ADMIN_ACTIONS = { listShows: true, addShow: true, updateShow: true, deleteShow: true };
 
 // --- POST: a form was submitted, OR an admin manages shows ------------------
@@ -180,6 +180,10 @@ function getShowsSheet_() {
       for (var i = 0; i < n; i++) ids.push([Utilities.getUuid()]);
       sheet.getRange(2, 1, n, 1).setValues(ids);
     }
+    header = showsHeader_(sheet);
+  }
+  if (header.indexOf('ticket_link') === -1) {
+    sheet.getRange(1, header.length + 1).setValue('ticket_link');
   }
   forceTextColumns_(sheet);
   return sheet;
@@ -284,6 +288,7 @@ function normalizeShow_(show) {
     city: trim_(show.city),
     artist: trim_(show.artist),
     artist_display: trim_(show.artist_display),
+    ticket_link: trim_(show.ticket_link),
   };
   if (!out.date || !out.venue || !out.city || !out.artist_display) {
     throw 'Missing required field';
