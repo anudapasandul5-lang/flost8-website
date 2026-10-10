@@ -36,7 +36,7 @@ th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-al
 th{background:var(--soft)}
 a:focus-visible,summary:focus-visible{outline:3px solid var(--accent-ink);outline-offset:2px}
 @media (max-width:480px){body{font-size:19px}h1{font-size:34px}h2{font-size:27px}}
-@media print{body{background:#fff;color:#000}.card,nav.toc{background:#fff}strong,h1,h2{color:#000}}
+@media print{body{background:#fff;color:#000;font-size:14px}table{font-size:14px}.card{background:#fff}nav.toc{display:none}strong,h1,h2{color:#000}h2,h3{break-after:avoid}figure,.table,tr{break-inside:avoid}img{max-height:6in;width:auto;max-width:100%}}
 </style>
 </head>
 <body>
@@ -54,9 +54,9 @@ a:focus-visible,summary:focus-visible{outline:3px solid var(--accent-ink);outlin
 <p>If you see <strong>NO ACCESS YET</strong>, that Google account is not on the list. Ask Anuda to add your email.</p>
 <p><strong>The 5 things you do every day.</strong></p>
 <ol><li>Open <strong>Today</strong>. It is your first screen.</li><li>Tap <strong>Done</strong> on any <strong>Follow-ups due</strong> that you finished.</li><li>Clear <strong>Needs you</strong>: tap the big button on each card (WhatsApp, or <strong>Chased today</strong>).</li><li>After a call, open the contact and write a note under <strong>LOG A TOUCH</strong>. Set a reminder if you need one.</li><li>Tap <strong>Add event</strong> when you get a new booking.</li></ol>
-<figure><img src="screens/mgr-today-phone.webp" alt="Today on a phone" loading="lazy"></figure>
+<figure><img src="screens/mgr-today-desktop.webp" alt="Today" loading="lazy"></figure>
 <p><strong>Three things to know.</strong></p>
-<ul><li>Most taps can be undone for 5 seconds. Look for <strong>Undo</strong> at the bottom.</li><li>Rows marked <strong>From sheet</strong> come from your Google Sheet. Change them in the sheet, not here.</li><li>The app never sends a WhatsApp message by itself. It opens WhatsApp and you press send.</li></ul>
+<ul><li>Most taps can be undone for 5 seconds. Look for <strong>Undo</strong> at the bottom.</li><li>Rows marked <strong>From sheet</strong> come from your Google Sheet. Change them in the sheet, or tap <strong>Edit event</strong> on that one row to move it into the app (section 13).</li><li>The app never sends a WhatsApp message by itself. It opens WhatsApp and you press send.</li></ul>
 </section>
 <h2 id="1-sign-in-and-move-around">1. Sign in and move around</h2>
 <p><strong>What it is for.</strong> Get in, and know where things are.</p>
@@ -81,15 +81,15 @@ a:focus-visible,summary:focus-visible{outline:3px solid var(--accent-ink);outlin
 <p>Then one big button:</p>
 <ul><li><strong>Reply on WhatsApp</strong> or <strong>Chase on WhatsApp</strong>: opens the WhatsApp window with ready messages (see section 8).</li><li><strong>Chased today</strong>: tap it after you followed up on a quote. The card goes away.</li></ul>
 <p>The <strong>three dots</strong> button has more. You only see the ones that fit that card: <strong>Call</strong>, <strong>Chased today</strong>, <strong>Mark reached out</strong>, <strong>Mark paid</strong>, <strong>Set status</strong>, <strong>Snooze</strong>, <strong>Duplicate</strong>, <strong>Open details</strong>.</p>
-<figure><img src="screens/mgr-row-menu-phone.webp" alt="Row menu on a phone" loading="lazy"></figure>
+<figure><img src="screens/mgr-row-menu-desktop.webp" alt="Row menu" loading="lazy"></figure>
 <p><strong>Chased today</strong>, <strong>Mark reached out</strong>, <strong>Mark paid</strong>, <strong>Set status</strong> and <strong>Snooze</strong> can be undone for 5 seconds. Tap <strong>Undo</strong> at the bottom.</p>
 <p>A <strong>Tentative</strong> date never shows here. Past dates never show here. A card leaves the list when you act on it (a comment, a status change, or a button above).</p>
-<p><strong>If it goes wrong.</strong> <strong>You can view this but not change it</strong> means that event is not yours, or it is a sheet row.</p>
+<p><strong>If it goes wrong.</strong> <strong>You can view this but not change it</strong> means that event is not yours, or it is a sheet row you have not moved into the app (section 13).</p>
 <h2 id="4-add-an-event">4. Add an event</h2>
 <p><strong>What it is for.</strong> Put a booking you took yourself into the app.</p>
 <p><strong>What to tap.</strong></p>
 <ol><li>Tap <strong>Add event</strong>. (On a laptop you can press <strong>N</strong>.)</li><li>Tap your artist.</li><li>Pick the <strong>Date</strong>.</li><li>Type an <strong>Event name</strong> or a <strong>Venue</strong>. You need at least one.</li><li>Check the <strong>Status</strong>. It starts as <strong>Booked</strong>.</li><li>In <strong>Organizer</strong>, start typing the name. Tap the match in the list. The phone, email, city and more fill in. (Or tap <strong>Add "name" as a new contact</strong>.)</li><li>Tap <strong>Add event</strong>.</li></ol>
-<figure><img src="screens/mgr-add-event-phone.webp" alt="Add event on a phone" loading="lazy"></figure>
+<figure><img src="screens/mgr-add-event-desktop.webp" alt="Add event" loading="lazy"></figure>
 <p><strong>What you will see.</strong> Before you save, the window says <strong>Will be added to your list.</strong> After you tap <strong>Add event</strong>, the new event opens. Events with the status <strong>Booked</strong> or <strong>Deposit paid</strong> are also sent to the website's Upcoming Shows list.</p>
 <p>You can also fill <strong>Set time</strong>, <strong>City</strong>, <strong>Ticket link</strong>, <strong>Fee</strong> and <strong>Currency</strong>.</p>
 <p><strong>If it goes wrong.</strong></p>
@@ -98,19 +98,19 @@ a:focus-visible,summary:focus-visible{outline:3px solid var(--accent-ink);outlin
 <h2 id="5-contacts">5. Contacts</h2>
 <p><strong>What it is for.</strong> Keep every organizer and venue person in one place.</p>
 <p><strong>What to tap.</strong> Tap <strong>Contacts</strong>.</p>
-<figure><img src="screens/mgr-contacts-phone.webp" alt="Contacts on a phone" loading="lazy"></figure>
+<figure><img src="screens/mgr-contacts-desktop.webp" alt="Contacts" loading="lazy"></figure>
 <p><strong>What you will see.</strong></p>
 <ul><li>A search box (name, phone, email, venue).</li><li>Filters: <strong>All types, Client, Venue, Promoter, Artist, Supplier, Sponsor</strong>. And <strong>Any stage, Lead, Active, Past, Dormant</strong>. And <strong>Only mine</strong>.</li><li><strong>New contact</strong> button.</li><li>Each row has a <strong>WhatsApp</strong> and a <strong>Call</strong> button.</li></ul>
 <p>You can see every contact. For each contact you only see the bookings you are allowed to open.</p>
 <p><strong>Add a contact.</strong> Tap <strong>New contact</strong>. Fill in the form. Save.</p>
 <p><strong>Merge two entries for the same person.</strong> In <strong>Contacts</strong>, tap <strong>Merge duplicates</strong>. Tap <strong>Review and merge</strong> on a pair. Pick the one to keep. Tap <strong>Merge</strong>. For 20 seconds you can tap <strong>Undo</strong>. Later, open the kept contact, tap <strong>Show change history</strong>, then <strong>Undo this merge</strong>.</p>
-<p><strong>Delete a contact.</strong> Open it and tap <strong>Move to Trash</strong>. Nothing is erased on its own. After 30 days old ones can be cleared out for good, so restore it before then if you want it back. Get it back with <strong>Contacts</strong>, then <strong>Trash</strong>, then <strong>Restore</strong>.</p>
+<p><strong>Delete a contact.</strong> Open it and tap <strong>Move to Trash</strong>. Nothing is erased on its own. After 30 days old ones can be cleared out for good, so restore it before then if you want it back. Get it back with <strong>Contacts</strong>, then <strong>Trash</strong>, then <strong>Restore</strong>. Only Anuda can erase a contact for good.</p>
 <p><strong>If it goes wrong.</strong> If you see <strong>Contacts could not be loaded, so the lists below may look empty.</strong>, tap <strong>Try again</strong>.</p>
 <h2 id="6-notes-call-log-and-reminders">6. Notes, call log and reminders</h2>
 <p><strong>What it is for.</strong> Remember what was said, and when to call back.</p>
 <p><strong>What to tap.</strong></p>
 <ol><li>Open a contact (tap the name).</li><li>Under <strong>LOG A TOUCH</strong>, pick <strong>Call</strong>, <strong>WhatsApp</strong>, <strong>Note</strong>, <strong>Meeting</strong> or <strong>Email</strong>.</li><li>Type what was said in <strong>What was said</strong>.</li><li>Optional: under <strong>Remind me</strong>, pick <strong>Tomorrow</strong>, <strong>In 3 days</strong>, <strong>Next week</strong> or <strong>Pick a date</strong>.</li><li>Tap <strong>Save</strong>.</li></ol>
-<figure><img src="screens/mgr-contact-card-phone.webp" alt="Contact card on a phone" loading="lazy"></figure>
+<figure><img src="screens/mgr-contact-card-desktop.webp" alt="Contact card" loading="lazy"></figure>
 <p><strong>What you will see.</strong> The note shows under <strong>TIMELINE</strong> with your name and the time. If you set a reminder, it shows under <strong>FOLLOW-UPS</strong>. You can <strong>Delete</strong> your own notes.</p>
 <p><strong>Reminder only.</strong> Under <strong>FOLLOW-UPS</strong>, pick a day, type what to follow up on, and tap <strong>Set reminder</strong>.</p>
 <p><strong>When it is due.</strong> It shows in <strong>FOLLOW-UPS DUE</strong> on <strong>Today</strong>. Late ones are red. Tap <strong>Done</strong> when finished.</p>
@@ -118,15 +118,16 @@ a:focus-visible,summary:focus-visible{outline:3px solid var(--accent-ink);outlin
 <h2 id="7-all-inquiries-and-filters">7. All inquiries and filters</h2>
 <p><strong>What it is for.</strong> Find any of your events.</p>
 <p><strong>What to tap.</strong> Tap <strong>All inquiries</strong>.</p>
-<p><strong>What you will see.</strong> A list of your artists' events, split by year. The bar at the top shows how many, and the money totals you may see.</p>
+<p><strong>What you will see.</strong> A list split into <strong>Upcoming</strong>, <strong>Past</strong> and <strong>No date yet</strong>. Inside each, there is one bar per month, for example <strong>NOV 2026</strong>, with the number of shows and the total fee you may see. Tap a month bar to open or fold it. Upcoming months start open. Older past months start folded, so tap them to look back. A year that is not this year shows in yellow.</p>
+<p>Each show is a card with the date, name, artist, place and status. When two or more of your artists play the same show on the same day, they share one card, with one line per artist. Each line keeps its own status, fee and <strong>three dots</strong> menu. The bar at the top shows how many, and the money totals you may see.</p>
 <p><strong>Filters:</strong> the search box, the artist drop-down, <strong>All dates / Upcoming / Past</strong>, and status buttons: <strong>All, New, Reached out, Quote sent, Tentative, Deposit paid, Booked, Lost, Spam</strong>.</p>
-<figure><img src="screens/mgr-all-phone.webp" alt="All inquiries on a phone" loading="lazy"></figure>
+<figure><img src="screens/mgr-all-desktop.webp" alt="All inquiries" loading="lazy"></figure>
 <p><strong>If it goes wrong.</strong> <strong>Nothing matches these filters.</strong> Tap <strong>Show everyone's inquiries</strong>, or loosen the filters.</p>
 <h2 id="8-whatsapp-templates">8. WhatsApp templates</h2>
 <p><strong>What it is for.</strong> Send a ready-made message in a few taps.</p>
 <p><strong>What to tap.</strong></p>
 <ol><li>Tap the <strong>WhatsApp</strong> button on a contact or on a card.</li><li>Pick a language if there is more than one.</li><li>Tap a template. The message fills in with the name, date and venue.</li><li>Change the words if you like.</li><li>Tap <strong>Open WhatsApp</strong>. WhatsApp opens with the message typed. Press send there.</li></ol>
-<figure><img src="screens/mgr-whatsapp-phone.webp" alt="WhatsApp window on a phone" loading="lazy"></figure>
+<figure><img src="screens/mgr-whatsapp-desktop.webp" alt="WhatsApp window" loading="lazy"></figure>
 <p>You can also tap <strong>Copy</strong>. If <strong>Add to their timeline when I open WhatsApp</strong> is ticked, the app writes a note on the contact.</p>
 <p><strong>Make or change templates.</strong> In <strong>Contacts</strong>, tap <strong>Message templates</strong>. Tap <strong>New template</strong>. Give it a title, a language and a message. You can type <code>{name}</code>, <code>{date}</code>, <code>{venue}</code>, <code>{event}</code> and <code>{me}</code>. They fill in by themselves. <strong>Archive</strong> hides one. <strong>Restore</strong> brings it back. Everyone shares the same templates.</p>
 <p><strong>If it goes wrong.</strong> <strong>There is no usable phone number yet</strong> means the contact has no usable number. Add one.</p>
@@ -154,15 +155,21 @@ a:focus-visible,summary:focus-visible{outline:3px solid var(--accent-ink);outlin
 <p><strong>What it is for.</strong> Move an event forward, or close it.</p>
 <p><strong>Way one.</strong> Tap the <strong>three dots</strong> on the row, tap <strong>Set status</strong>, tap the new status. You get 5 seconds to <strong>Undo</strong>.</p>
 <p><strong>Way two.</strong> Open the event. Tap a status button. A <strong>Tentative</strong> event also has <strong>Confirm booking</strong>.</p>
-<p>You cannot change the status of a <strong>From sheet</strong> row. Change it in the sheet.</p>
+<p>You cannot change the status of a <strong>From sheet</strong> row. Change it in the sheet, or move that one event into the app first (section 13).</p>
 <h2 id="13-what-you-cannot-see-or-do">13. What you cannot see or do</h2>
-<ul><li>You cannot see other managers' bookings. You see events for your own artists, including shared shows where one of your artists plays.</li><li>You cannot see money for events that are not yours. You will see <strong>Money details are private to the artist's manager.</strong></li><li>You cannot edit, delete or bulk change a <strong>From sheet</strong> row.</li><li>You cannot change an event that belongs to another manager. You can open it and read it.</li><li>You cannot delete events you did not add in the app.</li><li>Only Anuda can release an event that is held back from the website.</li><li>Only Anuda sees the team buttons, <strong>Resync website</strong> and <strong>Nudge</strong>.</li></ul>
-<p>What you can do with a sheet row: open it, read it, call or WhatsApp the organizer, add a comment, link a contact, snooze it, and tap <strong>Edit in sheet</strong> to open your sheet. The app copies your sheet every 15 minutes.</p>
+<ul><li>You cannot see other managers' bookings. You see events for your own artists, including shared shows where one of your artists plays.</li><li>You cannot see money for events that are not yours. You will see <strong>Money details are private to the artist's manager.</strong></li><li>You cannot edit or bulk change a <strong>From sheet</strong> row, unless you first move that one event into the app with <strong>Edit event</strong> (below).</li><li>You cannot change an event that belongs to another manager. You can open it and read it.</li><li>You cannot delete events that belong to another manager. You can delete your own events, whatever their source.</li><li>You cannot delete a contact for good. Only Anuda can.</li><li>Only Anuda can release an event that is held back from the website.</li><li>Only Anuda sees the team buttons, <strong>Resync website</strong> and <strong>Nudge</strong>.</li></ul>
+<p>What you can do with a sheet row as it is: open it, read it, call or WhatsApp the organizer, add a comment, link a contact, snooze it, delete it, and tap <strong>Edit in sheet</strong> to open your sheet. The app copies your sheet every 15 minutes.</p>
+<p><strong>Edit one sheet event in the app.</strong></p>
+<ol><li>Open the event. The yellow note at the top says it is from your sheet.</li><li>Tap <strong>Edit event</strong>.</li><li>A window <strong>EDIT THIS EVENT?</strong> explains what happens. Read it. Tap <strong>Edit event</strong> again to go on.</li><li>The event turns into a normal app event and the edit form opens.</li></ol>
+<p>What changes: only this one event stops syncing from your sheet. Changes in the sheet no longer show here, and changes here do not reach the sheet. It is held back from the public Upcoming Shows list until Anuda releases it. <strong>This cannot be switched back.</strong> If you later change that row's date or name in the sheet, it can show up here again as a new event. If that happens, delete the extra one. You see <strong>Edit event</strong> only on events from your own sheet.</p>
+<p><strong>Delete an event.</strong></p>
+<ol><li>Open the event and scroll to the bottom.</li><li>Tap <strong>Delete event</strong>.</li><li>Read the window <strong>DELETE EVENT?</strong> Tap <strong>Delete event</strong> to confirm.</li></ol>
+<p>This works on your own events from any source: added in the app, from the website form (for example a test or spam enquiry), or from your sheet. The event, its comments and its money details are gone for good. <strong>There is no Undo.</strong> For a sheet event, the app remembers it and does not bring it back. The row stays in your Google Sheet until you remove it there. If you change that row's date or name in the sheet later, it can come back as a new event.</p>
 <h2 id="14-keyboard-shortcuts-laptop">14. Keyboard shortcuts (laptop)</h2>
 <div class="table"><table><thead><tr><th>Key</th><th>What it does</th></tr></thead><tbody><tr><td><strong>/</strong></td><td>Jumps to the search box (on <strong>All inquiries</strong> and <strong>Calendar</strong>)</td></tr><tr><td><strong>N</strong></td><td>Opens <strong>Add event</strong></td></tr><tr><td><strong>Up</strong> and <strong>Down arrows</strong></td><td>Move from row to row</td></tr><tr><td><strong>Enter</strong></td><td>Opens the row you are on</td></tr><tr><td><strong>Esc</strong></td><td>Closes a window or a menu</td></tr></tbody></table></div>
 <p>They do not work while you are typing in a box, or while a menu or window is open. If an arrow key does nothing, click on an empty part of the page first.</p>
 <h2 id="troubleshooting">Troubleshooting</h2>
-<ul><li><strong>NO ACCESS YET.</strong> That Google account is not on the list. Ask Anuda.</li><li><strong>You can view this but not change it.</strong> It is a sheet row, or it belongs to someone else. This also shows as <strong>not allowed</strong> after a bulk action.</li><li><strong>Not allowed (in a bulk message).</strong> That row is not yours. The rest were done.</li><li><strong>Saved, but the website list was not updated.</strong> Your event is safe. Tap <strong>Retry</strong>. If it keeps failing, tell Anuda.</li><li><strong>Could not reach the server. Check your internet and try again.</strong> Check your internet. Try again.</li><li><strong>Something went wrong. Please try again.</strong> Try again. If it keeps happening, tell Anuda.</li><li><strong>A row is missing.</strong> Check the filters. It may be snoozed, or marked Lost or Spam.</li><li><strong>No WhatsApp button on a contact.</strong> The contact has no usable phone number.</li><li><strong>I tapped by mistake.</strong> Tap <strong>Undo</strong> within 5 seconds.</li></ul>
+<ul><li><strong>NO ACCESS YET.</strong> That Google account is not on the list. Ask Anuda.</li><li><strong>You can view this but not change it.</strong> It is a sheet row you have not moved into the app (section 13), or it belongs to someone else. This also shows as <strong>not allowed</strong> after a bulk action.</li><li><strong>Not allowed (in a bulk message).</strong> That row is not yours. The rest were done.</li><li><strong>Saved, but the website list was not updated.</strong> Your event is safe. Tap <strong>Retry</strong>. If it keeps failing, tell Anuda.</li><li><strong>Could not reach the server. Check your internet and try again.</strong> Check your internet. Try again.</li><li><strong>Something went wrong. Please try again.</strong> Try again. If it keeps happening, tell Anuda.</li><li><strong>A row is missing.</strong> Check the filters. It may be snoozed, or marked Lost or Spam.</li><li><strong>No WhatsApp button on a contact.</strong> The contact has no usable phone number.</li><li><strong>I tapped by mistake.</strong> Tap <strong>Undo</strong> within 5 seconds. Deleting an event and <strong>Edit event</strong> on a sheet row have no Undo.</li><li><strong>A deleted event came back.</strong> It was a sheet row and its date or name was changed in the sheet. Delete it again. If it keeps coming back, tell Anuda.</li></ul>
 <h2 id="glossary">Glossary</h2>
 <ul><li><strong>Needs you.</strong> The list of events that wait for you: a reply, a quote follow-up, or money.</li><li><strong>Team follow-ups.</strong> What Anuda sees instead of <strong>Needs you</strong>. It shows everyone's.</li><li><strong>Sheet row.</strong> An event copied in from your Google Sheet. It has a <strong>From sheet</strong> tag.</li><li><strong>Snooze.</strong> Hide a card until a day you pick.</li><li><strong>Hold back.</strong> Keep an event off the website. Only Anuda can release it.</li><li><strong>Trash.</strong> Where deleted contacts wait. You can restore them. They can be cleared out for good after 30 days.</li><li><strong>Merge.</strong> Join two entries for the same person into one contact.</li><li><strong>Gone quiet.</strong> A person who booked before and has not been in touch for over 90 days.</li></ul>
 </main>

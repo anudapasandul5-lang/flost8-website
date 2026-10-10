@@ -28,7 +28,7 @@ If you see **NO ACCESS YET**, that Google account is not on the list. Use the ac
 
 **Three things to know.**
 - Most taps can be undone for 5 seconds. Look for the **Undo** button at the bottom.
-- Rows marked **From sheet** cannot be changed here yet. Change them in the sheet.
+- Rows marked **From sheet** are read-only. To change one, change it in the sheet, or tap **Edit event** on that one row to move it into the app (section 17).
 - Only you and the manager who looks after an artist can see the money for that artist.
 
 ---
@@ -112,7 +112,9 @@ At the very top you may see **TEAM FOLLOW-UPS DUE**. These are reminders that ma
 
 **What to tap.** Tap **All inquiries**.
 
-**What you will see.** A list, split by year. Each row shows the date, name, artist, place, status, and money if you may see it. A bar at the top shows how many there are and the money totals.
+**What you will see.** A list split into **Upcoming**, **Past** and **No date yet**. Inside each, there is one bar per month, for example **NOV 2026**, with the number of shows and the total fee. Tap a month bar to open or fold it. Upcoming months start open. Older past months start folded, so tap them to look back. A year that is not this year shows in yellow.
+
+Each show is a card with the date, name, artist, place, status, and money if you may see it. When two or more of your artists play the same show on the same day, they share one card, with one line per artist. Each line keeps its own status, fee and **three dots** menu. A bar at the top shows how many there are and the money totals.
 
 **Filters** (all stay as you left them):
 - **My artists** or **Everyone's** (you will want **Everyone's**).
@@ -166,17 +168,17 @@ On a laptop, a free day also shows a small **+** button when you point at it.
 
 **What you will see.** Before you save, the window says who will own it (the manager of that artist). After you tap **Add event**, the event opens.
 
-**To edit.** Open the event. Tap **Edit event**. This works for events added in the app. Sheet rows cannot be edited here. In the event you can also:
+**To edit.** Open the event. Tap **Edit event**. This works for events added in the app. A **From sheet** event shows **Edit event** inside the yellow note at the top. Tap it and read the warning first (section 17). In the event you can also:
 - Add **Notes**, **Travel notes**, a **Contract link**, and switch **Contract signed**.
 - Add money details.
 - **Add a comment**.
-- **Delete event** (only for events added in the app, and it asks first).
+- **Delete event** at the very bottom. It works on any event: added in the app, from the website form, or from a sheet. It always asks first, and it cannot be undone (section 17b).
 
 **If it goes wrong.**
 - **Pick at least one artist.** Tap an artist button.
 - **Pick the event date.** Fill the date.
 - **Add an event name or a venue.** Type one.
-- **You can view this but not change it.** This is a sheet row, or it is not yours.
+- **You can view this but not change it.** This is a sheet row that you have not moved into the app yet (section 17), or it is not yours.
 
 ---
 
@@ -195,7 +197,7 @@ You get 5 seconds to tap **Undo**.
 
 **Way two, inside the event.** Open the row. Tap a status button. A **Tentative** event also has a **Confirm booking** button.
 
-**If it goes wrong.** There is no **Set status** on a **From sheet** row. That is on purpose (see section 17).
+**If it goes wrong.** There is no **Set status** on a **From sheet** row. That is on purpose. Move that one event into the app first with **Edit event** (see section 17).
 
 ---
 
@@ -318,6 +320,8 @@ The kept contact gets all phone numbers, emails, notes and bookings. Nothing is 
 
 ![Trash](screens/owner-trash-desktop.webp)
 
+**Delete forever (owner only).** In **Trash**, a contact has a red **Delete forever** button next to **Restore**. Tap it and the window **DELETE FOR GOOD?** opens. If you confirm, the contact and their notes, history and reminders are erased. Events linked to them stay, with no contact. **This cannot be undone.** The button is not shown for a contact that other contacts were merged into. Managers do not see this button.
+
 **If it goes wrong.** If you see **Contacts could not be loaded, so the lists below may look empty.**, tap **Try again**.
 
 ---
@@ -402,21 +406,50 @@ Only you can read these numbers. The managers cannot.
 
 ---
 
-## 17. Sheet rows (and why you cannot edit them yet)
+## 17. Sheet rows: read, move into the app, or delete
 
 **What it is.** Kasuni and Nirbheeth keep Google Sheets. Every 15 minutes the app copies each sheet row in. The row shows a **From sheet** tag.
 
-**What you can do with a sheet row.**
+**What you can do with a sheet row, as it is.**
 - Open it and read it.
 - Call or WhatsApp the organizer.
 - Add a comment.
 - Link it to a contact.
 - Snooze it.
 - Tap **Edit in sheet** to open the sheet.
+- Delete it (section 17b).
 
-**What you cannot do.** Change the status, edit it, delete it, or bulk change it.
+**What you cannot do, as it is.** Change the status, edit it, or bulk change it. The next copy from the sheet would overwrite your change within 15 minutes.
 
-**Why.** The next copy from the sheet would overwrite your change within 15 minutes. So the app does not allow it. This will change in a later step, once your developer switches the copy off.
+### 17a. Edit one sheet event in the app
+
+Use this when you want to change a sheet event here, not in the sheet.
+
+1. Open the event. At the top is a yellow note: **From Kasuni's sheet.**
+2. Tap **Edit event**.
+3. A window **EDIT THIS EVENT?** explains what happens. Read it. Tap **Edit event** again to go on.
+4. The event turns into a normal app event and the edit form opens.
+
+**What changes.**
+- Only this one event stops syncing from the sheet. All other rows carry on as before.
+- Changes made in the sheet no longer show here. Changes made here do not reach the sheet.
+- It is **not** put on the public Upcoming Shows list by itself. It is held back. You can tap **Release to website** inside the event when you want it public.
+- **This cannot be switched back.**
+- If someone later changes that row's date or name in the sheet, the sheet row can show up here again as a new event. If that happens, delete the extra one.
+
+You see **Edit event** on every sheet event. A manager sees it only on events in their own sheet.
+
+### 17b. Delete an event
+
+1. Open the event and scroll to the bottom.
+2. Tap **Delete event**.
+3. Read the window **DELETE EVENT?** Tap **Delete event** to confirm.
+
+This works on any event: added in the app, from the website form (for example a test or spam enquiry), or from a sheet. The event, its comments and its money details are gone for good. **There is no Undo.**
+
+For a **From sheet** event, the app remembers it and does not bring it back. The row itself stays in the manager's Google Sheet until it is removed there. If someone edits that row's date or name in the sheet later, it can come back as a new event.
+
+A manager can delete only their own events. You can delete any.
 
 ---
 
@@ -436,24 +469,24 @@ They do not work while you are typing in a box, or while a menu or window is ope
 
 ## 19. Things only you can do (once)
 
-1. **Ask your developer to apply the two latest database updates** after reading them: number 12 (snooze and WhatsApp numbers) and number 13 (a privacy fix: contact counts no longer show one manager the other manager's shows). Until 12 is applied, Snooze and saved numbers will not work.
-2. **Add each manager's WhatsApp number** (section 15). Do this once.
-3. **Ask your developer to switch on website updates** if you want events to go to Upcoming Shows from the app.
-4. **A later step, not now:** switching off the sheet copy and moving the sheet rows into the app. When that is done, sheet rows become editable. Do not try to do this inside the app.
+1. **Add each manager's WhatsApp number** (section 15). Do this once.
+2. **Ask your developer to switch on website updates** if you want events to go to Upcoming Shows from the app.
+3. **A later step, not now:** switching off the sheet copy for good and moving all the sheet rows into the app in one go. Until then, use **Edit event** one event at a time (section 17a). Do not try the big move inside the app.
 
 ---
 
 ## Troubleshooting
 
 - **NO ACCESS YET.** That Google account is not on the list. Ask your developer to add it.
-- **You can view this but not change it.** It is a sheet row, or it belongs to someone else.
+- **You can view this but not change it.** It is a sheet row you have not moved into the app (section 17a), or it belongs to someone else.
 - **Could not reach the server. Check your internet and try again.** Check your internet. Try again.
 - **Something went wrong. Please try again.** Try again. If it keeps happening, tell your developer.
 - **A row is missing.** Check the filters. Check **Everyone's**. It may be snoozed, or marked Lost or Spam.
 - **Saved, but the website list was not updated.** Tap **Retry**.
 - **No Nudge button.** Add the manager's WhatsApp number first.
 - **No WhatsApp button on a contact.** The contact has no usable phone number.
-- **I tapped by mistake.** Tap **Undo** within 5 seconds.
+- **I tapped by mistake.** Tap **Undo** within 5 seconds. Deleting an event, **Delete forever** and **Edit event** on a sheet row have no Undo.
+- **A deleted event came back.** It was a sheet row and its date or name was changed in the sheet, so the app sees it as a new event. Delete it again.
 
 ---
 
@@ -463,7 +496,8 @@ They do not work while you are typing in a box, or while a menu or window is ope
 - **Sheet row.** An inquiry copied in from a manager's Google Sheet. It has a **From sheet** tag.
 - **Snooze.** Hide a row from the follow-up lists until a day you pick.
 - **Hold back.** Keep an event off the website. Only the owner can release it.
-- **Trash.** Where deleted contacts wait. You can restore them. They can be cleared out for good after 30 days.
+- **Trash.** Where deleted contacts wait. You can restore them. They can be cleared out for good after 30 days, or you can tap **Delete forever** (owner only).
+- **Edit event (on a sheet row).** Moves that one event out of the sheet sync and into the app, so you can change it here. It cannot be switched back.
 - **Merge.** Join two entries for the same person into one contact.
 - **Nudge.** A WhatsApp message to a manager about what is waiting.
 - **Booked ahead.** Booked shows that have not happened yet.

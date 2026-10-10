@@ -24,11 +24,11 @@ If you see **NO ACCESS YET**, that Google account is not on the list. Ask Anuda 
 4. After a call, open the contact and write a note under **LOG A TOUCH**. Set a reminder if you need one.
 5. Tap **Add event** when you get a new booking.
 
-![Today on a phone](screens/mgr-today-phone.webp)
+![Today](screens/mgr-today-desktop.webp)
 
 **Three things to know.**
 - Most taps can be undone for 5 seconds. Look for **Undo** at the bottom.
-- Rows marked **From sheet** come from your Google Sheet. Change them in the sheet, not here.
+- Rows marked **From sheet** come from your Google Sheet. Change them in the sheet, or tap **Edit event** on that one row to move it into the app (section 13).
 - The app never sends a WhatsApp message by itself. It opens WhatsApp and you press send.
 
 ---
@@ -90,13 +90,13 @@ Then one big button:
 
 The **three dots** button has more. You only see the ones that fit that card: **Call**, **Chased today**, **Mark reached out**, **Mark paid**, **Set status**, **Snooze**, **Duplicate**, **Open details**.
 
-![Row menu on a phone](screens/mgr-row-menu-phone.webp)
+![Row menu](screens/mgr-row-menu-desktop.webp)
 
 **Chased today**, **Mark reached out**, **Mark paid**, **Set status** and **Snooze** can be undone for 5 seconds. Tap **Undo** at the bottom.
 
 A **Tentative** date never shows here. Past dates never show here. A card leaves the list when you act on it (a comment, a status change, or a button above).
 
-**If it goes wrong.** **You can view this but not change it** means that event is not yours, or it is a sheet row.
+**If it goes wrong.** **You can view this but not change it** means that event is not yours, or it is a sheet row you have not moved into the app (section 13).
 
 ---
 
@@ -113,7 +113,7 @@ A **Tentative** date never shows here. Past dates never show here. A card leaves
 6. In **Organizer**, start typing the name. Tap the match in the list. The phone, email, city and more fill in. (Or tap **Add "name" as a new contact**.)
 7. Tap **Add event**.
 
-![Add event on a phone](screens/mgr-add-event-phone.webp)
+![Add event](screens/mgr-add-event-desktop.webp)
 
 **What you will see.** Before you save, the window says **Will be added to your list.** After you tap **Add event**, the new event opens. Events with the status **Booked** or **Deposit paid** are also sent to the website's Upcoming Shows list.
 
@@ -135,7 +135,7 @@ You can also fill **Set time**, **City**, **Ticket link**, **Fee** and **Currenc
 
 **What to tap.** Tap **Contacts**.
 
-![Contacts on a phone](screens/mgr-contacts-phone.webp)
+![Contacts](screens/mgr-contacts-desktop.webp)
 
 **What you will see.**
 - A search box (name, phone, email, venue).
@@ -149,7 +149,7 @@ You can see every contact. For each contact you only see the bookings you are al
 
 **Merge two entries for the same person.** In **Contacts**, tap **Merge duplicates**. Tap **Review and merge** on a pair. Pick the one to keep. Tap **Merge**. For 20 seconds you can tap **Undo**. Later, open the kept contact, tap **Show change history**, then **Undo this merge**.
 
-**Delete a contact.** Open it and tap **Move to Trash**. Nothing is erased on its own. After 30 days old ones can be cleared out for good, so restore it before then if you want it back. Get it back with **Contacts**, then **Trash**, then **Restore**.
+**Delete a contact.** Open it and tap **Move to Trash**. Nothing is erased on its own. After 30 days old ones can be cleared out for good, so restore it before then if you want it back. Get it back with **Contacts**, then **Trash**, then **Restore**. Only Anuda can erase a contact for good.
 
 **If it goes wrong.** If you see **Contacts could not be loaded, so the lists below may look empty.**, tap **Try again**.
 
@@ -166,7 +166,7 @@ You can see every contact. For each contact you only see the bookings you are al
 4. Optional: under **Remind me**, pick **Tomorrow**, **In 3 days**, **Next week** or **Pick a date**.
 5. Tap **Save**.
 
-![Contact card on a phone](screens/mgr-contact-card-phone.webp)
+![Contact card](screens/mgr-contact-card-desktop.webp)
 
 **What you will see.** The note shows under **TIMELINE** with your name and the time. If you set a reminder, it shows under **FOLLOW-UPS**. You can **Delete** your own notes.
 
@@ -184,11 +184,13 @@ You can see every contact. For each contact you only see the bookings you are al
 
 **What to tap.** Tap **All inquiries**.
 
-**What you will see.** A list of your artists' events, split by year. The bar at the top shows how many, and the money totals you may see.
+**What you will see.** A list split into **Upcoming**, **Past** and **No date yet**. Inside each, there is one bar per month, for example **NOV 2026**, with the number of shows and the total fee you may see. Tap a month bar to open or fold it. Upcoming months start open. Older past months start folded, so tap them to look back. A year that is not this year shows in yellow.
+
+Each show is a card with the date, name, artist, place and status. When two or more of your artists play the same show on the same day, they share one card, with one line per artist. Each line keeps its own status, fee and **three dots** menu. The bar at the top shows how many, and the money totals you may see.
 
 **Filters:** the search box, the artist drop-down, **All dates / Upcoming / Past**, and status buttons: **All, New, Reached out, Quote sent, Tentative, Deposit paid, Booked, Lost, Spam**.
 
-![All inquiries on a phone](screens/mgr-all-phone.webp)
+![All inquiries](screens/mgr-all-desktop.webp)
 
 **If it goes wrong.** **Nothing matches these filters.** Tap **Show everyone's inquiries**, or loosen the filters.
 
@@ -205,7 +207,7 @@ You can see every contact. For each contact you only see the bookings you are al
 4. Change the words if you like.
 5. Tap **Open WhatsApp**. WhatsApp opens with the message typed. Press send there.
 
-![WhatsApp window on a phone](screens/mgr-whatsapp-phone.webp)
+![WhatsApp window](screens/mgr-whatsapp-desktop.webp)
 
 You can also tap **Copy**. If **Add to their timeline when I open WhatsApp** is ticked, the app writes a note on the contact.
 
@@ -273,7 +275,7 @@ The **Add event** window opens already filled in. It copies your artists, name, 
 
 **Way two.** Open the event. Tap a status button. A **Tentative** event also has **Confirm booking**.
 
-You cannot change the status of a **From sheet** row. Change it in the sheet.
+You cannot change the status of a **From sheet** row. Change it in the sheet, or move that one event into the app first (section 13).
 
 ---
 
@@ -281,13 +283,29 @@ You cannot change the status of a **From sheet** row. Change it in the sheet.
 
 - You cannot see other managers' bookings. You see events for your own artists, including shared shows where one of your artists plays.
 - You cannot see money for events that are not yours. You will see **Money details are private to the artist's manager.**
-- You cannot edit, delete or bulk change a **From sheet** row.
+- You cannot edit or bulk change a **From sheet** row, unless you first move that one event into the app with **Edit event** (below).
 - You cannot change an event that belongs to another manager. You can open it and read it.
-- You cannot delete events you did not add in the app.
+- You cannot delete events that belong to another manager. You can delete your own events, whatever their source.
+- You cannot delete a contact for good. Only Anuda can.
 - Only Anuda can release an event that is held back from the website.
 - Only Anuda sees the team buttons, **Resync website** and **Nudge**.
 
-What you can do with a sheet row: open it, read it, call or WhatsApp the organizer, add a comment, link a contact, snooze it, and tap **Edit in sheet** to open your sheet. The app copies your sheet every 15 minutes.
+What you can do with a sheet row as it is: open it, read it, call or WhatsApp the organizer, add a comment, link a contact, snooze it, delete it, and tap **Edit in sheet** to open your sheet. The app copies your sheet every 15 minutes.
+
+**Edit one sheet event in the app.**
+1. Open the event. The yellow note at the top says it is from your sheet.
+2. Tap **Edit event**.
+3. A window **EDIT THIS EVENT?** explains what happens. Read it. Tap **Edit event** again to go on.
+4. The event turns into a normal app event and the edit form opens.
+
+What changes: only this one event stops syncing from your sheet. Changes in the sheet no longer show here, and changes here do not reach the sheet. It is held back from the public Upcoming Shows list until Anuda releases it. **This cannot be switched back.** If you later change that row's date or name in the sheet, it can show up here again as a new event. If that happens, delete the extra one. You see **Edit event** only on events from your own sheet.
+
+**Delete an event.**
+1. Open the event and scroll to the bottom.
+2. Tap **Delete event**.
+3. Read the window **DELETE EVENT?** Tap **Delete event** to confirm.
+
+This works on your own events from any source: added in the app, from the website form (for example a test or spam enquiry), or from your sheet. The event, its comments and its money details are gone for good. **There is no Undo.** For a sheet event, the app remembers it and does not bring it back. The row stays in your Google Sheet until you remove it there. If you change that row's date or name in the sheet later, it can come back as a new event.
 
 ---
 
@@ -308,14 +326,15 @@ They do not work while you are typing in a box, or while a menu or window is ope
 ## Troubleshooting
 
 - **NO ACCESS YET.** That Google account is not on the list. Ask Anuda.
-- **You can view this but not change it.** It is a sheet row, or it belongs to someone else. This also shows as **not allowed** after a bulk action.
+- **You can view this but not change it.** It is a sheet row you have not moved into the app (section 13), or it belongs to someone else. This also shows as **not allowed** after a bulk action.
 - **Not allowed (in a bulk message).** That row is not yours. The rest were done.
 - **Saved, but the website list was not updated.** Your event is safe. Tap **Retry**. If it keeps failing, tell Anuda.
 - **Could not reach the server. Check your internet and try again.** Check your internet. Try again.
 - **Something went wrong. Please try again.** Try again. If it keeps happening, tell Anuda.
 - **A row is missing.** Check the filters. It may be snoozed, or marked Lost or Spam.
 - **No WhatsApp button on a contact.** The contact has no usable phone number.
-- **I tapped by mistake.** Tap **Undo** within 5 seconds.
+- **I tapped by mistake.** Tap **Undo** within 5 seconds. Deleting an event and **Edit event** on a sheet row have no Undo.
+- **A deleted event came back.** It was a sheet row and its date or name was changed in the sheet. Delete it again. If it keeps coming back, tell Anuda.
 
 ---
 

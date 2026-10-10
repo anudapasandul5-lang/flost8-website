@@ -101,7 +101,7 @@ th,td{border:1px solid var(--line);padding:10px 12px;text-align:left;vertical-al
 th{background:var(--soft)}
 a:focus-visible,summary:focus-visible{outline:3px solid var(--accent-ink);outline-offset:2px}
 @media (max-width:480px){body{font-size:19px}h1{font-size:34px}h2{font-size:27px}}
-@media print{body{background:#fff;color:#000}.card,nav.toc{background:#fff}strong,h1,h2{color:#000}}
+@media print{body{background:#fff;color:#000;font-size:14px}table{font-size:14px}.card{background:#fff}nav.toc{display:none}strong,h1,h2{color:#000}h2,h3{break-after:avoid}figure,.table,tr{break-inside:avoid}img{max-height:6in;width:auto;max-width:100%}}
 `
 
 for (const g of GUIDES) {
